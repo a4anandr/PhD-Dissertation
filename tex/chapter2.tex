@@ -1,0 +1,86 @@
+\chapter{Differential TD learning} 
+\label{chap2_diff_td}
+The main goal of this chapter is to provide the mathematical foundations of the problem that is central to the applications we consider in this thesis.
+In \Section{langevin_diffusion}, a prerequisite introduction to the Langevin diffusion and its associated Poisson's equation is given. Sufficient motivation is provided as to why this equation is important to us. In \Section{diff_td_learning}, we derive the \textit{differential} TD learning algorithm that tries to approximate the gradient of the solution to Poisson's equation directly, which forms the major contribution in this chapter. 
+
+ %along the lines of the LSTD algorithm described in Section 11.5.2 in \cite{ctcn}
+
+\section{Langevin Diffusion and Poisson's equation}
+\label{langevin_diffusion}
+In this section, we introduce the \textit{Langevin diffusion} with only the requisite amount of detail. A more elaborate discussion is reserved for \Section{langevin_mcmc}, so that the motivation is not obfuscated by the \rd{minor} technical details. 
+
+The \textit{Langevin diffusion} may be regarded as  a $d$-dimensional gradient flow perturbed with ``noise'',  described by  the SDE,
+\begin{equation}
+\ud \process_t = \underbrace{- \nabla \pot(\process_t) \, \ud t}_{\text{drift}}+  \underbrace{\sqrt{2} \, \ud W_t}_{\text{diffusion}},
+\label{e:langevin_cts}
+\end{equation}
+where $\bfmW=\{W_t : t\ge 0\}$ is a standard Brownian motion on $\Re^d$. The potential function $U:\state \to \Re$ is continuously differentiable. 
+Under suitable regularity conditions, this diffusion is reversible and has a unique invariant density $\pr=e^{-\pot+\Lambda}$, where $\Lambda$ is a normalizing constant so that $\pr$ integrates to unity \cite{}. The SDE in \eqref{e:langevin_cts} can be thought of as composed of a deterministic \textit{drift} term and a stochastic \textit{diffusion} term. The intuition is that the drift term moves the process along the direction in which the density $\pr$ increases. In this sense, it is a \textit{biased} random walk. In practise, as simulating path solutions to this SDE are difficult, discretized versions of the equation based on Euler-Mauryama scheme are used, as given by,
+\begin{equation}
+\markovstate_n = \markovstate_{n-1} - \nabla U(\markovstate_{n-1}) \gamma_{n} + \sqrt{2  \gamma_{n-1}} W_{n-1} ,
+\label{e:langevin_discrete}
+\end{equation}
+where $\{\gamma_n\}_{n\geq 1}$ is a sequence of step sizes and $\{W_n\}_{n\geq 1}$ is a sequence of i.i.d. standard Gaussian random variables.  In this thesis, only implementations using a constant step size parameter $\gamma_{n} \equiv \gamma$ are considered. 
+ 
+% The Markov transition kernel of the diffusion process converges to a unique invariant density $\pr=e^{-\pot+\Lambda}$ in total variation \cite{robtwe96} or Wasserstein distance \cite{bolgengui11},  where $\Lambda$ is a normalizing constant so that $\pr$ integrates to unity. 
+% admits a strong solution $\{\markovstate_t\}_{t\geq0}$, 
+
+The Langevin diffusion is associated with a \textit{differential generator} $\generate$ (also called \textit{infinitesimal generator}), which is defined as,
+\begin{equation}
+\begin{aligned}
+\generate f &:= \lim_{t \to 0} \frac{\Expect [ f(\markovstate_t) - f(x) | \markovstate_0 = x]}{t} \\
+& = -\nabla \pot \cdot \nabla f + \Delta f,\qquad f\in C^2,
+\label{e:lang_generator}
+\end{aligned}
+\end{equation}
+where $\nabla$ denotes the gradient and $\Delta$ is the Laplacian. Let $c \colon \state \to \Re$ be a function of interest, and 
+\[
+\eta := \Expect_{X \sim \pr}[c(X)] =  \int c(x) \pr(x) dx = \langle c, 1 \rangle_{L^2}.
+\]
+A function $h\in C^2$ is said to be the solution to Poisson's equation with forcing function $c$ if
+\begin{equation}
+\generate h := - \tilc, \qquad  \tilc = c - \eta.
+\label{e:poissons}
+\end{equation}
+Additionally, $h$ can also be expressed in the following integral form:
+\[
+h(x) =\int_0^\infty \Expect[\tilc(\Phi_t)|\Phi_0 = x] dt,
+\]
+where $h(x)$ can be interpreted as the infinite-horizon expected normalized cost with the initial state $x$. 
+
+The existence of a solution $h$ in a weak sense holds under very weak assumptions on $\pot$ and $c$  \cite{glymey96a,konmey12a}.   Representations for the gradient of $h$ and bounds are obtained in \cite{laumehmeyrag15,devkonmey17b}.   The existence of  a  smooth solution $h\in C^2$ has been established under stronger conditions in \cite{parver01}, subject to growth conditions on $c$ similar to those used in  \cite{glymey96a}. 
+
+The function $h$ plays an important role in each of the applications we consider. In the feedback particle filter (FPF), the \textit{innovations gain} function $\kFPF$ is obtained as  the gradient of $h$ \cite{yanmehmey13}:
+\begin{equation}
+\kFPF (x) = \nabla h(x)\, ,  \quad x\in\state\, .
+\label{e:kfpfgain}
+\end{equation}
+The FPF is described in detail in \Chapter{}.
+
+In MCMC algorithms, the quantity of interest is the \textit{asymptotic variance}. In this context, $\pr$ is the target density, and $c$ is the function whose expectation needs to be computed. The expected value is approximated using the empirical mean $\eta_N$:
+\[ \eta_N := \frac{1}{N} \sum_{n=0}^{N-1} c\,(\markovstate_n),\]
+where $\markovstate_n$ is obtained by sampling from a Markov chain with invariant density $\pr$. One such Markov chain is the discretization in \eqref{e:langevin_discrete}, known as the unadjusted Langevin algorithm (ULA) or Langevin Monte Carlo (LMC) \cite{}. Under general conditions, the mean estimates will obey Central Limit Theorem (CLT) of the form
+\[
+\sqrt{N} \Bigl( \eta_N - \eta \Bigr) \overset{d}{\to} \normal(0,\asymvar ^2),
+\]
+and the convergence is in distribution. Here, $\asymvar^2$ denotes the asymptotic variance that has a representation in terms of $h$ \cite{glymey96a,MT,asmgly07}. More details about the application to MCMC algorithms is in \Chapter{}. 
+
+Computation of $h$ is typically intractable and hence, approximation techniques are required. Algorithms based on reinforcement learning provide a suitable solution. \Section{lstd_learning} provides a description of the least-squares TD (LSTD) learning algorithm, following the derivations given in Section 11.5.2 in \cite{ctcn}. The drawback of LSTD is that there are no algorithms that work well in high dimensions.
+% The following aspects of the approach are novel:
+%\begin{itemize}
+%	
+%	\item[$\bullet$] Applying the special structure for the Langevin diffusion, the introduction of a  \textit{differential} TD-learning algorithm that is far simpler than \cite{raddevmey16}. Extension to more general reversible Markov models are also provided.
+%	
+%	\item[$\bullet$]  The construction of a  loss function that is observable,  yet is equivalent to the mean-square error between the gradient of the function $h$ and its approximation.   This leads to a tractable formulation of the  minimum mean-square error approximation  as an application of empirical risk minimization (ERM).
+%	
+%	\item[$\bullet$]
+%	The solution of this ERM through recent extensions of reproducing kernel Hilbert space (RKHS) theory.
+%	\item[$\bullet$]
+%	Application of the approximation algorithm to the FPF and MCMC algorithms.
+%\end{itemize}
+%This approach provides significant advantages over existing approximation techniques.
+
+
+\section{Differential TD learning}
+\label{diff_td_learning}
+

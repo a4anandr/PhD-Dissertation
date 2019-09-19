@@ -1,0 +1,235 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newlength{\noteWidth}
+\setlength{\noteWidth}{.75in}
+\long\def\notes#1{\ifinner
+             {\tiny #1}
+             \else
+              \marginpar{\parbox[t]{\noteWidth}{\raggedright\tiny #1}}
+               \fi}
+
+\def\head#1{\noindent \textit{#1}\ }
+\def\spm#1{\notes{\textcolor{blue}{SPM: #1}}}
+\def\pgm#1{\notes{\textcolor{blue}{PGM: #1}}}
+\def\ty#1{\notes{\textcolor{blue}{TY:#1}}}
+\def\wham#1{\smallbreak\noindent\textbf{\textit{#1}}}
+
+\def\Ebox#1#2{%
+\centerline{\includegraphics[scale = #1]{#2}}}
+
+\def\IEEEQEDclosed{\mbox{\rule[0pt]{1.3ex}{1.3ex}}}
+
+\def\proofAlt#1{\subsubsection*{#1}}
+
+\def\qed{\ifmmode\IEEEQEDclosed\else{\unskip\nobreak\hfil
+\penalty50\hskip1em\null\nobreak\hfil\IEEEQEDclosed
+\parfillskip=0pt\finalhyphendemerits=0\endgraf}\fi}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% More definitions
+
+\def\rd#1{{\color{red}#1}}
+\def\bl#1{{\color{blue}#1}}
+
+%\input{symbols}
+
+%%%%%   Must redo bold for times font:
+
+ \DeclareBoldMathCommand{\bfmB}{B}
+ \DeclareBoldMathCommand{\bfmX}{X}
+
+ \DeclareBoldMathCommand{\bfmZ}{Z}
+
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\def\ud{\text{d}}  %Prashant insists on this
+
+%%%%%%%%%%%%%%%%%%%
+\def\tilc{\tilde c}
+\def\tile{\tilde e}
+\def\tilf{\tilde f}
+\def\tilg{\tilde g}
+\def\tilr{\tilde r}
+\def\tilv{\tilde v}
+\def\tilx{\tilde x}
+\def\tily{\tilde y}
+
+
+\def\rmd{\,\textmd{d}}
+%Caligraphy
+
+\def\clA{{\cal A}}
+\def\clB{{\cal B}}
+\def\clC{{\cal C}}
+\def\clD{{\cal D}}
+\def\clE{{\cal E}}
+\def\clF{{\cal F}}
+\def\clG{{\cal G}}
+\def\clH{{\cal H}}
+\def\clJ{{\cal J}}
+\def\clI{{\cal I}}
+\def\clK{{\cal K}}
+\def\clL{{\cal L}}
+\def\clM{{\cal M}}
+\def\clN{{\cal N}}
+\def\clO{{\cal O}}
+\def\clP{{\cal P}}
+\def\clQ{{\cal Q}}
+\def\clR{{\cal R}}
+\def\clS{{\cal S}}
+\def\clT{{\cal T}}
+\def\clU{{\cal U}}
+\def\clV{{\cal V}}
+\def\clW{{\cal W}}
+\def\clX{{\cal X}}
+\def\clY{{\cal Y}}
+\def\clZ{{\cal Z}}
+
+
+% 
+%tilde
+\def\tilc{\tilde c}
+\def\tile{\tilde e}
+\def\tilf{\tilde f}
+\def\tilg{\tilde g}
+\def\tilh{\tilde h}
+\def\tilr{\tilde r}
+\def\tilv{\tilde v}
+\def\tilx{\tilde x}
+\def\tily{\tilde y}
+\def\tileta{\tilde \eta}
+\def\tilM{\widetilde M}
+\def\tilz{\tilde z}
+\def\tilW{\widetilde W}
+
+%  Hat
+\def\hac{{\hat c}}
+\def\haf{{\hat f}}
+\def\hag{{\hat g}}
+\def\hah{{\hat h}}
+\def\hay{{\hat y}}
+\def\hav{\hat v}
+\def\barM{\overline M}
+\def\barb{\bar b}
+\def\haT{\widehat T}
+\def\haW{\widehat W}
+\def\haX{\widehat X}
+
+
+% 
+% bold
+\def\bfma{{\mbox{\protect\boldmath$a$}}}
+\def\bfmm{{\mbox{\protect\boldmath$m$}}}
+\def\bfmx{{\mbox{\protect\boldmath$x$}}}
+
+\def\bfmB{{\mbox{\protect\boldmath$B$}}}
+\def\bfmM{{\mbox{\protect\boldmath$M$}}}
+\def\bfmU{{\mbox{\protect\boldmath$U$}}}
+\def\bfmW{{\mbox{\protect\boldmath$W$}}}
+\def\bfmX{{\mbox{\protect\boldmath$X$}}}
+\def\bfmZ{{\mbox{\protect\boldmath$Z$}}}
+
+
+\def\bfdelta{{\mbox{\protect\boldmath$\delta$}}}
+\def\bfvarphi{\mbox{\boldmath$\varphi$}}
+\def\bfpsi{\mbox{\boldmath$\psi$}}
+\def\bfphi{\mbox{\boldmath$\phi$}}
+\def \bfpi {\mbox{\boldmath$\pi$}}
+\def\bfeta{\mbox{\boldmath$\eta$}}
+
+\def\bfPhi{\mbox{\protect\boldmath$\Phi$}}
+\def\bfPsi{\mbox{\protect\boldmath$\Psi$}}
+
+
+% 
+\def\half{{\mathchoice{\textstyle \frac{1}{2}}%
+		{\frac{1}{2}}%
+		{\hbox{\tiny $\frac{1}{2}$}}%
+		{\hbox{\tiny $\frac{1}{2}$}} }}
+
+% 
+\def\fourth{{\mathchoice{\textstyle \frac{1}{4}}%
+		{\frac{1}{4}}%
+		{\hbox{\tiny $\frac{1}{4}$}}%
+		{\hbox{\tiny $\frac{1}{4}$}} }}
+
+\def\grad{\nabla}
+\def\ddt{\frac{d}{dt}}
+
+\def\transpose{{\hbox{\tiny\it T}}}
+\def\epsy{\varepsilon}
+\def\varble{\,\cdot\,}
+\def\Prob{{\sf P}}
+\def\Probsub{{\sf P\! }}
+\def\Expect{{\sf E}}
+\renewcommand{\Re}{\mathbb{R}}
+\def\TT{\field{T}}
+\def\ZZ{\field{Z}}
+\def\intgr{\field{Z}}
+\def\nat{\field{Z}_+}
+\def\rat{\field{Q}}
+\def\Co{\field{C}}
+\def\A{\field{A}}
+\def\ind{\field{I}}
+
+
+\def\barw{\bar w}
+\def\hatau{\hat\tau}
+\def\egenerate{{\cal A}}
+\def\process{\Phi}
+\newcommand{\generate}{\clD}
+\newcommand{\pot}{U}
+\newcommand{\pr}{\rho}
+
+\def\normal{\mathcal{N}}
+
+% FPF related
+\def\kFPF{\text{\sf K}}
+\def\xfpf{x_{\text{fpf}}}
+\def\Kkal{K_{\text{kal}}}
+\def\fish{\phi}
+\def\f{Figure }
+\def\e{Equation }
+\def\emp{\Lambda}
+\def\obs{c}
+\def\poiss{h}
+
+% MCMC related
+\def\asymvar{\sigma_\infty}
+\def\markovstate{\Phi}
+
+\def\basis{\psi}
+\def\param{\theta}
+\def\nrgain{M_{T}}
+\def\oscState{\vartheta}
+\def\test{\chi}
+
+\def\det{{\mathop{\rm det}}}
+\def\limsup{\mathop{\rm lim{\,}sup}}
+\def\liminf{\mathop{\rm lim{\,}inf}}
+\def\argmin{\mathop{\rm arg{\,}min}}
+\def\argmax{\mathop{\rm arg{\,}max}}
+
+\def\state{{\sf X}}
+\def\ystate{{\sf Y}}
+
+\def\LV{L_\infty^V}
+\def\LsqrV{L_\infty^{\sqrt{V}}}
+\def\Lv#1{L_\infty^{v,#1}}
+\def\Lve#1{L_\infty^{v^\eta,#1}}
+\def\Lvx{L_\infty^{v}}
+\def\Lvex{L_\infty^{v^\eta}}
+
+\def\Lemma#1{Lemma~\ref{#1}}
+\def\Prop#1{Prop.~\ref{#1}}
+\def\Theorem#1{Theorem~\ref{#1}}
+\def\Corollary#1{Corollary~\ref{#1}}
+\def\Section#1{Section~\ref{#1}}
+\def\Chapter#1{Chapter~\ref{#1}}
+\def\Fig#1{Fig.~\ref{#1}}
+
+\def\Ebox#1#2{%
+\begin{center}
+\includegraphics[width= #1\hsize]{#2} %\epsfxsize=\hsize \epsfbox{#2}}
+\end{center}}

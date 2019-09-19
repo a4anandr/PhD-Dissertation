@@ -1,0 +1,344 @@
+\chapter{Reproducing kernel Hilbert space (RKHS) for learning}
+\label{chap2a_rkhs}
+
+Reproducing kernel Hilbert spaces have been quite well-studied for over five decades now. Their mathematical properties were first studied by Moore \cite{moo1916}, Aroszajn \cite{aro50} etc. Although initial applications were in time series, detection, filtering and prediction problems, more recently they have been found to be incredibly useful in machine learning \cite{wah90}. With the development of support vector machine (SVM) for classification and regression problems \cite{corvap95, drucburkaufsmovap97}, kernel methods have gained a lot of popularity in the machine learning community. 
+
+In this thesis, kernel methods and RKHS are employed with the objective of learning functions from observed data. Such class of problems termed \textit{empirical risk minimization} (ERM) also have a rich history in statistical learning theory. The key objective in such problems is not just to obtain a good fit on the observed data, but generalize well on ``unseen'' data as well. Regularization methods are used to prevent \textit{overfitting} and achieve better generalization. We consider a Tikhonov regularization scheme \cite{tikars79} associated with Mercer kernels.
+
+Although ideally, we would like to obtain the best \textit{target} function often called the \textit{regression} function, practically this is not possible due to the choice of the approximating function space and the fact that only a finite number of data points are available. Error arising from the former is termed \textit{approximation error} and the latter is termed \textit{sample error}. A wide variety of literature exists on error analysis. Bounds for the approximation error have been studied from various perspectives - i) methods based on complexity of the hypothesis space (like VC-dimension \cite{gir95}, covering numbers \cite{zhou02, smazhou03, zhou03}), ii) methods based on \textit{stability} of the learning algorithm \cite{boueli01,boueli02}.
+
+The remainder of this chapter is organized as follows - \Section{rkhs_basics} provides the relevant background on kernel functions and RKHS. Some properties of the RKHS associated to the Gaussian kernel is discussed in \Section{gaussian_kernel}. \Section{error_analysis} provides a brief overview of some important results in error analysis for a generic least squares regression problem. A short discussion on error bounds to the more general case of loss functions with gradient terms, which is relevant to the problem discussed in this thesis, is provided at the end. 
+
+\section{RKHS Basics}
+\label{rkhs_basics}
+Before defining a reproducing kernel Hilbert space (RKHS), we start by defining a positive definite kernel. A function $K : X \times X \to \Re$ which for all $N \in \mathbb{N}$ and all $x_1,x_2,\cdots,x_N \in X$ gives rise to a positive definite Gram matrix is a called a positive definite kernel. That is, given any set of points $\{x_i\}_{i=1}^N$, the $N\times N $ matrix whose $ij^{th}$ element $M_{i,j} = K(x_i,x_j)$ is positive definite.  
+
+Let $\Phi: X \to \Re^X$ be a feature map that maps each point from $X$ into a function mapping $X$ to $\Re$. One such mapping (\textit{canonical} feature map) is $\Phi(x) = K(x,\cdot)$. An inner product is defined such that for all $x,x' \in X$, we have
+\begin{equation}
+\begin{aligned}
+K(x,x') &= \langle \Phi(x), \Phi(x')\rangle \\
+& = \langle K(x,\cdot), K(x',\cdot)\rangle
+\end{aligned}
+\label{e:rkhs_inner_product}
+\end{equation}
+Let us consider a function $f$ which is a linear combination of the form,
+\begin{equation}
+f(\cdot) = \sum_{i=1}^N \alpha_i K(x_i, \cdot) \qquad N \in \mathbb{N}, \alpha_i \in \Re, x_1,x_2,\cdots, x_N \in X
+\label{e:f_rkhs}
+\end{equation}
+The reproducing property of the kernel $K$ follows from definition of the inner product,
+\[
+\langle K(x,\cdot), f(\cdot)\rangle = f(x) \qquad \forall x \in X, \forall f \in \clH
+\]
+The space obtained by the completion of functions of the form $f$ defined in \eqref{e:f_rkhs}, that are endowed with the inner product as in \eqref{e:rkhs_inner_product} yields a Hilbert space, called the reproducing kernel Hilbert space (RKHS). 
+
+The reproducing kernel Hilbert spaces have the remarkable property that norm convergence implies pointwise convergence. 
+If $\clH$ is an RKHS and $f\in\clH$ and $\{f_n\}\subset \clH$ be a sequence with $\|f_n - f\|_\clH \to 0$ for $n \to \infty$, then for all $x \in X$, we have,
+\[
+\lim_{n\to\infty} f_n(x) = \lim_{n \to \infty} \langle K(x,\cdot),  f_n(\cdot) \rangle = \langle K(x, \cdot), f(\cdot) \rangle = f(x)
+\]
+A Hilbert function space $\clH$ that has a reproducing kernel $K$ is always an RKHS and conversely, every RKHS has a (unique) reproducing kernel.  Let $K$ be a continuous, symmetric and positive definite kernel satisfying, 
+\[
+\kappa = \sup_{x \in X} \sqrt{K(x,x)} < \infty
+\]
+Consider the integral operator (Hilbert-Schmidt operator) $L_K:L^2_\rho(x) \to L^2_\rho(x)$ defined by,
+\[
+(L_K f)(x) = \int_X K(x,t) f(t) d\rho(t)
+\]
+where $\rho$ is a finite Borel measure.
+The linear map $L_K^{1/2}$ is a Hilbert isomorphism between $\mathcal{L}^2_{\rho}(X)$ and $\clH$. 
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=5in]{images/chap2a_RKHS_diagram}
+	\caption[EPS format diagram. Note: no filetype is designated by adding an extension.]{Diagram illustrating the isomorphic transformations between $\clH$ and $L^2_\rho$.}
+\end{figure}
+
+$L_{K,C}$ emphasizes that the target is $\mathcal{C}(X)$ and $I_K$ denotes the inclusion. If $K$ is $\mathcal{C}^\infty$, then $I_K$ is compact. \rd{Gaussian kernel is $\mathcal{C}^\infty$}. $L_K$ is a self-adjoint, compact operator with eigenvalues $\lambda_1 \geq \lambda_2 \geq \cdots \geq 0$, with the corresponding normalized eigenfunctions $\{\phi_i\}_{i=1}^\infty$ forming an orthonormal basis for $L^2_\rho(X)$. Mercer's theorem states that 
+\[
+K(x,t) = \sum_{n=0}^\infty \lambda_n \phi_n(x) \phi_n(t)
+\]
+where the series converges absolutely for each $x,t \in X$. The set $\{\sqrt{\lambda_n}\phi_n\}_{n=1}^\infty$ forms an orthonormal basis for $\clH$. 
+\noindent \begin{proposition}
+	If the kernel $K$ is uniformly bounded, then any $f \in \clH$ is also bounded. 
+\end{proposition}
+\begin{proof}
+		If $f \in \clH$, for all $x \in X$,
+		\[
+		\begin{aligned}
+		|f(x)| &= |\langle K(x,\cdot), f \rangle_\clH| \\
+		& \leq \|K(x,\cdot)\|_\clH \|f\|_\clH \qquad{\text{Cauchy-Schwarz inequality}}\\ 
+		& \leq \kappa \|f\|_\clH
+		\end{aligned}
+		\]
+		As the above inequality holds for all $x \in X$, 
+		\[
+		\|f\|_\infty := \max_{x\in X}|f(x)| \leq \kappa \|f\|_\clH
+		\]
+\end{proof}
+
+\section{Description of the Gaussian kernel}
+\label{gaussian_kernel}
+
+Of the many kernels being utilized, Gaussian kernel is the most widely used and often gives the best performance. The Gaussian kernel for $X = \Re^d$ is given by,
+\[
+K_{\epsilon}(x,x') := \exp(-\|x - x'\|^2/ 4\epsilon) \qquad \forall x,x' \in \Re^d
+\]
+\begin{itemize}
+\item An explicit description of the RKHS of Gaussian RBF Kernels, 2006 
+
+This paper tries to answer questions like - which functions are contained in the RKHSs induced by the Gaussian kernel, how the corresponding norms can be computed, and how the RKHSs of different widths correlate to each other. 
+In particular, RKHSs of Gaussian kernels always have countable orthonormal bases. 
+
+Theorem 3 of the paper gives the orthonormal basis functions for $\clH$ defined the Gaussian kernel $K_\epsilon$. It states that for $\epsilon >0$ and $n \in \mathbb{N}_0 := \mathbb{N} \cup \{0\}$, we define the function $\phi_n : \Re \to \Re$ by
+\[
+\phi_n(x) := \sqrt{\frac{1}{(2\epsilon)^n n!}}x^n \exp(-x^2/4\epsilon)
+\]
+\item Some properties of Gaussian RKHS and their implications for function approximation and learning theory, 2010 by Ha Quang Minh
+
+The paper gives several properties of the reproducing kernel Hilbert space induced by the Gaussian kernel.
+Theorem 1 of the paper states that the RKHS $\clH$ induced by the standard Gaussian kernel is infinite dimensional, i.e. dim($\clH$) = $\infty$ and 
+\[
+\clH := \Bigl\{ f = \exp(-x^2/4\epsilon) \sum_{n=0}^\infty w_n x^n: \|f\|^2_\clH = \sum_{k=0}^\infty (2\epsilon)^k k! \sum_{n=0}^k w_n^2 <\infty \Bigr\}
+\]
+The paper presents the orthonormal basis for $\clH$ which is consistent with the expression in the previous reference. 
+
+\begin{enumerate}
+	\item $\clH$ induced by the standard Gaussian kernel does not contain any polynomial on $X$, including the non-zero constant function. 
+	
+	\item If $X$ is compact, $\clH$ induced by the Gaussian kernel is dense in the space of $\mathcal{C}(X)$ of continuous functions on $X$.
+	This means that given a continuous function $h(x)$, for all $\varepsilon >0$, we can find a function $g(x) \in \clH$ such that 
+	\[
+	\|h(x) - g(x)\|_\infty \leq \epsilon \qquad \forall x \in X
+	\] 
+	\item Let $K_{\epsilon}(x,y) = \exp(-\frac{\|x-y\|^2}{4\epsilon})$. The Hilbert space $\clH$ induced by $K_\epsilon$ on $X$ contains the function $\exp(-\frac{\mu \|x\|^2} {4 \epsilon})$ if and only if $0<\mu <2$. For example, $\exp(-\frac{\|x\|^2}{2 \epsilon}) \in \clH_{\epsilon/2}$, but  $\exp(-\frac{\|x\|^2}{2 \epsilon}) \notin \clH_{\epsilon}$.
+	
+	\item The functions in $\clH$ that are smooth are not necessarily integrable, as $\clH \notin L^1(\Re^n)$ for any $\epsilon >0$. 
+	
+
+\item Partial derivatives of the Gaussian kernel denoted as $D^\alpha K_x \in \clH$. As a corollary, it can be shown that $t^\alpha K_x(t)\in\clH$. Additionally, for any polynomial $p(t)$, $p(t)K_x(t) \in \clH$. 
+
+\end{enumerate}
+
+\textbf{Implications for learning theory and function approximation}
+
+$L^1$ norm optimization or regularization is infeasible in $\clH$. This could still be done on subsets of finite linear combinations of the basis functions.
+
+The paper also provides the expression for the Hilbert space norm for kernel derivative of any order $d$. 
+
+
+\item Universal kernels, 2006 by Micchelli, Haizhang Zhang
+
+This paper sets out to identify kernels with \textit{universal approximating property} - Given any compact set $X$,  any positive number $\varepsilon$ and any function $f \in \mathcal{C}(X)$, there is a function $g \in \clH$ such that $\| f - g\|_{\infty} \leq \varepsilon$. Thus for any choice of compact set $X$, the set $K(X)$ is dense in $\mathcal{C}(X)$ in the maximum norm. A kernel that satisfies this property is called the \textit{universal kernel}. The paper discusses the characterization of universal kernels in terms of feature map representation of the kernel $K$. It provides necessary and sufficient condition for $K$ to have the universal approximation property in terms of its features. 
+
+As a consequence of Theorem 17 of the paper, the standard Gaussian kernel is shown to be universal. 
+\end{itemize}
+
+An interesting question in the context of FPF gain function approximation would be whether the following holds true for a sequence of functions $\{g_n\} \subset \clH$.
+\begin{enumerate}
+\item $\lim_{n \to \infty} \sup_x |g_n(x) -h(x) | \to 0,\quad \forall x \in \Re$
+\item $ \lim_{n \to \infty}\sup_{x \in X} |g_n(x) - h(x) | \to 0$ and $\sup_x |g_n(x)| < \infty,  \forall x \in \Re$ and $X$ is a compact subset of $\Re$. 
+\end{enumerate}
+This ensures that the gain approximation $g_n$ is arbitrarily close to the true gain within a compact set $X$ and it does not become unbounded anywhere. 
+
+
+\section{Error Analysis}
+\label{error_analysis}
+
+In general, the goal of a learning problem is to find an approximation of a function $f_\rho : X \to Y$, when only a pair of values $z = (x_i, y_i)_{i=1}^N$ drawn from an unknown probability measure $\rho$ on $X \times Y$ is available. A common approach followed is to minimize,
+\[
+f_{\lambda,z} := \argmin_f \frac{1}{N}\sum_{i=1}^N (f(x_i) - y_i)^2 + \lambda \|A f \|^2_{\mathcal{L}_{\rho}^2(X)}
+\]
+where $A$ is an operator and $\mathcal{L}^2_{\rho}(X)$ is the Hilbert space of square integrable functions on $X$ with measure $\rho_X$ on $X$. Here, $f_\rho$ is the ``regression'' function of $\rho$,
+\begin{equation}
+f_\rho(x) = \int_Y y d\rho(y|x)
+\label{eq:f_rho}
+\end{equation}
+
+References
+\begin{itemize}
+\item Best choices of regularization parameters in Learning theory - On the bias-variance problem, 2002 by Felipe Cucker, Steve Smale
+
+
+The main result in this work states that for each $N\in \mathbb{N}$ and $\delta \in [0,1)$, a function $E_{N,\delta} = E : \Re_+ \to \Re$ exists such that for all $\lambda >0$,
+\[
+\int_X (f_{\lambda,z} - f_\rho)^2 \leq E(\lambda)
+\]
+with confidence $1-\delta$. The ``best'' regularization parameter $\lambda^*$ depends on the number of samples $N$, confidence interval $1-\delta$ and the operator $A$ and a simple invariant of $\rho$. The assumption is that $f_\rho \in \mathcal{L}^2_\rho(x)$ is bounded. 
+
+The authors construct the two related minimization problems: 
+\[
+\begin{aligned}
+\text{Problem 1 :} \min & \int_X(f(x) - y)^2 + \lambda \|f\|^2_\clH, \\
+\text{s.t.} & f \in \clH \\
+%\end{aligned}
+%
+%\[
+%\begin{aligned}
+\text{Problem 2 :} \min & \frac{1}{N} \sum_{i=1}^N (f(x_i) - y_i)^2 + \lambda \|f\|^2_\clH,\\
+\text{s.t.} & f \in \clH
+\end{aligned}
+\]
+A theorem in the paper states that the minimizers $f_\lambda$ and $f_{\lambda,z}$ of problems $1$ and $2$ respectively exist, are unique and are given by, 
+
+\[
+\begin{aligned}
+\text{Solution to problem 1:} &
+f_\lambda = (I_d + \lambda L_K^{-1})^{-1} f_\rho, \\
+\text{Solution to problem 2:} & 
+f_{\lambda,z}(x) = \sum_{i=1}^N \beta_i K(x,x_i)
+\end{aligned}
+\]
+where $\mathbf{\beta}: = [\beta_1, \beta_2, \hdots, \beta_N]$ is the unique solution of the well-posed linear system in $\Re^N$,
+\[
+(\lambda N I_d + K) \mathbf{\beta} = \mathbf{y}
+\]
+The Hilbert space norm $\|f\|^2_\clH = \beta^\transpose K \beta$.
+
+The paper defines error $\mathcal{E}$ as 
+\[
+\mathcal{E} = \int_Z (f(x) - y)^2
+\]
+and empirical error $\mathcal{E}_z$ given a sample $z \in Z_N$ as,
+\[
+\mathcal{E}_z = \frac{1}{N} \sum_{i=1}^N (f(x_i) - y_i)^2
+\]
+\[
+\mathcal{E}(f_{\lambda,z}) = \mathcal{E}(f_{\lambda, z }) - \mathcal{E}(f_\lambda) + \mathcal{E}(f_\lambda)
+\]
+Therefore, 
+\[
+\mathcal{E}(f_{\lambda,z}) \leq \underbrace{|\mathcal{E}(f_{\lambda,z}) - \mathcal{E}(f_\lambda)|}_{\text{sample error}} + \underbrace{\mathcal{E}(f_\lambda)}_{\text{approximation error}}
+\]
+
+\noindent \textbf{Sample Error :}
+Theorem 2 in the paper gives probabilistic bounds for the \textit{sample error}.
+Theorem 3 states that given $N>0$, $0<\delta \leq 1$, and for all $\lambda>0$, the expression 
+\[
+\mathcal{S}(\lambda) = \frac{32 M^2 (\lambda + C_K)^2}{\lambda^2} v^*(N,\delta)
+\]
+where $M$ and $C_K$ are appropriate constants defined in the paper. 
+
+\noindent \textbf{Approximation Error :} To choose the optimal $\lambda$, the paper looks at the \textit{approximation error}. 
+\[
+\min_{f \in \mathcal{L}_\rho^2(X)} (\|f - f_\rho\|^2 + \lambda \|f\|^2_\clH) \leq \lambda^\theta \|L_K^{-\theta/2} f_\rho \|^2
+\]
+The minimum is obtained for $f = f_\lambda$. Therefore,
+\[
+(\|f_\lambda - f_\rho\|^2 + \lambda \|f_\lambda\|^2_\clH) \leq \lambda^\theta \|L_K^{-\theta/2} f_\rho \|^2
+\]
+A basic result in Chapter 1 of CS states that for all $f_\rho \in \mathcal{L}_\rho^2(X)$, 
+\[
+\mathcal{E}(f) = \int_X (f - f_\rho)^2 + \sigma_\rho^2
+\]
+where $\sigma_\rho$ depends only on $\rho$. Therefore, approximation error $\mathcal{E}(f_\lambda)$ is bounded by,
+\[
+\begin{aligned}
+\mathcal{E}(f_\lambda)  & \leq \lambda^\theta \|L_K^{-\theta/2} f_\rho \|^2 + \sigma_\rho^2\\
+& \leq \mathcal{A}(\lambda) + \sigma_\rho^2 
+\end{aligned}
+\]
+
+Now, let $E(\lambda) = \mathcal{S}(\lambda) + \mathcal{A}(\lambda)$. 
+Recall,
+\[
+\begin{aligned}
+\mathcal{E}(f_{\lambda,z}) &\leq |\mathcal{E}(f_\lambda) - \mathcal{E}(f_{\lambda,z})| + \mathcal{E}(f_\lambda) \\
+& \leq \mathcal{S}(\lambda) + \mathcal{A}(\lambda) + \sigma_\rho^2\\
+& \leq E(\lambda) + \sigma_\rho^2
+\end{aligned}
+\]
+Subtracting $\sigma_\rho^2$ from both sides, we get
+\[
+\int_X (f_{\lambda,z} - f_\rho)^2 \leq E(\lambda)
+\]
+
+The optimal $\lambda^*$ that minimizes both the sample error and the approximation error can be obtained by taking the derivatives with respect to $\lambda$ and equating $\mathcal{S}'(\lambda^*) + \mathcal{A}'(\lambda^*) =0$. Corollary 2 also gives that for every $0 <\delta \leq 1$, 
+\[
+\lim_{N \to \infty} E(\lambda^*) = 0 
+\]
+It has been stated that $\lambda^* \to 0$ as $N \to \infty$.
+
+The paper concludes with some discussion about the \textit{bias-variance} problem. Roughly speaking, the ``bias'' of a problem coincides with the approximation error and the ``variance'' with the sample error. The bias-variance trade-off amounts to the choice of a compact subspace $\clH$ of $\mathcal{C}(X)$ over which $\mathcal{E}_z$ is minimized. A small subspace $\clH$ will result in a large bias, whereas too much flexibility of $\clH$ for a given dataset $Z$ will produce a large variance. 
+Several parameters(radius of balls, dimensions etc.) determine the ``size'' of this subspace $\clH$. For example, if we consider the ball of radius $r = \|f_{\lambda,z}\|_K$ in $\clH_K$ and $\clH = \overline{I_K(B_r)}$. Since $\lambda \propto \frac{1}{r}$, large $\lambda$ corresponds to large bias or approximation error and small $\lambda$ corresponds to large variance or sample error. 
+
+\item Support vector machine soft margin classifiers - Error Analysis, 2004
+
+In Zhang (2004) the leave-one-out technique was applied to improve the sample error estimates given in Bousquet and Ellisseeff (2002): the sample error has a kernel-independent bound $O(\frac{C}{N})$,
+improving the bound $O(\frac{C}{\sqrt{N}})$ in Bousquet and Ellisseeff (2002).
+
+This paper mostly considers the soft SVM classifier. It does not say anything about the least squares error.
+
+\item Stability and Generalization, 2002 - Bousquet and Elisseeff
+
+In this work, the accuracy of learning algorithms is analyzed using a different approach based on \textit{sensitivity analysis}. Sensitivity analysis aims at determining how much the variation of the input can influence the output of the system. The difference between an empirical measure of error and the true generalization error is taken as a random variable. This paper introduces three notions of stability and then derives bounds on the generalization error of stable learning systems. Many algorithms including regularized least squares regression in an RKHS satisfies the stability requirements.
+
+General discussion -  When trying to estimate an unknown function from data, one needs to find a tradeoff between bias and variance. One approach is to keep increasing the size of the model and then choosing the best estimator based on a complexity penalty (regularization term). Another approach is statistical methods like bagging, which consists of averaging several estimators built from subsamples of the data.
+This work derives exponential upper bounds on the generalization error based notions of stability. Both the leave-one-out error and the empirical error are considered as possible estimates of the generalization error. 
+
+Section 5.2.2 discusses the application of the results to regularization in Hilbert spaces. Theorem 22 states the uniform stability of a reproducing kernel Hilbert space with kernel $K$ such that $\forall x \in X$, $K(x,x) \leq \kappa^2 < \infty$. The learning algorithm defined by a loss function $l$ that is $\sigma$-admissible, 
+\[
+\argmin_{g \in \mathcal{F}} \frac{1}{N} \sum_{i=1}^N l(g,z_i) + \lambda \|g\|^2_\clH
+\]
+has uniform stability $\beta$ with respect to $l$ with 
+\[
+\beta \leq \frac{\sigma^2 \kappa^2}{2 \lambda N}
+\]
+Uniform stability is the strongest notion. The algorithm is stable when the value of $\beta$ decreases $\frac{1}{N}$.
+Example 3 discusses the stability of regularized least squares regression for a bounded case. The stability bound for this algorithm is
+\[
+\beta \leq \frac{2\kappa^2 B^2}{\lambda N}
+\]
+The resulting generalization error bound is 
+\[
+R \leq R_{emp} + \frac{4 \kappa^2 B^2}{\lambda N} + \Bigl(\frac{8 \kappa^2 B^2}{\lambda} + 2B \Bigr)\sqrt{\frac{\ln 1/\delta}{2N}}
+\]
+In general, the bounds on generalization error are of the following type, $ R \leq R_{emp} + O(\frac{1}{\lambda \sqrt{N}})$. This means that non-trivial results can be obtained only if $\lambda >> \frac{1}{\sqrt{N}}$.
+\item \rd{A Leave-one-out Cross Validation Bound for Kernel Methods with Appliations in Learning - Zhang}
+
+\item \rd{Optimal rates for the regularized least squares Algorithm, De Vito}
+
+Theorem 1 of the paper gives the optimal choices for $\lambda$ as a function of $N$. 
+
+\item \rd{Model selection for regularized least squares regression, De Vito - 2005}
+
+This paper aims to provide a selection rule for the parameter $\lambda$ which is optimal for any number $N$ of examples and provides the desired asymptotic behavior when $N$ goes to $\infty$. A sequence of nested hypothesis spaces can be formed for various values of $\lambda$,
+\[
+\clH_{\lambda_1} \subset \clH_{\lambda_2} \cdots \subset \clH
+\]
+where $\lambda_1 > \lambda_2 > \cdots \lambda_n$. $\clH_{\lambda_k}$ is the subset of functions in the model space $\clH$ that have \textit{complexity} less than $\frac{1}{\lambda_k}$. Complexity of the solution decreases with $\lambda$.  
+
+In practice, the parameter $\lambda$ is usually chosen through an \textit{a posteriori} procedure such as cross-validation or using a validation set.
+We are interested in obtaining \textit{a priori} bounds and rules for selection. 
+\[
+\lambda_{opt} := \argmin_{\lambda >0} \Expect_D(I[f_D^\lambda]),
+\]
+where $D$ is the training set. It is further refined by considering the variance $\sigma^2$ also,
+\[
+\lambda_{opt} := \argmin_{\lambda >0} \{\Expect_D(I[f_D^\lambda])+ \sigma^2(I[f_D^\lambda])\}
+\]
+It also considers the worst case analysis, where given a confidence level $\delta \in (0,1)$, 
+\[
+\begin{aligned}
+E_{opt}(\lambda, \delta) &:= \inf_{t \in [0;+\infty)} \{t | \text{Prob}\{D \in Z^N | I[f^\lambda_D] >t\}\leq \delta\}\\
+\lambda_{opt}(\delta) &:= \argmin_{\lambda >0} E_{opt}(\lambda, \delta)
+\end{aligned}
+\]
+This paper is unique in the sense that it does not make use of any complexity measure on the hypothesis space, like VC-dimension or covering number. Instead, the sample error is bounded only through two simple constants related to the topological properties of $X$ and $Y$. 
+
+Theorem 1 gives bounds on the sample error. With probability at least $1-\delta$,
+\[
+|R[f_D^\lambda] - R[f^\lambda]| \leq S(\lambda,N,\delta)
+\]
+where $S(\lambda,N,\delta) = \frac{M \kappa^2}{\lambda \sqrt{N}}\Bigl( 1 + \frac{\kappa}{\sqrt{\lambda}}\Bigr) \Bigl( 1 + \sqrt{2 \log \frac{2}{\delta}}\Bigr)$. Here $M = \sup\{|y|\,|y \in Y\}$.
+
+The best rate convergence is obtained by choosing $ \lambda_N = \frac{1}{\sqrt[4]{N}}$. 
+
+\item \rd{Learning theory estimates via integral operators and their approximations, Smale Zhou}
+Theorem 5 - Obtains error bounds $\|f_{z,\lambda} - f_\rho \|_\rho$ is $O(1/\lambda\sqrt{N})$. 
+Similar results and conditions on $\lambda > \frac{1}{\sqrt{N}}$
+\item \rd{Regularization in kernel learning, 2010 - Mendelson and Neeman}
+
+
+\item \rd{Fast rates for SVMs using Gaussian kernels, 2007 - Steinwart and Scovel}
+\end{itemize}
