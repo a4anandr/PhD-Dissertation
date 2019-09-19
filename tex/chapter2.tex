@@ -1,7 +1,7 @@
 \chapter{Differential TD learning} 
 \label{chap2_diff_td}
 The main goal of this chapter is to provide the mathematical foundations of the problem that is central to the applications we consider in this thesis.
-In \Section{langevin_diffusion}, a prerequisite introduction to the Langevin diffusion and its associated Poisson's equation is given. Sufficient motivation is provided as to why this equation is important to us. In \Section{diff_td_learning}, we derive the \textit{differential} TD learning algorithm that tries to approximate the gradient of the solution to Poisson's equation directly, which forms the major contribution in this chapter. 
+In \Section{langevin_diffusion}, a prerequisite introduction to the Langevin diffusion and its associated Poisson's equation is given. Sufficient motivation is provided as to why this equation is important to us. In \Section{diff_td_learning}, we derive the \textit{differential TD ($\gradTD$) learning} algorithm that tries to approximate the gradient of the solution to Poisson's equation directly, which forms the major contribution in this chapter. 
 
  %along the lines of the LSTD algorithm described in Section 11.5.2 in \cite{ctcn}
 
@@ -17,10 +17,10 @@ The \textit{Langevin diffusion} may be regarded as  a $d$-dimensional gradient f
 where $\bfmW=\{W_t : t\ge 0\}$ is a standard Brownian motion on $\Re^d$. The potential function $U:\state \to \Re$ is continuously differentiable. 
 Under suitable regularity conditions, this diffusion is reversible and has a unique invariant density $\pr=e^{-\pot+\Lambda}$, where $\Lambda$ is a normalizing constant so that $\pr$ integrates to unity \cite{}. The SDE in \eqref{e:langevin_cts} can be thought of as composed of a deterministic \textit{drift} term and a stochastic \textit{diffusion} term. The intuition is that the drift term moves the process along the direction in which the density $\pr$ increases. In this sense, it is a \textit{biased} random walk. In practise, as simulating path solutions to this SDE are difficult, discretized versions of the equation based on Euler-Mauryama scheme are used, as given by,
 \begin{equation}
-\markovstate_n = \markovstate_{n-1} - \nabla U(\markovstate_{n-1}) \gamma_{n} + \sqrt{2  \gamma_{n-1}} W_{n-1} ,
+\markovstate_n = \markovstate_{n-1} - \nabla U(\markovstate_{n-1}) \mcmcstep_{n} + \sqrt{2  \mcmcstep_{n-1}} W_{n-1} ,
 \label{e:langevin_discrete}
 \end{equation}
-where $\{\gamma_n\}_{n\geq 1}$ is a sequence of step sizes and $\{W_n\}_{n\geq 1}$ is a sequence of i.i.d. standard Gaussian random variables.  In this thesis, only implementations using a constant step size parameter $\gamma_{n} \equiv \gamma$ are considered. 
+where $\{\mcmcstep_n\}_{n\geq 1}$ is a sequence of step sizes and $\{W_n\}_{n\geq 1}$ is a sequence of i.i.d. standard Gaussian random variables.  In this thesis, only implementations using a constant step size parameter $\mcmcstep_{n} \equiv \mcmcstep$ are considered. 
  
 % The Markov transition kernel of the diffusion process converges to a unique invariant density $\pr=e^{-\pot+\Lambda}$ in total variation \cite{robtwe96} or Wasserstein distance \cite{bolgengui11},  where $\Lambda$ is a normalizing constant so that $\pr$ integrates to unity. 
 % admits a strong solution $\{\markovstate_t\}_{t\geq0}$, 
@@ -65,22 +65,14 @@ where $\markovstate_n$ is obtained by sampling from a Markov chain with invarian
 \]
 and the convergence is in distribution. Here, $\asymvar^2$ denotes the asymptotic variance that has a representation in terms of $h$ \cite{glymey96a,MT,asmgly07}. More details about the application to MCMC algorithms is in \Chapter{}. 
 
-Computation of $h$ is typically intractable and hence, approximation techniques are required. Algorithms based on reinforcement learning provide a suitable approach. \Section{lstd_learning} provides a description of the least-squares TD (LSTD) learning algorithm, following the derivations given in Section 11.5.2 in \cite{ctcn}. The drawback of LSTD is that there are no algorithms that work well in high dimensions.
-% The following aspects of the approach are novel:
-%\begin{itemize}
-%	
-%	\item[$\bullet$] Applying the special structure for the Langevin diffusion, the introduction of a  \textit{differential} TD-learning algorithm that is far simpler than \cite{raddevmey16}. Extension to more general reversible Markov models are also provided.
-%	
-%	\item[$\bullet$]  The construction of a  loss function that is observable,  yet is equivalent to the mean-square error between the gradient of the function $h$ and its approximation.   This leads to a tractable formulation of the  minimum mean-square error approximation  as an application of empirical risk minimization (ERM).
-%	
-%	\item[$\bullet$]
-%	The solution of this ERM through recent extensions of reproducing kernel Hilbert space (RKHS) theory.
-%	\item[$\bullet$]
-%	Application of the approximation algorithm to the FPF and MCMC algorithms.
-%\end{itemize}
-%This approach provides significant advantages over existing approximation techniques.
+Computation of $h$ is typically intractable and hence, approximation techniques are required. Algorithms based on reinforcement learning provide a suitable approach. \Section{lstd_learning} provides a description of the least-squares TD (LSTD) learning algorithm, along the lines of derivations given in Section 11.5.2 in \cite{ctcn}. Following a brief discussion on its limitations,  the derivation of the $\gradTD$ learning is presented in \Section{difftd_learning}. 
+
+\section{Least Squares Temporal Difference (LSTD) learning} 
+Least squares temporal difference learning is presented here for the continuous-time scenario, with a discounting factor $\discount$.
+
+% \ section{Galerkin approximation}
 
 
-\section{Differential TD learning}
+\section{Differential TD ($\gradTD$) learning}
 \label{diff_td_learning}
 
