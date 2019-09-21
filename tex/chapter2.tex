@@ -35,7 +35,7 @@ The Langevin diffusion is associated with a \textit{differential generator} $\ge
 \end{equation}
 where $\nabla$ denotes the gradient and $\Delta$ is the Laplacian. Let $c \colon \state \to \Re$ be a function of interest, and 
 \[
-\eta := \Expect_{X \sim \pr}[c(X)] =  \int c(x) \pr(x) dx = \langle c, 1 \rangle_{L^2}.
+\eta := \Expect_{X \sim \pr}[c(X)] =  \int c(x) \pr(x) \ud x = \langle c, 1 \rangle_{L^2}.
 \]
 A function $h\in C^2$ is said to be the solution to Poisson's equation with forcing function $c$ if
 \begin{equation}
@@ -44,7 +44,7 @@ A function $h\in C^2$ is said to be the solution to Poisson's equation with forc
 \end{equation}
 Additionally, $h$ can also be expressed in the following integral form:
 \begin{equation}
-h(x) =\int_0^\infty \Expect[\tilc(\markovstate_t)|\markovstate_0 = x] dt,
+h(x) =\int_0^\infty \Expect[\tilc(\markovstate_t)|\markovstate_0 = x] \ud t,
 \end{equation}
 where $h(x)$ can be interpreted as the infinite-horizon expected normalized cost with the initial state $x$. 
 
@@ -68,9 +68,9 @@ and the convergence is in distribution. Here, $\asymvar^2$ denotes the asymptoti
 Computation of $h$ is typically intractable and hence, approximation techniques are required. Algorithms based on reinforcement learning provide a suitable approach. \Section{lstd_learning} provides a description of the least-squares TD (LSTD) learning algorithm. Following a brief discussion on its limitations,  the derivation of the $\gradTD$ learning is presented in \Section{difftd_learning}. 
 
 \section{Least Squares Temporal Difference (LSTD) learning} 
-In this section, a continuous-time version of least squares temporal difference (LSTD) learning is presented, to approximate the discounted-cost value function for a diffusion process, with a discount rate $\discount  >0$. The derivation here closely follows the one in Section 11.5.2 in \cite{ctcn}. The key difference is that the book section discusses the discrete-time case. Let $h^\discount$ be the discounted-cost value function given by,
+In this section, a continuous-time version of least squares temporal difference (LSTD) learning is presented, to approximate the discounted-cost value function for a diffusion process, with a discount rate $\discount  >0$ \cite{brabar96}. The derivation here closely follows the one in Section 11.5.2 in \cite{ctcn}. The key difference is that the book section discusses the discrete-time case. Let $h^\discount$ be the discounted-cost value function given by,
 \begin{equation}
-h^\discount(x) := \int_0^\infty \exp(-\discount t )\Expect_x[c(\markovstate_t)] dt, 
+h^\discount(x) := \int_0^\infty \exp(-\discount t )\Expect_x[c(\markovstate_t)] \ud t, 
 \label{e:discount_value_fn}
 \end{equation}
 where $\markovstate_t$ is a continuous-time diffusion process. Langevin diffusion in \eqref{e:langevin_cts} is an example. The notation $\Expect_x[X_t]$ is shorthand for the conditional expectation $\Expect[\markovstate_t|\markovstate_0 = x]$, with $x$ as the initial state. 
@@ -84,7 +84,7 @@ The goal in LSTD learning is to minimize the approximation error in $L^2(\pr)$ n
 \begin{equation}
 \begin{aligned}
 \mathcal{E}(\param) &:=  \| h^\discount - h_\param \|^2_{L^2} \\
-& = \int_\state (h^\discount(x) - h_\param(x))^2 \pr(x) dx \\
+& = \int_\state (h^\discount(x) - h_\param(x))^2 \pr(x) \ud x \\
 & = \Expect_{\markovstate \sim \pr} [|h^\discount(\markovstate) - h_\param(\markovstate)|^2].
 \label{e:h_norm_error}
 \end{aligned}
@@ -99,21 +99,22 @@ The necessary conditions for optimality can be obtained by taking the derivative
 & = 2 \Expect_{\markovstate \sim \pr} [(h^\discount(\markovstate) - h_\param(\markovstate)) \basis(\markovstate)]
 \end{aligned}
 \] 
-\anand{Need to verify if the exchange of derivative and expectation is valid for a nonlinear parameterization}.
+\anand{Need to verify if the exchange of derivative and expectation is valid for a nonlinear parameterization}
 For the linear parameterization in \eqref{e:linear_param}, the optimal $\param^*$ admits a closed form expression:
 \begin{equation}
 \param^* := M^{-1} b,
 \label{e:param_opt_lstd}
 \end{equation}
 where $M$ and $b$ are defined as,
-\[
+\begin{equation}
 M: = \Expect_{\markovstate \sim \pr} [\basis(\markovstate) \basis(\markovstate)^\transpose], \qquad b:= \Expect_{\markovstate \sim \pr} [h^\discount(\markovstate) \basis(\markovstate)].
-\]
+\label{e:lstd_M_b}
+\end{equation}
 The challenge is to find an alternate representation for $b$ as it involves the unknown function $h^\discount$ that we are trying to approximate.  
 
 A resolution is obtained using the definition of $h^\discount$ in \eqref{e:discount_value_fn} and the generalized resolvent kernel of \cite{nev72,meytwe93e,devkonmey17a}: For a measurable function $G\colon\Re\to\Re$, and measurable functions $f$ in some domain, the resolvent kernel is an operator defined as,
 \begin{equation}
-R_G f\, (x) := \int_0^\infty \Expect_x\Bigl[ \exp\Bigl(-\int_0^t G(\process(s))\, \rmd s \Bigr) f(\process(t))\Bigr] dt.
+R_G f\, (x) := \int_0^\infty \Expect_x\Bigl[ \exp\Bigl(-\int_0^t G(\process(s))\, \rmd s \Bigr) f(\process(t))\Bigr] \ud t.
 \label{e:resolvent_neveu}
 \end{equation}
 In  \cite{nev72,meytwe93e} it is assumed that $G>0$ everywhere. These conditions are relaxed in \cite{konmey03a,devkonmey17a}. An adjoint $R^\dagger_G$ is defined such that the following holds:
@@ -135,20 +136,20 @@ h^\discount(x) = R_\discount c(x).
 %Multiplying $h^\discount$ by $\basis$, we get,
 %\begin{equation}
 %\begin{aligned}
-%h^\discount (x) \basis(x) &=  \Bigl(\int_0^\infty \exp(-\discount t )\Expect_x[c(\markovstate_t)] dt \Bigr) \basis(x) \\
-%&= \int_0^\infty \exp(-\discount t) \Expect_x[c(\markovstate_t) \basis(\markovstate_t)] dt
+%h^\discount (x) \basis(x) &=  \Bigl(\int_0^\infty \exp(-\discount t )\Expect_x[c(\markovstate_t)] \ud t \Bigr) \basis(x) \\
+%&= \int_0^\infty \exp(-\discount t) \Expect_x[c(\markovstate_t) \basis(\markovstate_t)] \ud t
 %\label{e:discount_hpsi}
 %\end{aligned}
 % \end{equation}
 Using \eqref{e:hgamma_resolvent}, $b$ admits the following transformation,
 \[
 \begin{aligned}
-b = \Expect_{\markovstate \sim \pr} [h^\discount(\markovstate) \basis(\markovstate) ] &= \langle h^\discount, \, \basis \rangle_{L^2} ,\\
-& = \langle R_\discount c, \,\basis \rangle_{L^2}, \\
+b = \Expect_{\markovstate \sim \pr} [h^\discount(\markovstate) \basis(\markovstate) ] &= \langle h^\discount, \, \basis \rangle_{L^2},\\
+& = \langle R_\discount c, \,\basis \rangle_{L^2} \\
 & = \langle c,\, R^\dagger_\discount \basis \rangle_{L^2},
 \end{aligned}
 \]
-where $R^\dagger_\discount$ the adjoint of $R_\discount$. Now, all that remains is to provide an expression for the adjoint operator $R^\dagger_\discount$. This is obtained by applying the stationarity property of the process $\markovstate_t$, which gives, 
+where $R^\dagger_\discount$ the adjoint of $R_\discount$. Now, all that remains is to obtain an expression for the adjoint operator $R^\dagger_\discount$ in terms of observable quantities. This is achieved by applying the stationarity property of the process $\markovstate_t$, which gives, 
 \[
 \Expect_{\markovstate \sim \pr}[c(\markovstate_t) \basis(\markovstate_0)] = \Expect_{\markovstate \sim \pr} [c(\markovstate_0) \basis(\markovstate_{-t})].
 \] 
@@ -156,29 +157,56 @@ Rewriting $b$ in its integral form as,
 \begin{equation}
 \begin{aligned}
 b & = \langle R_\discount c, \basis \rangle_{L^2} \\
-& = \int_0^\infty \exp(-\discount t)  \Bigl(\int_{\state} \Expect[c(\markovstate_t) \basis(\markovstate_0)| \markovstate_0 = x]  \pr(x) dx \Bigr) dt \\
-& = \int_0^\infty \exp(-\discount t) \Expect[c(\markovstate_t) \basis(\markovstate_0)]dt \\
-& = \int_0^\infty \exp(-\discount t) \Expect[c(\markovstate_0) \basis(\markovstate_{-t})] dt \qquad \text{(Applying the stationarity property of $\markovstate$)}\\
-& = \Expect\Bigl[c(\markovstate_0) \int_0^\infty \exp(-\discount t) \basis(\markovstate_{-t})dt\Bigr]  \qquad \text{(Applying Fubini's theorem and absolute integrability)}
+& = \int_0^\infty \exp(-\discount t)  \Bigl(\int_{\state} \Expect[c(\markovstate_t)| \markovstate_0 = x] \basis(x)  \pr(x) \ud x \Bigr) \ud t \\
+& = \int_0^\infty \exp(-\discount t)  \Bigl(\int_{\state} \Expect[c(\markovstate_t) \basis(\markovstate_0)| \markovstate_0 = x]  \pr(x) \ud x \Bigr) \ud t \\
+& = \int_0^\infty \exp(-\discount t) \Expect[c(\markovstate_t) \basis(\markovstate_0)]\ud t \\
+& = \int_0^\infty \exp(-\discount t) \Expect[c(\markovstate_0) \basis(\markovstate_{-t})] \ud t \qquad \text{(Applying the stationarity property of $\markovstate$)}\\
+& = \Expect\Bigl[c(\markovstate_0) \int_0^\infty \exp(-\discount t) \basis(\markovstate_{-t})\ud t\Bigr]  \qquad \text{(Applying Fubini's theorem and absolute integrability)}
 \label{e:lstd_resolution}
 \end{aligned}
 \end{equation}
 It can be seen from \eqref{e:lstd_resolution} that the adjoint $R^\dagger_\discount$ operating on a function $f$ in $L^2(\pr)$ takes the form:
 \[
-R^\dagger_\discount f(x) \eqdef \int_0^\infty \exp(-\discount t ) f(\markovstate_{-t}) dt \qquad \textbf{\rd{Needs verification}}
+R^\dagger_\discount f(x) \eqdef \int_0^\infty \exp(-\discount t ) f(\markovstate_{-t}) \ud t \qquad \textbf{\rd{Needs verification}}
 \]
 Denoting $\eligibvector_\discount$ as,
-\[
-\eligibvector_\discount(r) \eqdef \int_0^\infty \exp(-\discount (t -r)) c(\markovstate_{r-t}) dt,
-\]
+\begin{equation}
+\eligibvector_\discount(r) \eqdef \int_0^\infty \exp(-\discount (t -r)) c(\markovstate_{r-t}) \ud t,
+\label{e:lstd_eligib}
+\end{equation}
 $b$ can be written as,
 \begin{equation}
-b = \Expect[c(\markovstate_0) \eligibvector_\discount(0)]
+b = \Expect[c(\markovstate_0) \eligibvector_\discount(0)].
 \label{e:lstd_b}
 \end{equation}
 % \ section{Galerkin approximation}
-
+This representation for $b$ \eqref{e:lstd_b}, combined with the representation for $M$ in \eqref{e:lstd_M_b} lends itself to application of Monte Carlo methods in their computation. Monte carlo approximations to $M$ and $b$ can be obtained using the following integral forms:
+\begin{subequations}
+\begin{align}
+M \approx &M_T   \eqdef \frac{1}{T} \int_0^T  \basis(\markovstate_t) \basis(\markovstate_t)^\transpose \ud t
+\label{e:lstd_M_T}
+\\
+b \approx & b_T  \eqdef \frac{1}{T} \int_0^T c(\markovstate_t) \eligibvector_\discount(t) \ud t
+\label{e:lstd_b_T}
+\\
+\param_T &\eqdef  M_T^{-1} b_T
+\label{e:lstd_theta_T}
+\end{align}
+\end{subequations}
+Equations \cref{e:lstd_M_T,e:lstd_b_T} along with \eqref{e:lstd_eligib} summarize the LSTD algorithm. An alternate description of the algorithm can be provided in terms of the three ODEs:
+\begin{subequations}
+\begin{align}
+\ddt \eligibvector_\discount (t) &= - \discount\, \eligibvector_\discount(t) + \basis (\markovstate_t) 
+\label{e:lstd_ode_eligib} \\
+\ddt b(t) &=  c(\markovstate_t)\eligibvector_\discount(t)
+ \label{e:lstd_ode_b}\\
+\ddt M(t) &= \basis(\markovstate_t) \basis^\transpose(\markovstate_t) 
+\label{e:lstd_ode_M}
+\end{align}
+\end{subequations}
+The system of ODEs is initialized with $\eligibvector_\discount(0), b(0) \in \Re^\ell,$ and a positive definite $\ell \times \ell$ matrix $M(0)$. 
 
 \section{Differential TD ($\gradTD$) learning}
 \label{diff_td_learning}
+
 

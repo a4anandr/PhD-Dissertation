@@ -27,7 +27,7 @@ The second application of interest is Markov chain Monte Carlo (MCMC) algorithms
 
 In standard Monte Carlo methods, expectation of a function $f$ of a random variable $X$ distributed according to a density $\pr$ is approximated empirically as,
 \[
- \Expect_{X \sim \pr} [f(X)] := \int_\state f(x)\pr(x) dx \approx \frac{1}{N} \sum_{i=1}^N f(X_i) 
+ \Expect_{X \sim \pr} [f(X)] \eqdef \int_\state f(x)\pr(x) dx \approx \frac{1}{N} \sum_{i=1}^N f(X_i) 
 \]
 where each $X_i$ is distributed according to $\pr$ and $N$ is sufficiently large. As is often the case, it may be difficult to generate a sequence of samples $\{X_i\}_1^N$ according to the desired \textit{target} distribution $\pr$. Methodologies such as \textit{rejection sampling} and \textit{importance sampling} make use of an easy-to-sample \textit{surrogate} distribution to sample from the original target distribution. But, if $\pr$ is high-dimensional, it is difficult to find a closely matching simple surrogate distribution. 
 
@@ -48,7 +48,7 @@ In this thesis, we demonstrate that the same algorithms we propose for approxima
 \label{poissons_eq}
 In its most general form, Poisson's equation is a second-order differential equation of the form,
 \begin{equation*}
-\generate h := - f,
+\generate h \eqdef - f,
 \end{equation*}
 where $\generate$ is a second-order differential operator. Usually, $f$ is given and is ``centered'' by subtracting its mean. The function $h$ is unknown and solves the Poisson's equation. Poisson's equation appears widely in the context of Markov chains and stochastic optimal control. In the context of a diffusion processes, the operator $\generate$ refers to the \textit{infinitesimal generator}, also called the \textit{differential generator}. 
 
@@ -81,11 +81,13 @@ The various topics discussed in this chapter may seem distinct and disconnected.
 The main contributions of this thesis that form the remaining chapters can be summarized as - i) development of differential TD learning algorithm, similar to LSTD in \cite{ctcn} to approximate the gradient of the solution to Poisson's equation directly in \Chapter{chap2_diff_td}, ii) refinement of this algorithm with a simpler resolution \cite{radmey18a} in \Chapter{}, iii) improving the performance of the algorithm by the use of RKHS in Chapter \ref{}, iv) applications to nonlinear filtering in \Chapter{} and MCMC algorithms in \Chapter{}. Finally, conclusions and scope for future work are included in \Chapter{}.  
 
 \section{Notation}
-$\bfmX:= \{X_t: t\ge 0\}$ is a stochastic process, evolving on the state space  $\state$, which is taken to be $\Re^d$, unless specified. 
+$\bfmX\eqdef \{X_t: t\ge 0\}$ is a stochastic process, evolving on the state space  $\state$, which is taken to be $\Re^d$, unless specified. 
 The symbol $\pr$   denotes a probability density on $\state$, and $L^2(\state,\pr)$ is the Hilbert space of square integrable functions with the usual inner product,
-$\langle \phi,\psi\big\rangle_{L^2}:=\int\phi(x)\psi(x) \pr(x)\ud x$, where $\phi$ and $\psi$ are scalar valued functions in $L^2(\state, \pr)$;
+$\langle \phi,\psi\big\rangle_{L^2}\eqdef\int\phi(x)\psi(x) \pr(x)\ud x$, where $\phi$ and $\psi$ are scalar valued functions in $L^2(\state, \pr)$;
 written $L^2$ when there is no risk of ambiguity.  The associated norm is
-denoted   $\|\phi\|^2_{L^2}:=\langle\phi,\phi\rangle_{L^2}$. The inner product is extended to vector valued functions $f,g: \state \to \Re^d$ by defining, $\langle f, g \rangle_{L^2} := \sum_{k=1}^d \langle f_k, g_k \rangle_{L^2}$. Another Hilbert space $\clH$ will appear in the application of reproducing kernel Hilbert space theory with its inner product denoted   $\langle \varble, \varble \rangle_{\clH}$,  and induced norm    $\| \varble \|_\clH$. $C^k$ is used to denote the space of $k$-times continuously differentiable functions $f\colon\state\to\Re$,
+denoted   $\|\phi\|^2_{L^2}\eqdef\langle\phi,\phi\rangle_{L^2}$. The inner product is extended to vector valued functions $f,g: \state \to \Re^d$ by defining, $\langle f, g \rangle_{L^2} \eqdef \sum_{k=1}^d \langle f_k, g_k \rangle_{L^2}$. The expectation of a function $f$ with respect to $\pr$ is written as $\Expect_{X \sim \pr}[f(X)]$ and the  notation $\Expect_x$ is used as shorthand for the conditional expectation $\Expect_x[f(X_t)] \eqdef \Expect[f(X_t)|X_0 = x]$. 
+
+Another Hilbert space $\clH$ will appear in the application of reproducing kernel Hilbert space theory with its inner product denoted   $\langle \varble, \varble \rangle_{\clH}$,  and induced norm    $\| \varble \|_\clH$. $C^k$ is used to denote the space of $k$-times continuously differentiable functions $f\colon\state\to\Re$,
 $\nabla f $ denotes the gradient of a function $f\in C^1$, and $\Delta f$ the Laplacian for $f\in C^2$.
 
 %The remainder of the thesis is organized as below. In Chapter \cite{}, we discuss the problem set up, i.e. the Poisson's equation for Langevin diffusions and introduce \textit{differential TD learning} to obtain approximate solutions. A simpler resolution to the problem is proposed and an algorithm derived using this resolution is presented in Chapter \cite{}. In Chapter \cite{}, we discuss the application to nonlinear filtering in detail along with some numerical results. The second application to MCMC algorithms is presented with numerical examples in Chapter \cite{}. Finally, we present conclusions and scope for future work in Chapter \cite{}. 
