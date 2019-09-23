@@ -180,7 +180,6 @@
 \def\barw{\bar w}
 \def\hatau{\hat\tau}
 \def\egenerate{{\cal A}}
-\def\process{\Phi}
 \newcommand{\generate}{\clD}
 \newcommand{\pot}{U}
 \newcommand{\pr}{\rho}
@@ -207,6 +206,7 @@
 % TD learning related
 \def\gradTD{\nabla\text{-TD}}
 \def\basis{\psi}
+\def\gradbasis{\grad \basis}
 \def\param{\theta}
 \def\nrgain{M_{T}}
 \def\oscState{\vartheta}
@@ -249,3 +249,11 @@
 
 \crefmultiformat{equation}{equations (#2#1#3}{, #2#1#3)}{#2#1#3}{#2#1#3}
 \Crefmultiformat{equation}{Equations (#2#1#3}{, #2#1#3)}{#2#1#3}{#2#1#3}
+
+% Roman numerals in enumeration
+\newcounter{rmnum}
+\newenvironment{romannum}{\begin{list}{{\upshape (\roman{rmnum})}}{\usecounter{rmnum}
+			\setlength{\leftmargin}{12pt}
+			\setlength{\rightmargin}{10pt}
+			\setlength{\itemindent}{-1pt}
+	}}{\end{list}}
