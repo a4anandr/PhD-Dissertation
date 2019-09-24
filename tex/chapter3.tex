@@ -1,645 +1,364 @@
-\chapter{Feedback particle filters} 
-\label{chap3_filtering}
+\chapter{Reproducing kernel Hilbert space (RKHS) for learning}
+\label{ch:rkhs}
+The standard LSTD and $\gradTD$ learning algorithms were discussed in \Chapter{ch:diff_td}. One of the important steps in both these algorithms is the selection of a suitable approximating function class, characterized by  a linear or nonlinear parameterization. It is noted in \cite{ctcn} that any insight about the true value function can aid in this step. For example, if the value function is known to obey certain properties, say convexity, then the basis functions chosen can also be convex. In the case of stochastic optimal control, the \textit{fluid} value functions provide a natural starting point to approximate the solution to the average-cost value function. However, such choices are heavily problem-dependent and no standard methods exist In most traditional examples of TD learning, a predetermined set of basis functions is used to define the function class. This limits the learning problem in two ways:
+\begin{itemize}
+	\item The chosen function class may not be rich enough to give a good approximation of the value function.
+	\item Additionally, the approximation algorithms discussed in this thesis are based on Monte Carlo methods with finite sample size. A predetermined set of basis functions will not be able to exploit information about the distribution of these samples.  
+\end{itemize}
+Hence, it seems better to choose a function class that adapts dynamically to suit the problem and the sample distribution. Kernel methods provide an alternative approach to basis selection. 
 
-\section{Introduction}
-\label{s:intro}
+In this chapter, the $\gradTD$ algorithm that was proposed in \Chapter{ch:diff_td} is adapted to work in a reproducing kernel Hilbert space (RKHS) setting.  The remainder of this chapter is organized as follows - In \Section{s:rkhs_basics}, a very concise introduction to kernel functions and the RKHS theory is provided. We discuss some properties of the RKHS associated with the Gaussian kernel, that make them \anand{universal} widely used in \Section{s:gaussian_rkhs}. A short review of the various existing approaches to error analysis for a generic least squares regression problem is given in \Section{s:erm_error}. The problem of approximating the gradient of the solution to Poisson's equation \eqref{e:gradTD_norm_error} is reformulated as an empirical risk minimization (ERM) in \Section{s:erm} and a solution is obtained using a general version of the representer theorem in \Section{s:rep_theorem}.  Error analysis for the case of loss functions with gradient terms, which is relevant to the problem discussed in this thesis in \Section{}
+ 
+\section{RKHS Basics}
+\label{s:rkhs_basics}
+Reproducing kernel Hilbert spaces (RKHS) have been quite well-studied for over five decades now. Their mathematical properties were first studied by Moore \cite{moo1916}, Aroszajn \cite{aro50} etc. Although initial applications were in time series, detection, filtering and prediction problems, more recently they have been found to be incredibly useful in machine learning \cite{wah90}. With the development of support vector machine (SVM) for classification and regression problems \cite{corvap95, drucburkaufsmovap97}, kernel methods have gained a lot of popularity in the machine learning community. 
 
+In this thesis, kernel methods and RKHS are employed with the objective of learning functions from observed data. Such class of problems termed \textit{empirical risk minimization} (ERM) also have a rich history in statistical learning theory. The key objective in such problems is not just to obtain a good fit on the observed data, but to generalize well on ``unseen'' data as well. Regularization methods are used to prevent \textit{overfitting} and achieve better generalization. We consider a Tikhonov regularization scheme \cite{tikars79} associated with \textit{Mercer kernels}.
 
-This paper introduces design techniques for nonlinear filtering based on the  \textit{feedback particle filter} (FPF).   For simplicity, the paper restricts to the scalar filtering problem:
-\begin{equation*}
-\begin{aligned}
-\rmd X(t)&=a(X(t)) \rmd t +\sigma_{B}\rmd B(t),\\
-\rmd Z(t)&=c(X(t)) \rmd t + \sigma_{W}\rmd W(t),
-\end{aligned}
-\end{equation*}
-where $\bfmX=\{X(t)\}$ is the scalar state process, $\bfmZ=\{Z(t)\}$ is the scalar observation process, $a$ and $c$ are $C^{1}$ functions, and  $\bfmB= \{B(t)\}$,  $\bfmW = \{W(t)\}$ are mutually independent Brownian motions.   The goal of the filtering problem is to approximate the posterior density 
-$p^*_t$  of $X(t)$,
-given the past observation history $\clZ(t)\eqdef\sigma(Z(s):s\leq t)$.
+\subsection{Reproducing kernels} 
+Before defining an RKHS, a positive definite kernel needs to be defined. A function $\Kern : X \times X \to \Re$ which for all $N \in \mathbb{N}$ and all $x_1,x_2,\cdots,x_N \in X$ gives rise to a positive definite Gram matrix is a called a positive definite kernel. That is, given any set of points $\{x_i\}_{i=1}^N$, the $N\times N $ matrix whose $ij^{th}$ element $\gram_{i,j} = \Kern(x_i,x_j)$ is positive definite.  
 
-Some background on the FPF is required before discussing the contributions of the current paper.
-
-\subsection{Background}
-
-Particle filter techniques are based on the following common architecture:  A family of $N$ stochastic processes represent particles, denoted by $ \{X^i(t) : t\in\Re,\ 1\le i\le N  \}$, where $N$ is a large number.   The estimate of the posterior at time $t$ is given by the
-\textit{empirical distribution},
-\begin{equation}
-p^{(N)}_t(A)=\dfrac{1}{N}\sum_{i=1}^{N} \ind  \{X^i(t)\in A \},\quad A\subset \Re.
-\label{e:emp}
-\end{equation}
-In the feedback particle filter,  the particle evolution equations mimic those of the state space model:
-\begin{equation}
-\rmd X^i(t)=a(X^i(t)) \rmd t+\sigma_{B}\rmd B^i(t)+\rmd \bfmU^i(t),
-\label{eq_controlled_sys}
-\end{equation}
-where $i=1$ to $N$, $X^i(t) \in \Re$ is the state of the $i^{th}$ particle at time $t$, $N$ is the total number of particles, $\bfmU^i(t)$ is the control input applied to this particle, and $\{\bfmB^i\}$ are mutually independent standard Brownian motions. For each $i$, the control input $\bfmU^i$ is constructed so that for any $t$ and any $A\in\clB $  (Borel measurable subsets of $\Re$),
-\[
-\Prob\{ X^i(t) \in A \mid \clZ_t\} 
-=
-\Prob\{ X(t) \in A \mid \clZ_t\}
-=
-\int_A p^*_t(x) \rmd x
-\]
-
-The particles are conditionally independent given the observations, so that for large $N$,  the approximation $p_t^{(N)}\sim p_t^*$ holds in a weak sense.    This optimal choice for  $\bfmU^i$ that is obtained in  \cite{yanmehmey13} leads to the following particle dynamics:
+Also defined is $\featuremap: X \to \Re^X$, a feature map that maps each point from $X$ into a function mapping $X$ to $\Re$. Here $\Re^X \eqdef \{f: X \to \Re \}$. One such mapping, called the \textit{canonical} feature map is $\featuremap(x) = \Kern(x,\cdot)$. An inner product is defined such that for all $x,x' \in X$, we have
 \begin{equation}
 \begin{aligned}
-\rmd  X^i(t)  =   & a(X^i(t))  \rmd  t  + \sigma_{B}\rmd B^i(t) + \Kfpf (X^i(t))\rmd I^i(t)  \\ & +  \half \sigma_{W}^{2}  \Kfpf (X^i(t)) \Kfpf'(X^i(t)) \rmd t
+\Kern(x,x') &= \langle \featuremap(x), \featuremap(x')\rangle \\
+& = \langle \Kern(x,\cdot), \Kern(x',\cdot)\rangle
 \end{aligned}
-\label{particle_propagation}
+\label{e:rkhs_inner_product}
 \end{equation}
-where $\{ I^i(t) : t\ge 0\}$, is the \textit{innovations} process corresponding to the $i^{th}$ particle:
-\begin{equation*}
-\rmd I^i(t) \eqdef   \rmd Z(t)- \half (c(X^i(t))+\hac)\rmd t,
-\end{equation*}
-where $\hac\eqdef \Expect [c(X(t)) \mid \clZ_t ] = \int c(x) p_t^*(x)\, dx$.
-
-
-There are similar Monte-Carlo implementations of the nonlinear filter in the literature, such as   Daum's particle flow filter \cite{DaumHuang10}.   See \cite{taoyang_acc14} for a survey.
-
-
-\subsection{Contributions}
-
-This paper is restricted to the scalar filtering problem. However, all of the theory is valid for multidimensional problems as well.
-
-The FPF requires the computation of the feedback particle filter gain $\Kfpf$ for each $t$. It can be expressed as $\Kfpf= h'$, where $h$ is a solution to a particular version of Poisson's equation:
-\begin{equation}
-\clD h
-\eqdef
--U' h'+ h'' = -\tilc ,
-\label{eq_fish}
-\end{equation}
-in which $\tilc = c - \hac$,  and $U = -\log(p^*) $.
-Both $\hac$ and $\Kfpf$ are functionals of the actual posterior density $p^*$  which we wish to estimate.  This is resolved by using the empirical distribution \eqref{e:emp} as a surrogate for $p^*$.
-
-
-The contribution of this work is to develop algorithms to approximate the FPF gain, along with a smooth approximation of the empirical distributions.  The starting point is the specification of a parameterized family  of smooth and continuous densities, denoted  $\clP = \{ p_\alpha : \alpha\in\Re^m\}$,  and a parameterized family of continuous gain functions $\clK = \{K_\param : \param\in\Re^d\}$.
-The algorithm consists of two steps:
-\begin{arabnum}
-	\item Obtain $p\in\clP $ that most closely approximates $p^{(N)}$.
-	\item  Obtain an approximation within $\clK$ for the FPF gain, based on the solution to Step~1.
-\end{arabnum}
-The choice of $\clP$ will depend on the application.
-One example is a finite-dimensional class of Gaussian mixture models (GMM). An $m$-component Gaussian mixture density has the following general form:
-\begin{equation*}
-\begin{aligned}
-p(x)& = \sum_{i=1}^{m} w_{i} p_{i}(x) \qquad  \sum_{i=1}^{m} w_{i} &=1 ,
-\label{gaussian_mix}
-\end{aligned}
-\end{equation*}
-\noindent
-where each $p_{i}$ is a Gaussian density with mean $\mu_{i}$ and standard deviation $\sigma_{i}$.
-The choice of $\clK$ is also problem-specific -- examples are given in \Section{s:ex}.
-
-The density estimation problem in Step~1 is defined as follows: Given the set of $N$ particles, and a family $\clP $ of probability density functions,  find the probability density $p \in \clP $ that is most likely to have generated the given particles.  The
-Expectation Maximization (EM) algorithm is one approach to obtaining the maximum a posteriori (MAP) optimal density.
-
-The main contribution of the paper is the application of a new algorithm called \textit{differential-TD ($\nabla$-TD) learning} to address Step~2.   This algorithm is used to solve the minimization problem,
-\begin{equation}
-\min_{\param}\|\Kfpf - K_\param\|_p^{2}
-=
-\min_{\param} \Expect\bigl[   | \Kfpf (X) - K_\param(X) |^2 \bigr],
-\label{e:gradTDgoal}
-\end{equation}
-where $X \sim p$.
-
-This computation involves another layer of simulation that adds very little additional complexity to the FPF. 
-TD-learning algorithms are used to approximate value functions \cite{bertsi96a}.  In the context of average-cost optimal control,  the solution to Poisson's equation is known as the \textit{relative value function}.   Given a parameterized family of approximate solutions $\{h_\param\}$,  the TD-learning algorithm aims to minimize $\| h - h_\param\|_p^{2}$ over all $\param$. In $\nabla$-TD learning, the objective is to minimize the $p$-norm error of the gradients:
-\begin{equation}
-\param^* = \argmin_{\param} \| h' - h_\param'\|_p^{2}
-\label{e:gradTDobjective}
-\end{equation}
-Given the representation $\Kfpf = h' $,  it is evident that the goal of $\nabla$-TD learning
-is identical to the optimization problem \eqref{e:gradTDgoal}, in which $h$ is the solution to Poisson's equation \eqref{eq_fish} with $U=-\log(p)$.
-
-
-
-\textit{Independent of the research reported here is the remarkable paper \cite{tagmeh16}}.  It also seeks approximations of the  feedback particle filter gain. While the approach is entirely different,   it is likely that concepts from that concurrent work can strengthen the basis-oriented approach stressed in this paper.  
-
-
-
-The remainder of the paper is organized as follows.    \Section{section_learning} contains a review of approximation techniques for the FPF gain,  and develops several formulations of  $\nabla$-TD learning algorithm in the context of nonlinear filtering.   Results from numerical experiments are surveyed in \Section{s:ex}.    Conclusions and directions for future research are contained in \Section{section_conclusions}
-
-
-\section{Differential-TD Learning for the Feedback Particle Filter}
-\label{section_learning}
-
-\notes{not useful without references or explanation: There are several tools for approximating solutions to Poisson's equation using numerical methods.}
-
-\subsection{Function Approximation}
-
-Recall that the FPF gain is the derivative of the solution to Poisson's equation \eqref{eq_fish}.
-We first review a popular technique used to estimate $h$ \cite{yanmehmey13,yanlaumehmey16}.
-Suppose that we are given a $d$-dimensional  function class
-$\clH  \eqdef \{h_{\param} : \param \in \Re^d\}$ to approximate $h$, and a collection of $d$ \textit{test functions} $\{\test_{l}\}_{l=1}^{d}$; Then, the Galerkin relaxation of Poisson's equation is defined to be the set of $d$ equations in the parameter $\param$:
-\begin{equation}
-\begin{aligned}
-0 &= \langle \clD h_{\param}+\tilc, \test_{l} \rangle \\
-&= \int (-U'(x) h_{\param}'(x)+ h_{\param}''(x)+\tilc (x))\test_{l}(x) \rmd x,
-\end{aligned}
-\label{eq_weak_formulation}
-\end{equation}
-$ 1\leq l \leq d$.
-
-
-In prior work \cite{yanmehmey13,yanlaumehmey16}, $\clH$ is considered to be a linearly parameterized family of functions of the form $\clH =\{ h_{\param} = \sum_{l=1}^{d}\param_{l}\basis_{l} : \param\in\Re^d\}$, where $\{\basis_l\}$ are called the \textit{basis functions}. It is assumed that each $\basis_l$ is continuously differentiable,  with gradient denoted   $\gradbasis_{l} $. These   functions are used to define the approximation of the filter gain
-\begin{equation}
-K_\param = h_{\param}' = \sum_{l=1}^{d}\param_{l}\gradbasis_{l}.
-\label{eq_basis_galerkin}
-\end{equation}
-The
-Galerkin method provides a good algorithmic framework for approximating the gain. However, in general it is not easy to obtain performance guarantees.
-
-In this paper we obtain approximations by solving  the minimum norm problem \eqref{e:gradTDgoal} using $\nabla$-TD learning.  Under general conditions we can be assured that the approximation is the minimum-norm optimal solution.   We first review a recent representation of the gain $\Kfpf = h'$.
-
-
-\subsection{Gain Representation}
-
-The differential operator $\clD $ appearing in Poisson's equation \eqref{eq_fish}
-is the differential generator for the Langevin diffusion:
-\begin{equation}
-\rmd \Phi_t= - U'(\Phi_t) \rmd t + \sqrt{2} \rmd B_t,\\
-\label{e:LE}
-\end{equation}
-wherein $\bfmB$ is the standard Brownian motion.   Under mild conditions on $U$, it is known that the steady-state distribution of $\bfPhi$ is uniquely defined to be $e^{-U}$;  this is precisely $p$ since $U=-\log(p)$.
-
-A representation for the derivative $h'$ can be obtained based on this stochastic process, and  the generalized resolvent kernel of \cite{nev72,meytwe93e,devkonmey16a}: For a measurable function $G\colon\Re\to\Re$, and measurable functions $f$ in some domain,
-\begin{equation}
-R_G f\, (x) \eqdef \int_0^\infty \Expect_x\Bigl[ \exp\Bigl(-\int_0^t G(\process(s))\, \rmd s \Bigr) f(\process(t))\Bigr] dt,
-\label{e:Neveu}
-\end{equation}
-where the expectation is with respect to $\Phi(0)=x$.
-
-In  \cite{nev72,meytwe93e} it is assumed that $G>0$ everywhere. These conditions are relaxed in \cite{konmey03a,devkonmey16a}. In these papers, it is shown that $R_G$ is a right inverse of $[I_G -\clD]$ on some domain, i.e.,
-\begin{equation*}
-[I_G-\clD]R_G f = f,
-\end{equation*}
-where the operator $I_G$ represents multiplication by the function $G$.
-
-Differentiating each side of \eqref{eq_fish} with respect to $x$, we obtain
+The symmetry of the kernel $\Kern$ follows from the commutative property of the inner product, i.e.,
 \[
-\frac{d}{dx}  (\clD h) = -U'' h' - U' h '' +   h '''  =   - c'.
+\Kern(x,x') = \langle \Kern(x, \cdot), \Kern(x',\cdot) \rangle = \langle \Kern(x',\cdot), \Kern(x,\cdot) \rangle = \Kern(x', x). 
 \]
-In operator theoretic notation, this reduces to
-\[
-[I_{U''} -\clD] h' = c'.
-\]
-Hence, provided $c'$ satisfies the assumptions of \cite{devkonmey16b}, the derivative $h'$ has the following representation in terms of the resolvent kernel:
+Let us consider a function $f$ which is a linear combination of the form,
 \begin{equation}
-h' = R_{U''} c'\, .
-\label{e:gradhrep}
+f(\cdot) = \sum_{i=1}^N \alpha_i \Kern(x_i, \cdot),
+\label{e:f_rkhs}
 \end{equation}
-These steps can be justified subject to a growth condition on $c'$,  and  regularity assumptions on $U$  \cite{devkonmey16b}.
-
-We say that a function $f\colon\Re\to\Re$ has at most \textit{exponential growth} if
+where $N \in \mathbb{N}, \alpha_i \in \Re, x_1,x_2,\cdots, x_N \in X$ are arbitrary. Let $\clH^0$ denote the vector space (pre-Hilbert space) spanned by all functions $f$ of this form. 
+The reproducing property of the kernel $\Kern$ follows from the definition of the inner product,
 \[
-\sup_x  \frac{ \log(1+|f(x)|)}{1+|x|}  <\infty
+\langle \Kern(x,\cdot), f(\cdot)\rangle = f(x) \qquad \forall x \in X, \forall f \in \clH^0.
 \]
+Owing to this property, the kernel function $\Kern$ is called the \textit{reproducing kernel}. 
+
+The space obtained by the completion of functions of the form $f$ defined in \eqref{e:f_rkhs}, that are endowed with the inner product as in \eqref{e:rkhs_inner_product} (denoted as $\langle \cdot, \cdot \rangle_{\clH}$ here onward) yields a Hilbert space $\clH$, called the reproducing kernel Hilbert space (RKHS). The corresponding norm is defined as $\|f\|_\clH \eqdef \sqrt{\langle f, f \rangle_\clH}$. The reproducing kernel Hilbert spaces have the remarkable property that norm convergence implies pointwise convergence. 
+For any function $f\in\clH$ and $\{f_n\}\subset \clH$ be a sequence with $\|f_n - f\|_\clH \to 0$ for $n \to \infty$, then for all $x \in X$, we have,
+\[
+\lim_{n\to\infty} f_n(x) = \lim_{n \to \infty} \langle \Kern(x,\cdot),  f_n(\cdot) \rangle_\clH = \langle \Kern(x, \cdot), f(\cdot) \rangle_\clH = f(x)
+\]
+If $\Kern$ is a continuous, symmetric and positive definite kernel satisfying, 
+\[
+\kappa = \sup_{x \in X} \sqrt{\Kern(x,x)} < \infty,
+\]
+then, \Prop{prop:RKHS_bounded} holds.
 
 \begin{proposition}
-	\label{t:grad_h_LE}
-	Suppose that $U\colon\Re\to\Re$ satisfies the following assumptions:
-	\begin{romannum}
-		\item $U$ is $C^2$ with $\sup_x |U''(x)| <\infty$.
-		\item  For some $\epsy>0$,
-		\[
-		U''(x) \ge \epsy,\qquad \text{for} \ \ |x|\ge \epsy^{-1}.
-		\]
-	\end{romannum}
-	Suppose moreover that $c'$ is continuous, and has at most exponential growth.
-	Then $ R_{U''} c'$ is finite valued, and for any $n\ge 1$ we have
-	\[
-	\int   \bigl|  R_{U''} c'\, (x) \bigr|\exp(n |x|)  \, p(x) \rmd x  <\infty
-	\]
-	\qed
+\label{prop:RKHS_bounded}
+	If the kernel $\Kern$ is uniformly bounded, then any $f \in \clH$ is also bounded. 
 \end{proposition}
-
-
-
-
-
-The algorithms described in the following are based on a Hilbert space setting.   Denote by $\|f\|_p^{2} = \int f^2(x) p(x)\, dx$ for measurable functions $f\colon\Re\to\Re$, and let $L_p^2$ denote the set of all functions $f$
-with finite norm.   This is a Hilbert space with inner product defined for $f,g\in L_p^2$ by
-\begin{equation*}
-\langle f,g \rangle_p \eqdef \int f(x)g(x)\, p(x)\rmd x
-\end{equation*}
-That is, $\langle f,g \rangle_p = \Expect[f(\Phi)g(\Phi)]$, where $\process\sim p$.   This norm is identical to what appears in  \eqref{e:gradTDobjective}.    
-
-
-The constructions that follow require methods to compute inner products of the form $\langle g, h' \rangle_p = \langle g, R_{U''} c'\rangle_p $ for functions $g$ and $c$ in a  suitable domain.   For this, we require the \textit{adjoint} $R_{U''}^\dagger$, defined such that the following holds:
-$$\langle g, R_{U''} c'\rangle_p = \langle R_{U''}^\dagger g, c'\rangle_p. $$
-
-\begin{lemma}
-	\label{t:adjointRG}
-	Let $\bfPhi=\{\Phi(t) : t\in\Re\}$ denote a stationary version of the Langevin diffusion.
-	For measurable functions $f,g$ with at most exponential growths we have,
-	\begin{equation}
-	\langle g, R_{U''} f \rangle_p   = \Expect [ f(\Phi(t))	\varphi_g(t)   ]\,, \quad t\in\Re,
-	\label{e:t:adjointRG}
-	\end{equation}
-	wherein $\bfvarphi_g$ is the stationary process:
-	\begin{equation}
-	\varphi_g(t)
-	=
-	\int_{-\infty}^t  \exp\Bigl(-\int_r^t {U''}(\process(s))\, \rmd s  \Bigr) g(\process(r))   \,  \rmd r
-	\label{eq_eligibility_vec}
-	\end{equation}
-	Consequently, 
-	\[
-	R_{U''}^\dagger g(x) = \Expect [\varphi_g(t)|\Phi(t)=x]
-	\]
-\end{lemma}
-
 \begin{proof}
-	For ease of notation, we denote
+	If $f \in \clH$, for all $x \in X$,
 	\[
-	\clU_r^t \eqdef \int_{r}^{t} U''(\process(s)) \rmd s.
-	\]
-	Based on this definition,  and using \eqref{e:Neveu},  
-	\begin{equation*}
 	\begin{aligned}
-	\langle &g, R_{U''}   f \rangle_p 
-	\\
-	& =\Expect[g(\Phi(0))R_{U''}f(\Phi(0))]
-	\\
-	& = \Expect\Bigl[  [g(\Phi(0))\int_{0}^{\infty} \Expect\bigl[\exp\bigl(- \clU_0^\tau  \bigr)f(\Phi(\tau)) \mid \Phi(0)\bigr]\,d\tau \Bigr]
-	\\
-	& =\int_0^\infty \Expect\Bigl[ f(\process(\tau))  \exp\bigl(- \clU_0^\tau  \bigr) g(\Phi(0)) \Bigr]\, \rmd\tau.
+	|f(x)| &= |\langle \Kern(x,\cdot), f \rangle_\clH| \\
+	& \leq \|\Kern(x,\cdot)\|_\clH \|f\|_\clH \qquad{\text{(By Cauchy-Schwarz inequality)}}\\ 
+	& \leq \kappa \|f\|_\clH
 	\end{aligned}
-	\end{equation*}
-	This requires Fubini's theorem, which is justified by \Prop{t:grad_h_LE}. The change of variables $r = t - \tau$ gives
-	\[
-	\langle g, R_{U''} f \rangle_p =
-	\int_{-\infty}^t  \Expect\Bigl[ f(\process(t-r))  \exp \bigl(- \clU_0^{t-r} \bigr) g(\Phi(0))\Bigr]\, \rmd r,
 	\]
-	and applying stationarity,
+	As the above inequality holds for all $x \in X$, 
 	\[
-	\langle g, R_{U''} f \rangle_p =
-	\int_{-\infty}^t \Expect\Bigl[ f(\process(t)) \exp\bigl(- \clU_r^t \bigr) g(\Phi(r))\Bigr] \rmd r.
+	\|f\|_\infty := \max_{x\in X}|f(x)| \leq \kappa \|f\|_\clH
 	\]
-	The proof of \eqref{e:t:adjointRG}
-	is complete via a second application of Fubini's theorem.
 \end{proof}
+A Hilbert function space $\clH$ that has a reproducing kernel $\Kern$ is always an RKHS and conversely, every RKHS has a (unique) reproducing kernel. However, the feature map $\featuremap$ is non-unique. 
+\subsection{Orthonormal basis functions} \anand{Mercer's theorem?}
+Given $\clH$, it is of interest to understand the basis functions that span the Hilbert space. This can be studied using Mercer's theorem. 
+Consider the integral operator (Hilbert-Schmidt operator) $L_K:L^2_\measure(x) \to L^2_\measure(x)$ defined by,
+\[
+(L_K f)(x) = \int_X \Kern(x,t) f(t) d\measure(t)
+\]
+where $\measure$ is a finite Borel measure and $X$ is a compact set.
+The linear map $L_K^{1/2}$ is a Hilbert isomorphism between $L^2_{\measure}(X)$ and $\clH$ as illustrated in \Fig{fig:rkhs_isomorphism}. 
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=3in]{images/Chap3_RKHS_isomorphism}
+	\caption{Diagram illustrating the isomorphic transformations between $\clH$ and $L^2_\measure$.}
+	\label{fig:rkhs_isomorphism}
+\end{figure}
+
+% $L_{K,C}$ emphasizes that the target is $\mathcal{C}(X)$ and $I_K$ denotes the inclusion. If $\Kern$ is $\mathcal{C}^\infty$, then $I_K$ is compact. \anand{Gaussian kernel is $\mathcal{C}^\infty$}
+ $L_K$ is a self-adjoint, compact operator with eigenvalues $\reg_1 \geq \reg_2 \geq \cdots \geq 0$, with the corresponding normalized eigenfunctions $\{\phi_n\}_{n=1}^\infty$ forming an orthonormal basis for $L^2_\measure(X)$. Mercer's theorem states that 
+\[
+\Kern(x,t) = \sum_{n=0}^\infty \reg_n \phi_n(x) \phi_n(t)
+\]
+where the series converges absolutely for each $x,t \in X$. The set $\{\sqrt{\reg_n}\phi_n\}_{n=1}^\infty$ forms an orthonormal basis for $\clH$. 
 
 
+\section{Description of the Gaussian kernel}
+\label{s:gaussian_rkhs}
+
+Of the many kernels being utilized, Gaussian kernel is the most widely used and often gives the best performance. The Gaussian kernel for $X = \Re^d$ is given by,
+\[
+\Kern_{\epsilon}(x,x') := \exp(-\|x - x'\|^2/ 4\epsilon) \qquad \forall x,x' \in \Re^d
+\]
+\begin{itemize}
+\item An explicit description of the RKHS of Gaussian RBF Kernels, 2006 
+
+This paper tries to answer questions like - which functions are contained in the RKHSs induced by the Gaussian kernel, how the corresponding norms can be computed, and how the RKHSs of different widths correlate to each other. 
+In particular, RKHSs of Gaussian kernels always have countable orthonormal bases. 
+
+Theorem 3 of the paper gives the orthonormal basis functions for $\clH$ defined the Gaussian kernel $\Kern_\epsilon$. It states that for $\epsilon >0$ and $n \in \mathbb{N}_0 := \mathbb{N} \cup \{0\}$, we define the function $\phi_n : \Re \to \Re$ by
+\[
+\phi_n(x) := \sqrt{\frac{1}{(2\epsilon)^n n!}}x^n \exp(-x^2/4\epsilon)
+\]
+\item Some properties of Gaussian RKHS and their implications for function approximation and learning theory, 2010 by Ha Quang Minh
+
+The paper gives several properties of the reproducing kernel Hilbert space induced by the Gaussian kernel.
+Theorem 1 of the paper states that the RKHS $\clH$ induced by the standard Gaussian kernel is infinite dimensional, i.e. dim($\clH$) = $\infty$ and 
+\[
+\clH := \Bigl\{ f = \exp(-x^2/4\epsilon) \sum_{n=0}^\infty w_n x^n: \|f\|^2_\clH = \sum_{k=0}^\infty (2\epsilon)^k k! \sum_{n=0}^k w_n^2 <\infty \Bigr\}
+\]
+The paper presents the orthonormal basis for $\clH$ which is consistent with the expression in the previous reference. 
+
+\begin{enumerate}
+	\item $\clH$ induced by the standard Gaussian kernel does not contain any polynomial on $X$, including the non-zero constant function. 
+	
+	\item If $X$ is compact, $\clH$ induced by the Gaussian kernel is dense in the space of $\mathcal{C}(X)$ of continuous functions on $X$.
+	This means that given a continuous function $h(x)$, for all $\varepsilon >0$, we can find a function $g(x) \in \clH$ such that 
+	\[
+	\|h(x) - g(x)\|_\infty \leq \epsilon \qquad \forall x \in X
+	\] 
+	\item Let $\Kern_{\epsilon}(x,y) = \exp(-\frac{\|x-y\|^2}{4\epsilon})$. The Hilbert space $\clH$ induced by $\Kern_\epsilon$ on $X$ contains the function $\exp(-\frac{\mu \|x\|^2} {4 \epsilon})$ if and only if $0<\mu <2$. For example, $\exp(-\frac{\|x\|^2}{2 \epsilon}) \in \clH_{\epsilon/2}$, but  $\exp(-\frac{\|x\|^2}{2 \epsilon}) \notin \clH_{\epsilon}$.
+	
+	\item The functions in $\clH$ that are smooth are not necessarily integrable, as $\clH \notin L^1(\Re^n)$ for any $\epsilon >0$. 
+	
+
+\item Partial derivatives of the Gaussian kernel denoted as $D^\alpha \Kern_x \in \clH$. As a corollary, it can be shown that $t^\alpha \Kern_x(t)\in\clH$. Additionally, for any polynomial $p(t)$, $p(t) \Kern_x(t) \in \clH$. 
+
+\end{enumerate}
+
+\textbf{Implications for learning theory and function approximation}
+
+$L^1$ norm optimization or regularization is infeasible in $\clH$. This could still be done on subsets of finite linear combinations of the basis functions.
+
+The paper also provides the expression for the Hilbert space norm for kernel derivative of any order $d$. 
 
 
-\subsection{Differential TD Learning}
-We now turn to the optimization problem \eqref{e:gradTDgoal}.  The gradient $\nabla_{\param}K_\param$ is denoted $\gradbasispar $.  Applying the first order optimality conditions, optimizer $\param^*$ must satisfy,
+\item Universal kernels, 2006 by Micchelli, Haizhang Zhang
+
+This paper sets out to identify kernels with \textit{universal approximating property} - Given any compact set $X$,  any positive number $\varepsilon$ and any function $f \in \mathcal{C}(X)$, there is a function $g \in \clH$ such that $\| f - g\|_{\infty} \leq \varepsilon$. Thus for any choice of compact set $X$, the set $\Kern(X)$ is dense in $\mathcal{C}(X)$ in the maximum norm. A kernel that satisfies this property is called the \textit{universal kernel}. The paper discusses the characterization of universal kernels in terms of feature map representation of the kernel $\Kern$. It provides necessary and sufficient condition for $\Kern$ to have the universal approximation property in terms of its features. 
+
+As a consequence of Theorem 17 of the paper, the standard Gaussian kernel is shown to be universal. 
+\end{itemize}
+
+An interesting question in the context of FPF gain function approximation would be whether the following holds true for a sequence of functions $\{g_n\} \subset \clH$.
+\begin{enumerate}
+\item $\lim_{n \to \infty} \sup_x |g_n(x) -h(x) | \to 0,\quad \forall x \in \Re$
+\item $ \lim_{n \to \infty}\sup_{x \in X} |g_n(x) - h(x) | \to 0$ and $\sup_x |g_n(x)| < \infty,  \forall x \in \Re$ and $X$ is a compact subset of $\Re$. 
+\end{enumerate}
+This ensures that the gain approximation $g_n$ is arbitrarily close to the true gain within a compact set $X$ and it does not become unbounded anywhere. 
+
+
+\section{Error Analysis}
+\label{s:erm_error}
+Although ideally, we would like to obtain the best \textit{target} function often called the \textit{regression} function, practically this is not possible due to the choice of the approximating function space and the fact that only a finite number of data points are available. Error arising from the former is termed \textit{approximation error} and the latter is termed \textit{sample error}. A wide variety of literature exists on error analysis. Bounds for the approximation error have been studied from various perspectives - i) methods based on complexity of the hypothesis space (like VC-dimension \cite{gir95}, covering numbers \cite{zhou02, smazhou03, zhou03}), ii) methods based on \textit{stability} of the learning algorithm \cite{boueli01,boueli02}.
+
+In general, the goal of a learning problem is to find an approximation of a function $f_\pr : X \to Y$, when only a pair of values $z = (x_i, y_i)_{i=1}^N$ drawn from an unknown probability measure $\pr$ on $X \times Y$ is available. A common approach followed is to minimize,
+\[
+f_{\reg,z} := \argmin_f \frac{1}{N}\sum_{i=1}^N (f(x_i) - y_i)^2 + \reg \|A f \|^2_{\mathcal{L}_{\pr}^2(X)}
+\]
+where $A$ is an operator and $\mathcal{L}^2_{\pr}(X)$ is the Hilbert space of square integrable functions on $X$ with measure $\pr_X$ on $X$. Here, $f_\pr$ is the ``regression'' function of $\pr$,
 \begin{equation}
-\begin{aligned}
-0 & = \nabla_{\param} \|\Kfpf - K_{\param}\|_{p}^{2}\\
-& = 2 \Expect \bigl[\bigl(\Kfpf(\process) - K_{\param}(\process)\bigr) \gradbasispar (\process)\bigr], \quad \Phi \sim p.
-\label{eq_td_derivation}
-\end{aligned}
+f_\pr(x) = \int_Y y d\pr(y|x)
+\label{eq:f_rho}
 \end{equation}
-We first consider the case of a linear parameterization.
 
-\subsubsection*{$\nabla$-LSTD Learning}
-
-Consider a linearly parameterized function class of the form \eqref{eq_basis_galerkin},  or written in more compact form, $h'_\param = K_\param=\param^\transpose \gradbasis$.    In this case the optimization problem \eqref{e:gradTDobjective} becomes a quadratic form:
-
-\begin{lemma}
-	\label{t:LSTDquad}
-	The norm appearing in \eqref{e:gradTDobjective} is a quadratic form,
-	\begin{equation}
-	\|h' - h_\param'\|^2_p = \param^\transpose M \param - 2b^\transpose\param + k ,
-	\label{e:QuadtraticRep}
-	\end{equation}
-	in which for each $1\le i, j\le d$,
-	\begin{equation}
-	M_{i,j} = \langle \gradbasis_i, \gradbasis_j \rangle_p, \quad b_i = \langle \gradbasis_i,  h' \rangle_p,
-	\label{e:bMInitDef}
-	\end{equation}
-	and $k = \| h' \|_p$.  Consequently, the optimizer \eqref{e:gradTDobjective}
-	is any solution to
-	\begin{equation}
-	M \theta^* = b.
-	%\label{e:OptimalTstar}
-	\label{e:OptimalTheta}
-	\end{equation}
-	\qed
-\end{lemma}
+References
+\begin{itemize}
+\item Best choices of regularization parameters in Learning theory - On the bias-variance problem, 2002 by Felipe Cucker, Steve Smale
 
 
-We assume henceforth  that the basis is linearly independent in $L_p^2$, so that $M$ is invertible, and hence $\theta^* = M^{-1}b$.
-
-Under these conditions, the $\grad$-LSTD learning algorithm is an unbiased and asymptotically consistent estimate of $\theta^*$.  The algorithm is defined by three ODEs:
-\begin{subequations}
-	\begin{eqnarray}
-	&\ddt
-	\varphi(t) & =  -U''(\process(t))   \varphi(t) + \gradbasis(\process(t))
-	\label{e:dTD3_cts}
-	\\
-	&\ddt
-	b(t) & =  \varphi(t)   c'(\process(t))
-	\label{e:dTD2_cts}
-	\\
-	&\ddt M(t) & =   \gradbasis(\process(t))   {\gradbasis}^\transpose(\process(t))
-	\label{e:dTD1_cts}
-	\end{eqnarray}
-\end{subequations}
-The vector $\varphi(t)$ is analogous to the eligibility vector in TD learning \cite{bertsi96a,CTCN}. 
-The estimates of $\theta^*$ are generated via $\theta(t) = M(t)^{-1} b(t)$.   The ODE is initialized with $\varphi(0), b(0)\in \Re^d$,  and $M(0)>0$ a $d\times d$ matrix.
-
-\subsubsection*{Nonlinear Parameterization}
-\label{nl_theory}
-
-For a nonlinear parameterization, following the first order optimality conditions for an optimizer $\theta^{*}$ in \eqref{eq_td_derivation}, we have,
-\begin{eqnarray*}
-	0 & = &2 \Expect \bigl[\bigl(\Kfpf(\process) - K_{\param}(\process)\bigr) \gradbasispar (\process)\bigr]\\
-	& = & 2 (\Expect \bigl[\bigl(\Kfpf(\process)\gradbasispar (\process)\bigr)\bigr] - \Expect \bigl[\bigl(K_{\param}(\process)\gradbasispar (\process)\bigr)\bigr])
-\end{eqnarray*}
-Using \Lemma{t:adjointRG}, we can write an alternate representation for $\Expect \bigl[\bigl(\Kfpf(\process)\gradbasispar (\process)\bigr)\bigr]$ as below:
-\begin{eqnarray*}
-	\Expect\bigl[\bigl(\Kfpf(\process)\gradbasispar (\process)\bigr)\bigr]=\langle R_{U''}c',\gradbasis_{i}^{\param}\rangle =\langle c', R_{U''}^\dagger \gradbasis_{i}^{\param}\rangle
-\end{eqnarray*}
-The optimizer $\param^{*}$ can be obtained by using a stochastic approximation algorithm based on gradient descent:
-\begin{equation*}
-\begin{aligned}
-\dot{\param}&=\gamma_{t}\nrgain_{t}^{-1} d(t) \\
-d(t) & =\varphi(t)c'(\Phi(t))-K_{\param_{t}}(\Phi(t))\gradbasis^{\param_{t}}(\Phi(t))
-\end{aligned}
-\end{equation*}
-
-Here, $\gamma_{t}$ is a scalar gain term and is defined in \Section{Results}, and
+The main result in this work states that for each $N\in \mathbb{N}$ and $\delta \in [0,1)$, a function $E_{N,\delta} = E : \Re_+ \to \Re$ exists such that for all $\reg >0$,
 \[
-\nrgain_{t} =\frac{1}{t}\int_{0}^{t}\bigl(\gradbasis^{\param_{t}}(\process(s))\bigr)\bigl(\gradbasis^{\param_{t}}(\process(s))\bigr)^{\transpose}\, ds
+\int_X (f_{\reg,z} - f_\pr)^2 \leq E(\reg)
+\]
+with confidence $1-\delta$. The ``best'' regularization parameter $\reg^*$ depends on the number of samples $N$, confidence interval $1-\delta$ and the operator $A$ and a simple invariant of $\pr$. The assumption is that $f_\pr \in \mathcal{L}^2_\pr(x)$ is bounded. 
+
+The authors construct the two related minimization problems: 
+\[
+\begin{aligned}
+\text{Problem 1 :} \min & \int_X(f(x) - y)^2 + \reg \|f\|^2_\clH, \\
+\text{s.t.} & f \in \clH \\
+%\end{aligned}
+%
+%\[
+%\begin{aligned}
+\text{Problem 2 :} \min & \frac{1}{N} \sum_{i=1}^N (f(x_i) - y_i)^2 + \reg \|f\|^2_\clH,\\
+\text{s.t.} & f \in \clH
+\end{aligned}
+\]
+A theorem in the paper states that the minimizers $f_\reg$ and $f_{\reg,z}$ of problems $1$ and $2$ respectively exist, are unique and are given by, 
+
+\[
+\begin{aligned}
+\text{Solution to problem 1:} &
+f_\reg = (I_d + \reg L_\Kern^{-1})^{-1} f_\pr, \\
+\text{Solution to problem 2:} & 
+f_{\reg,z}(x) = \sum_{i=1}^N \beta_i \Kern(x,x_i)
+\end{aligned}
+\]
+where $\mathbf{\beta}: = [\beta_1, \beta_2, \hdots, \beta_N]$ is the unique solution of the well-posed linear system in $\Re^N$,
+\[
+(\reg N I_d + \Kern) \mathbf{\beta} = \mathbf{y}
+\]
+The Hilbert space norm $\|f\|^2_\clH = \beta^\transpose \Kern \beta$.
+
+The paper defines error $\mathcal{E}$ as 
+\[
+\mathcal{E} = \int_Z (f(x) - y)^2
+\]
+and empirical error $\mathcal{E}_z$ given a sample $z \in Z_N$ as,
+\[
+\mathcal{E}_z = \frac{1}{N} \sum_{i=1}^N (f(x_i) - y_i)^2
+\]
+\[
+\mathcal{E}(f_{\reg,z}) = \mathcal{E}(f_{\reg, z }) - \mathcal{E}(f_\reg) + \mathcal{E}(f_\reg)
+\]
+Therefore, 
+\[
+\mathcal{E}(f_{\reg,z}) \leq \underbrace{|\mathcal{E}(f_{\reg,z}) - \mathcal{E}(f_\reg)|}_{\text{sample error}} + \underbrace{\mathcal{E}(f_\reg)}_{\text{approximation error}}
 \]
 
-\section{Examples}
-\label{s:ex}
-
-Two general applications are considered in this section, distinguished by the finite dimensional class of densities $\clP$.  We first consider a Gaussian mixture model for a diffusion on the real line,  and for a diffusion on the unit circle we consider a mixture of \textit{von Mises densities} \cite{haspea00}.
-
-In each case it is also necessary to define a family of gain functions $\clK = \{K_\param : \param\in\Re^d\}$.  In control applications it is often possible to use the control solution for a stylized control model to inform the choice of basis  \cite{CTCN,huachemehmeysur11}.  In the filtering context here, we do not yet have many tools for basis selection.
-
-One approach is to consider an asymptotic regime.  For example, in the nonlinear oscillator considered in \cite{yanmehmey13} it was possible to estimate the gain function for low signal-to-noise ratio through a Taylor series expansion.  The components of this approximation are used to obtain the family $\clK$ in
-\Section{section_nl_oscillator}.
-
-The rate of convergence of the parameter depends on properties of the stochastic process $\bfPhi$ described by Langevin's diffusion \eqref{e:LE},  and the associated stochastic process that defines the eligibility vectors  in \eqref{eq_eligibility_vec}.  While a stationary version of this process exists in all of the examples considered here,  it will be seen that in some examples the sample paths take on large values, which contributes to high variance.
-
-These issues are most pronounced when the mixture density has a very shallow ``valley'', which is precisely the situation that leads to very large values of the true gain $\Kfpf$. This is illustrated in \Figure{gain_comparison} which shows two bimodal densities and their corresponding gain functions. The two densities are very similar in shape, but, $p_{1}$ results in a much higher value of gain than $p_{2}$. High magnitudes of FPF gain affect the particles that lie in this region of the state space, leading to numerical instabilities in filtering.
-
-\begin{figure}[h]
-	\begin{center}
-		\Ebox{.85}{Chap2_Fig_gain_comparison}
-		\caption{FPF gain $K(x)$ for $p(x)$ with $w_{0}=0.01$ and $w_{0}=0.1$}
-		\label{gain_comparison}
-	\end{center}
-\end{figure}
-
-%\iffalse
-%\begin{figure}[h]
-%	\begin{center}
-%		\includegraphics[width=12cm]{Chap2_Fig_low_var_w0_pt01_K_900.eps}
-%		\caption{FPF gain $K(x)$ for $p(x)$ with $w_{0}=0.01$}
-%		\label{low_var}
-%	\end{center}
-%\end{figure}
-%
-%\begin{figure}[H]
-%	\begin{center}
-%		\includegraphics[width=12cm]{Chap2_Fig_low_var_w0_pt1_K_90.eps}
-%		\caption{FPF gain $K(x)$ for $p(x)$ with $w_{0}=0.1$}
-%		\label{high_var}
-%	\end{center}
-%\end{figure}
-%\fi
-
-\subsection{Gaussian mixture model}
-\label{Results}
-
-We begin with a survey of results obtained for the Gaussian mixture model (GMM).  An integer $m\ge 1$ is fixed, and a density $p\in \clP$ has the form
-\begin{equation*}
-\begin{aligned}
-p(x)& = \sum_{i=1}^{m} w_{i} p_{i}(x) \,,
-\end{aligned}
-\end{equation*}
-where each $p_{i}$ is a $\mathcal{N}(\mu_i,\sigma_i^2)$ Gaussian density, and the non-negative weights $\{w_i\}$ sum to one. Let $\mu$ and $\sigma^{2}$ denote the mean and the variance of $p$.
-%
-%\iffalse
-%\begin{figure}[h]
-%	\begin{center}
-%		\Ebox{.85}{Chap2_Fig_gain_comparison_low_var.eps}
-%		\caption{FPF gain $\Kfpf$ for the given density $p$ with low variance}
-%		\label{gain_comparison_1}
-%	\end{center}
-%\end{figure}
-%
-%
-%\begin{figure}
-%	\begin{center}
-%		\Ebox{.85}{Chap2_Fig_gain_comparison_high_var.eps}
-%		\caption{FPF gain $\Kfpf$ for the given density $p$ with high variance}
-%		\label{gain_comparison_2}
-%	\end{center}
-%\end{figure}
-%\fi
-
-In each of the following experiments the density $p\in\clP$ was chosen with $m=2$,
+\noindent \textbf{Sample Error :}
+Theorem 2 in the paper gives probabilistic bounds for the \textit{sample error}.
+Theorem 3 states that given $N>0$, $0<\delta \leq 1$, and for all $\reg>0$, the expression 
 \[
-p_1 = \mathcal{N}(-3, 4),\ \
-p_2 = \mathcal{N}(3, 1),\ \
-w_1 =0.75,\
-w_2 =0.25.
+\mathcal{S}(\reg) = \frac{32 M^2 (\reg + C_K)^2}{\reg^2} v^*(N,\delta)
+\]
+where $M$ and $C_K$ are appropriate constants defined in the paper. 
+
+\noindent \textbf{Approximation Error :} To choose the optimal $\reg$, the paper looks at the \textit{approximation error}. 
+\[
+\min_{f \in \mathcal{L}_\pr^2(X)} (\|f - f_\pr\|^2 + \reg \|f\|^2_\clH) \leq \reg^\theta \|L_K^{-\theta/2} f_\pr \|^2
+\]
+The minimum is obtained for $f = f_\reg$. Therefore,
+\[
+(\|f_\reg - f_\pr\|^2 + \reg \|f_\reg\|^2_\clH) \leq \reg^\theta \|L_K^{-\theta/2} f_\pr \|^2
+\]
+A basic result in Chapter 1 of CS states that for all $f_\pr \in \mathcal{L}_\pr^2(X)$, 
+\[
+\mathcal{E}(f) = \int_X (f - f_\pr)^2 + \sigma_\pr^2
+\]
+where $\sigma_\pr$ depends only on $\pr$. Therefore, approximation error $\mathcal{E}(f_\reg)$ is bounded by,
+\[
+\begin{aligned}
+\mathcal{E}(f_\reg)  & \leq \reg^\theta \|L_K^{-\theta/2} f_\pr \|^2 + \sigma_\pr^2\\
+& \leq \mathcal{A}(\reg) + \sigma_\pr^2 
+\end{aligned}
 \]
 
-\subsubsection*{Linear Parameterization}
-
-It is reasonable to search for a basis that offers flexibility where the density $p$ takes on non-negligible values.  The following $6$-dimensional basis was chosen with this idea in mind:
-\begin{equation*}
+Now, let $E(\reg) = \mathcal{S}(\reg) + \mathcal{A}(\reg)$. 
+Recall,
+\[
 \begin{aligned}
-\gradbasis_{1}(x) & = q_1(x)
-\, ,\qquad
-&\gradbasis_{2}(x)  = q_2(x)
-\\
-\gradbasis_{3}(x) & = \gradbasis_{1}(x) x \, ,\qquad
-&\gradbasis_{4}(x)  = \gradbasis_{2}(x) x \\
-\gradbasis_{5}(x) &= 1 \,  ,\qquad &\gradbasis_{6}(x) =q(x)/p^{\rho}(x)
+\mathcal{E}(f_{\reg,z}) &\leq |\mathcal{E}(f_\reg) - \mathcal{E}(f_{\reg,z})| + \mathcal{E}(f_\reg) \\
+& \leq \mathcal{S}(\reg) + \mathcal{A}(\reg) + \sigma_\pr^2\\
+& \leq E(\reg) + \sigma_\pr^2
 \end{aligned}
-\end{equation*}
-where $q_i$ is $\mathcal{N}(\mu_i,\gamma_i^2)$, with $\gamma_i>\sigma_i$ for each $i$. $\gamma_i=\sigma_i+1$ was used. It is not difficult to show that the true gain is nearly constant for large $x$, with $\lim_{|x|\to\infty} \Kfpf(x) = \Kkal$. The limit corresponds to the Kalman-like gain $\Kkal$ obtained for the model in which $p$ is replaced by $p_1$  (the Gaussian density with the highest variance). The function $\gradbasis_{5}$ accounts for this constant asymptotic gain value.
+\]
+Subtracting $\sigma_\pr^2$ from both sides, we get
+\[
+\int_X (f_{\reg,z} - f_\pr)^2 \leq E(\reg)
+\]
 
-The form of the solution to \eqref{eq_fish} includes a factor of $p^{-1}$, which may explain the behavior seen in \Figure{gain_comparison} and this motivates the inclusion of $\gradbasis_{6}$ into the basis. Here, $q$ is $\mathcal{N}(\mu,\sigma^{2})$ and $\rho$ is chosen such that $\lim_{|x|\to\infty}\gradbasis_{6}(x)$ is bounded. The class $\clK$ is defined using this basis:
-% \begin{equation*}
-% K_\param = \Kkal + \param^{\transpose}\gradbasis = \Kkal + \sum_{i=1}^{d}\param_{i}\gradbasis_{i}\,, \quad\param\in\Re^d.
-% \end{equation*}
-\begin{equation*}
-K_\param = \param^{\transpose}\gradbasis = \sum_{i=1}^{d}\param_{i}\gradbasis_{i}\,, \quad\param\in\Re^d
-\end{equation*}
+The optimal $\reg^*$ that minimizes both the sample error and the approximation error can be obtained by taking the derivatives with respect to $\reg$ and equating $\mathcal{S}'(\reg^*) + \mathcal{A}'(\reg^*) =0$. Corollary 2 also gives that for every $0 <\delta \leq 1$, 
+\[
+\lim_{N \to \infty} E(\reg^*) = 0 
+\]
+It has been stated that $\reg^* \to 0$ as $N \to \infty$.
 
-\Figure{f:lstd} compares the actual FPF gain with the best approximation from within the parameterized family obtained using $\nabla$-LSTD learning. Although, the approximation is not tight everywhere, it is the best that is possible for the chosen basis. As expected, the accuracy is typically better at values of $x$ for which $p(x)$ is large.
+The paper concludes with some discussion about the \textit{bias-variance} problem. Roughly speaking, the ``bias'' of a problem coincides with the approximation error and the ``variance'' with the sample error. The bias-variance trade-off amounts to the choice of a compact subspace $\clH$ of $\mathcal{C}(X)$ over which $\mathcal{E}_z$ is minimized. A small subspace $\clH$ will result in a large bias, whereas too much flexibility of $\clH$ for a given dataset $Z$ will produce a large variance. 
+Several parameters(radius of balls, dimensions etc.) determine the ``size'' of this subspace $\clH$. For example, if we consider the ball of radius $r = \|f_{\reg,z}\|_K$ in $\clH_K$ and $\clH = \overline{I_K(B_r)}$. Since $\reg \propto \frac{1}{r}$, large $\reg$ corresponds to large bias or approximation error and small $\reg$ corresponds to large variance or sample error. 
 
-\begin{figure}[h]
-	\Ebox{.9}{Chap2_Fig_lstd}
-	\caption{$\nabla$-LSTD learning for the linear parameterization.}
-	\label{f:lstd}
-\end{figure}
+\item Support vector machine soft margin classifiers - Error Analysis, 2004
 
-\subsubsection*{Nonlinear Parameterization}
-\label{sec_nl_param}
-In a nonlinear parameterization setting, the following form is chosen for the class $\clK$.
-\begin{equation*}
-K_\param(x) = K_{0} + \sum_{i=1}^m \xi_{i}^{\param}(x)
-\end{equation*}
-Of the various nonlinear parameterizations tested, the following produced the best results,
-\begin{equation*}
-\xi_{i}^{\param}(x) = \dfrac{a_{i}}{(x -b_{i})^2 + c_{i}^2}
-\end{equation*}
-The coefficients $\{a_{i}, b_{i}, c_{i} \}, K_{0}$ constitute the parameters to be estimated.
-In the simulation results surveyed here  $m=3$ and hence, $\param \in \Re^{d}$ with $d=10$.
-\begin{figure}[h]
-	\Ebox{1}{Chap2_Fig_nltdB}
-	\caption{Performance of nonlinear parameterization $\nabla$-LSTD}
-	\label{f:nltd}
-\end{figure}
+In Zhang (2004) the leave-one-out technique was applied to improve the sample error estimates given in Bousquet and Ellisseeff (2002): the sample error has a kernel-independent bound $O(\frac{C}{N})$,
+improving the bound $O(\frac{C}{\sqrt{N}})$ in Bousquet and Ellisseeff (2002).
 
-Optimal nonlinear parameterization can be obtained by running $\nabla$-TD learning using stochastic approximation techniques, discussed in \Section{nl_theory}. Two such techniques were used, namely stochastic Newton Raphson and approximation with Polyak averaging\cite{bor08a}. The scalar gain term $\gamma_t$ is set to $1/(t+1)^{\beta}$. For stochastic Newton Raphson, $\beta$ is chosen to be $1$, and $\beta=0.6$ was chosen for Polyak averaging.
+This paper mostly considers the soft SVM classifier. It does not say anything about the least squares error.
 
-\Figure{f:nltd} shows the approximate gain obtained using stochastic Newton Raphson algorithm and the  exact gain values. The approximation obtained using nonlinear parameterization matches the exact gain better than the linear parameterization. \Section{asym_variance} compares the asymptotic error variances obtained using both these algorithms.
+\item Stability and Generalization, 2002 - Bousquet and Elisseeff
 
-\subsection{Nonlinear oscillator}
-\label{section_nl_oscillator}
+In this work, the accuracy of learning algorithms is analyzed using a different approach based on \textit{sensitivity analysis}. Sensitivity analysis aims at determining how much the variation of the input can influence the output of the system. The difference between an empirical measure of error and the true generalization error is taken as a random variable. This paper introduces three notions of stability and then derives bounds on the generalization error of stable learning systems. Many algorithms including regularized least squares regression in an RKHS satisfies the stability requirements.
 
-We consider next the nonlinear oscillator example introduced in \cite{yanmehmey13}.
-The state evolves on the unit circle, and the observations are nonlinear:
-\begin{equation*}
+General discussion -  When trying to estimate an unknown function from data, one needs to find a tradeoff between bias and variance. One approach is to keep increasing the size of the model and then choosing the best estimator based on a complexity penalty (regularization term). Another approach is statistical methods like bagging, which consists of averaging several estimators built from subsamples of the data.
+This work derives exponential upper bounds on the generalization error based notions of stability. Both the leave-one-out error and the empirical error are considered as possible estimates of the generalization error. 
+
+Section 5.2.2 discusses the application of the results to regularization in Hilbert spaces. Theorem 22 states the uniform stability of a reproducing kernel Hilbert space with kernel $\Kern$ such that $\forall x \in X$, $\Kern(x,x) \leq \kappa^2 < \infty$. The learning algorithm defined by a loss function $l$ that is $\sigma$-admissible, 
+\[
+\argmin_{g \in \mathcal{F}} \frac{1}{N} \sum_{i=1}^N l(g,z_i) + \reg \|g\|^2_\clH
+\]
+has uniform stability $\beta$ with respect to $l$ with 
+\[
+\beta \leq \frac{\sigma^2 \kappa^2}{2 \reg N}
+\]
+Uniform stability is the strongest notion. The algorithm is stable when the value of $\beta$ decreases $\frac{1}{N}$.
+Example 3 discusses the stability of regularized least squares regression for a bounded case. The stability bound for this algorithm is
+\[
+\beta \leq \frac{2\kappa^2 B^2}{\reg N}
+\]
+The resulting generalization error bound is 
+\[
+R \leq R_{emp} + \frac{4 \kappa^2 B^2}{\reg N} + \Bigl(\frac{8 \kappa^2 B^2}{\reg} + 2B \Bigr)\sqrt{\frac{\ln 1/\delta}{2N}}
+\]
+In general, the bounds on generalization error are of the following type, $ R \leq R_{emp} + O(\frac{1}{\reg \sqrt{N}})$. This means that non-trivial results can be obtained only if $\reg >> \frac{1}{\sqrt{N}}$.
+\item \rd{A Leave-one-out Cross Validation Bound for Kernel Methods with Appliations in Learning - Zhang}
+
+\item \rd{Optimal rates for the regularized least squares Algorithm, De Vito}
+
+Theorem 1 of the paper gives the optimal choices for $\reg$ as a function of $N$. 
+
+\item \rd{Model selection for regularized least squares regression, De Vito - 2005}
+
+This paper aims to provide a selection rule for the parameter $\reg$ which is optimal for any number $N$ of examples and provides the desired asymptotic behavior when $N$ goes to $\infty$. A sequence of nested hypothesis spaces can be formed for various values of $\reg$,
+\[
+\clH_{\reg_1} \subset \clH_{\reg_2} \cdots \subset \clH
+\]
+where $\reg_1 > \reg_2 > \cdots \reg_n$. $\clH_{\reg_k}$ is the subset of functions in the model space $\clH$ that have \textit{complexity} less than $\frac{1}{\reg_k}$. Complexity of the solution decreases with $\reg$.  
+
+In practice, the parameter $\reg$ is usually chosen through an \textit{a posteriori} procedure such as cross-validation or using a validation set.
+We are interested in obtaining \textit{a priori} bounds and rules for selection. 
+\[
+\reg_{opt} := \argmin_{\reg >0} \Expect_D(I[f_D^\reg]),
+\]
+where $D$ is the training set. It is further refined by considering the variance $\sigma^2$ also,
+\[
+\reg_{opt} := \argmin_{\reg >0} \{\Expect_D(I[f_D^\reg])+ \sigma^2(I[f_D^\reg])\}
+\]
+It also considers the worst case analysis, where given a confidence level $\delta \in (0,1)$, 
+\[
 \begin{aligned}
-\rmd \oscState &= \omega \rmd t+\sigma_{B}\rmd B_t \quad \text{mod }2\pi,
-\\
-\rmd Z_t &= c(\oscState)\rmd t+ \sigma_{W} \rmd  W_t
+E_{opt}(\reg, \delta) &:= \inf_{t \in [0;+\infty)} \{t | \text{Prob}\{D \in Z^N | I[f^\reg_D] >t\}\leq \delta\}\\
+\reg_{opt}(\delta) &:= \argmin_{\reg >0} E_{opt}(\reg, \delta)
 \end{aligned}
-\end{equation*}
-The parameter $\omega$ is  the
-mean angular velocity,  and $\bfmB$ and $\bfmW$ are mutually independent standard Brownian motions.
-The observation function is
-$c(\oscState)=\frac{1}{2}[1+\cos(\oscState)]$.
+\]
+This paper is unique in the sense that it does not make use of any complexity measure on the hypothesis space, like VC-dimension or covering number. Instead, the sample error is bounded only through two simple constants related to the topological properties of $X$ and $Y$. 
 
-The feedback particle filter for this model is given by :
-\begin{equation*}
-\rmd \oscState^{i}_t = \omega \rmd t
-+\sigma_{B}\rmd B^{i}_t+K(\oscState^{i}_t) \rmd I^i(t)  \quad  \text{mod }2\pi\, ,
-\end{equation*}
-with $\rmd I^i(t) = \rmd Z_t-\frac{1}{2}(c(\oscState_t^{i}+\hac_t))\rmd t$.
-The gain function $K(\oscState,t)$ at each instant $t$ is obtained as the solution to \eqref{eq_fish}:
-\begin{equation*}
-- U'(\oscState) K(\oscState) + K'(\oscState) = -\tilc(\oscState)  %\qquad \{\tilc =c-\int c(\oscState)p(\oscState,t)d\oscState\}
-\end{equation*}
-The conditional density $p(\oscState,t)$ at any instant is modeled as a mixture of von Mises densities:
-\begin{equation*}
-p(\oscState)=\sum_{i=1}^{N}w_{i}p_{i}(\oscState)
-\end{equation*}
-Each component of the mixture $p_{i}(\oscState)$ is given as follows:
-\begin{equation*}
-p_{i}(\oscState,t) =  \beta^{-1} \exp  \bigl( \kappa_i \cos(\oscState-\mu_{i} )    \bigr),
-\end{equation*}
-where $\beta$ is a normalizing constant, and $\mu_{i}$ is the mean of the density. This reduces to   a uniform density for $\kappa_{i}=0$, and the variance vanishes as $\kappa_{i}\to \infty$ \cite{haspea00}. By choosing a family of a mixture of von Mises densities, it is possible to model any form of circular density from uniform to a bimodal Gaussian mixture.
-Poisson's equation can be numerically solved in the scalar case for this mixture density $p(\oscState)$, so that the gain function $\Kfpf$ is numerically computed.
-% \iffalse
+Theorem 1 gives bounds on the sample error. With probability at least $1-\delta$,
+\[
+|R[f_D^\reg] - R[f^\reg]| \leq S(\reg,N,\delta)
+\]
+where $S(\reg,N,\delta) = \frac{M \kappa^2}{\reg \sqrt{N}}\Bigl( 1 + \frac{\kappa}{\sqrt{\reg}}\Bigr) \Bigl( 1 + \sqrt{2 \log \frac{2}{\delta}}\Bigr)$. Here $M = \sup\{|y|\,|y \in Y\}$.
 
-\subsubsection*{Simulation results}
-We consider a mixture of von Mises densities with the following parameters: $\mu_1 = -\pi/3$,\ \
-$\mu_2 = \pi/3$,\ \
-$\kappa_1=\kappa_2=3$,\ \
-$w_1 =0.7$,\ \
-$w_2 =0.3$.
+The best rate convergence is obtained by choosing $ \reg_N = \frac{1}{\sqrt[4]{N}}$. 
+
+\item \rd{Learning theory estimates via integral operators and their approximations, Smale Zhou}
+Theorem 5 - Obtains error bounds $\|f_{z,\reg} - f_\pr \|_\pr$ is $O(1/\reg\sqrt{N})$. 
+Similar results and conditions on $\reg > \frac{1}{\sqrt{N}}$
+\item \rd{Regularization in kernel learning, 2010 - Mendelson and Neeman}
 
 
-The $\nabla$-LSTD learning algorithm is applied to this nonlinear oscillator problem. A linearly parameterized family using sines and cosines is the chosen basis. This is a reasonable choice because for a uniform density, the gain $\Kfpf=-\frac{\sin \oscState}{2\sigma_{W}^{2}}$.
-
-\begin{figure*}
-	\Ebox{.9}{Chap2_Fig_TD_v_BE_468}
-	\caption{$\nabla$-LSTD learning for $4,6$ and $8$ dimensional basis}
-	\label{f:qad468}
-\end{figure*}
-
-For comparison, we also considered an approximation computed by minimizing the $p-$norm of the Bellman error:
-% \begin{equation*}
-\begin{align*}
-\min_{\param}\|\clE(\param)\|_{p}^{2}=\min_{\param}\langle \clD h_{\param} + \tilc \rangle_{p} = \min_{\param}\|\clD h_{\param} +\tilc \|_{p}^{2}
-\end{align*}
-% \end{equation*}
-This minimization problem can be solved using Monte-Carlo methods.
-
-Figure \ref{f:qad468} compare the performance of the $\nabla$-LSTD learning algorithm and the Bellman error minimization algorithm with the numerically computed exact gain function for basis functions of dimensions $4$, $6$ and $8$. It can be observed that $\nabla$-LSTD learning gives a better approximation than the $BE$ minimization algorithm in regions of high values of $p(\oscState)$.
-
-
-
-
-%\begin{figure}
-%	\Ebox{.85}{Chap2_Fig_TD_v_BE_4b}
-%	\caption{For a 4 dimensional basis}
-%	\label{f:qad4d}
-%\end{figure}
-%
-%
-%\begin{figure}
-%	\Ebox{.85}{Chap2_Fig_TD_v_BE_6b}
-%	\caption{For a 6 dimensional basis}
-%	\label{f:qad6d}
-%\end{figure}
-%
-%
-%\begin{figure}
-%	\Ebox{.85}{Chap2_Fig_TD_v_BE_8b}
-%	\caption{For an 8 dimensional basis}
-%	\label{f:qad8}
-%\end{figure}
-
-\begin{figure}[h]
-	\Ebox{1}{Chap2_Fig_hist_err_peak_1+2}
-	\caption{ Histogram of error between $\Kfpf$ and $K_\param$ at $\mu_{1}$ and $\mu_{2}$ }
-	\label{var_snr_1}
-	\vspace{-.15cm}
-\end{figure}
-
-\subsection{Variance analysis of stochastic approximation algorithms}
-\label{asym_variance}
-In this section, the variances in the parameter estimates obtained using stochastic approximation with Polyak averaging and stochastic Newton Raphson are compared. Stochastic Newton Raphson and the Polyak averaging method give the same theoretical optimal asymptotic variance. We investigate the realized variance after running the algorithms for $T=10,000$ seconds.
-
-The error measure is defined as
-\begin{equation*}
-\begin{aligned}
-\epsilon(x) &= \Kfpf(x)-K_\param(x)
-\end{aligned}
-\end{equation*}
-The error values at the peaks of the density are of utmost interest because these are the locations where a majority of the particle population lie. \Figure{var_snr_1}  compares the variance and bias of the error evaluated at $x=\mu_{1}$ and $x=\mu_{2}$, for each algorithm. The histograms are based on $1,000$ independent trials. Both methods have an error bias of close to $4$ at $\mu_{1}$ and $0$ at $\mu_{2}$. Stochastic Newton Raphson has a more unimodal error distribution compared to Polyak averaging. It also gives a slightly lower variance.
-
-
-
-
-\subsection{Parameter estimation experiment}
-
-
-TD learning using the nonlinear parameterization discussed in \Section{sec_nl_param} yields good approximation of the FPF gain function. Here, we perform a simulation experiment to investigate the effectiveness of using the gain obtained from TD learning for a parameter estimation example. Consider the following process where the state $X(t)$ remains at its initial value for all $t$. $X(0)$ is distributed in $[-3,3]$ with a higher probability near $\pm3$. The state-observation model is,
-\begin{equation*}
-\begin{aligned}
-\rmd X(t)&=0,\quad \\
-\rmd Z(t)&= X(t) \rmd t+\sigma_{W}\rmd W(t)
-\end{aligned}
-\end{equation*}
-The problem reduces to parameter estimation as the state remains constant. In such applications, the sequential importance resampling (SIR) particle filter may perform poorly. The transient response of the filter, i.e., how quickly the estimates reach a given neighborhood of the actual state is of interest
-\subsubsection*{Filter specification}  We assume a model with a 2-component Gaussian mixture as the prior $p(0)$. We take the modes of the initial Gaussian mixture at $\pm 3$. The standard deviations are chosen to be small, $\sigma_{1}=\sigma_{2}=1$, and let $w_{1}=w_{2}=0.5$.
-
-The EM algorithm was used for density estimation. We compare two different implementations of the FPF: one with the exact gain and the second with the approximate gain obtained using $\nabla$-TD learning using a nonlinear parameterization with $d=10$ discussed in \Section{sec_nl_param}. If the posterior density estimate $p(t)$ changes slowly, and if the parameter values are initialized with their steady state values obtained from the previous instant, convergence of parameters is quick, and thus $\nabla$-TD learning can be run in ``real time'' for filtering.
-
-\Figure{Chap2_Fig_FPF_EM_TD} compares the trajectories of the state estimates obtained using both these FPF versions. Both the implementations show similar filtering performance.
-
-\begin{figure}
-	\begin{center}
-		\Ebox{.85}{Chap2_Fig_FPF_EM_TD_2}
-		\caption{ State estimates from the two FPF implementations - actual and $\nabla$-TD learning }
-		\label{Chap2_Fig_FPF_EM_TD}
-	\end{center}
-\end{figure}
-
-
-\section{Conclusions}
-\label{section_conclusions}
-
-Gain approximation for the feedback particle filter is an essential part of this approach to nonlinear filtering.  We have seen that a combination of two statistical learning techniques address this approximation problem.
-
-There remain many open questions.   Alternatives to the EM algorithm must be explored for density approximation based on particles,  and it will be valuable to apply variance reduction techniques to improve the $\nabla$-TD learning algorithms.  Also, for real-time operation, the algorithms might be modified to take into account that the posterior densities and FPF gain evolve with known dynamics.  
-
-Basis selection is the most pressing open problem from a practical perspective.  In terms of mathematical challenges, the most important open problem is robustness of the filter to modeling error, including the impact of an imperfect FPF gain.
-
+\item \rd{Fast rates for SVMs using Gaussian kernels, 2007 - Steinwart and Scovel}
+\end{itemize}
