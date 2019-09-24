@@ -73,7 +73,7 @@ then, \Prop{prop:RKHS_bounded} holds.
 \end{proof}
 A Hilbert function space $\clH$ that has a reproducing kernel $\Kern$ is always an RKHS and conversely, every RKHS has a (unique) reproducing kernel. However, the feature map $\featuremap$ is non-unique. 
 \subsection{Orthonormal basis functions} \anand{Mercer's theorem?}
-Given $\clH$, it is of interest to understand the basis functions that span the Hilbert space. This can be studied using Mercer's theorem. 
+Given $\clH$, it is of interest to understand the basis functions that span the Hilbert space. This can be studied using Mercer's theorem \cite{merrus09}.
 Consider the integral operator (Hilbert-Schmidt operator) $L_K:L^2_\measure(x) \to L^2_\measure(x)$ defined by,
 \[
 (L_K f)(x) = \int_X \Kern(x,t) f(t) d\measure(t)
@@ -96,15 +96,20 @@ The linear map $L_K^{1/2}$ is a Hilbert isomorphism between $L^2_{\measure}(X)$ 
 where the series converges absolutely for each $x,t \in X$. The set $\{\sqrt{\reg_n}\phi_n\}_{n=1}^\infty$ forms an orthonormal basis for $\clH$. 
 
 
-\section{Description of the Gaussian kernel}
+\section{Properties of the Gaussian kernel -  RKHS}
 \label{s:gaussian_rkhs}
 
-Of the many kernels being utilized, Gaussian kernel is the most widely used and often gives the best performance. The Gaussian kernel for $X = \Re^d$ is given by,
+Of the many kernels being used, Gaussian kernel is the most widely used and often gives the best performance. The study of the properties of the Gaussan kernel has received a lot of attention \cite{stehussco06, min10}. The Gaussian kernel for $X = \Re^d$ is given by,
 \[
 \Kern_{\epsilon}(x,x') := \exp(-\|x - x'\|^2/ 4\epsilon) \qquad \forall x,x' \in \Re^d
 \]
-\begin{itemize}
-\item An explicit description of the RKHS of Gaussian RBF Kernels, 2006 
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=5in]{images/Chap3_Gaussian_kernel}
+	\caption{Gaussian kernel with $\epsilon = 0.125$ and its Fourier transform \cite{schsmo01}.}
+	\label{fig:gaussian_kernel}
+\end{figure}
 
 This paper tries to answer questions like - which functions are contained in the RKHSs induced by the Gaussian kernel, how the corresponding norms can be computed, and how the RKHSs of different widths correlate to each other. 
 In particular, RKHSs of Gaussian kernels always have countable orthonormal bases. 
@@ -113,9 +118,9 @@ Theorem 3 of the paper gives the orthonormal basis functions for $\clH$ defined 
 \[
 \phi_n(x) := \sqrt{\frac{1}{(2\epsilon)^n n!}}x^n \exp(-x^2/4\epsilon)
 \]
-\item Some properties of Gaussian RKHS and their implications for function approximation and learning theory, 2010 by Ha Quang Minh
 
-The paper gives several properties of the reproducing kernel Hilbert space induced by the Gaussian kernel.
+
+The paper gives several properties of the reproducing kernel Hilbert space induced by the Gaussian kernel \cite{min10}.
 Theorem 1 of the paper states that the RKHS $\clH$ induced by the standard Gaussian kernel is infinite dimensional, i.e. dim($\clH$) = $\infty$ and 
 \[
 \clH := \Bigl\{ f = \exp(-x^2/4\epsilon) \sum_{n=0}^\infty w_n x^n: \|f\|^2_\clH = \sum_{k=0}^\infty (2\epsilon)^k k! \sum_{n=0}^k w_n^2 <\infty \Bigr\}
@@ -145,13 +150,11 @@ $L^1$ norm optimization or regularization is infeasible in $\clH$. This could st
 
 The paper also provides the expression for the Hilbert space norm for kernel derivative of any order $d$. 
 
-
-\item Universal kernels, 2006 by Micchelli, Haizhang Zhang
-
+\cite{micchaxuzha06}
 This paper sets out to identify kernels with \textit{universal approximating property} - Given any compact set $X$,  any positive number $\varepsilon$ and any function $f \in \mathcal{C}(X)$, there is a function $g \in \clH$ such that $\| f - g\|_{\infty} \leq \varepsilon$. Thus for any choice of compact set $X$, the set $\Kern(X)$ is dense in $\mathcal{C}(X)$ in the maximum norm. A kernel that satisfies this property is called the \textit{universal kernel}. The paper discusses the characterization of universal kernels in terms of feature map representation of the kernel $\Kern$. It provides necessary and sufficient condition for $\Kern$ to have the universal approximation property in terms of its features. 
 
 As a consequence of Theorem 17 of the paper, the standard Gaussian kernel is shown to be universal. 
-\end{itemize}
+
 
 An interesting question in the context of FPF gain function approximation would be whether the following holds true for a sequence of functions $\{g_n\} \subset \clH$.
 \begin{enumerate}
