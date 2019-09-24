@@ -1,148 +1,645 @@
-\chapter{RESULTS} \label{results}
+\chapter{Feedback particle filters} 
+\label{ch:filtering}
 
-\section{Fusce Eget Tempus Lectus, }
+\section{Introduction}
+\label{s:intro}
 
+
+This paper introduces design techniques for nonlinear filtering based on the  \textit{feedback particle filter} (FPF).   For simplicity, the paper restricts to the scalar filtering problem:
+\begin{equation*}
+\begin{aligned}
+\rmd X(t)&=a(X(t)) \rmd t +\sigma_{B}\rmd B(t),\\
+\rmd Z(t)&=c(X(t)) \rmd t + \sigma_{W}\rmd W(t),
+\end{aligned}
+\end{equation*}
+where $\bfmX=\{X(t)\}$ is the scalar state process, $\bfmZ=\{Z(t)\}$ is the scalar observation process, $a$ and $c$ are $C^{1}$ functions, and  $\bfmB= \{B(t)\}$,  $\bfmW = \{W(t)\}$ are mutually independent Brownian motions.   The goal of the filtering problem is to approximate the posterior density 
+$p^*_t$  of $X(t)$,
+given the past observation history $\clZ(t)\eqdef\sigma(Z(s):s\leq t)$.
+
+Some background on the FPF is required before discussing the contributions of the current paper.
+
+\subsection{Background}
+
+Particle filter techniques are based on the following common architecture:  A family of $N$ stochastic processes represent particles, denoted by $ \{X^i(t) : t\in\Re,\ 1\le i\le N  \}$, where $N$ is a large number.   The estimate of the posterior at time $t$ is given by the
+\textit{empirical distribution},
 \begin{equation}
-A^2 + B^2 = C^2
+p^{(N)}_t(A)=\dfrac{1}{N}\sum_{i=1}^{N} \ind  \{X^i(t)\in A \},\quad A\subset \Re.
+\label{e:emp}
 \end{equation}
+In the feedback particle filter,  the particle evolution equations mimic those of the state space model:
+\begin{equation}
+\rmd X^i(t)=a(X^i(t)) \rmd t+\sigma_{B}\rmd B^i(t)+\rmd \bfmU^i(t),
+\label{eq_controlled_sys}
+\end{equation}
+where $i=1$ to $N$, $X^i(t) \in \Re$ is the state of the $i^{th}$ particle at time $t$, $N$ is the total number of particles, $\bfmU^i(t)$ is the control input applied to this particle, and $\{\bfmB^i\}$ are mutually independent standard Brownian motions. For each $i$, the control input $\bfmU^i$ is constructed so that for any $t$ and any $A\in\clB $  (Borel measurable subsets of $\Re$),
+\[
+\Prob\{ X^i(t) \in A \mid \clZ_t\} 
+=
+\Prob\{ X(t) \in A \mid \clZ_t\}
+=
+\int_A p^*_t(x) \rmd x
+\]
 
-%\hline
-\begin{algorithm}  {Euclid’s algorithm}
-%\hline %
-\singlespacing
-
-\begin{algorithmic}[1]
-%\caption{Euclid’s algorithm}\label{alg:euclid}
-\Procedure{Euclid}{$a,b$}\Comment{The g.c.d. of a and b}
-\State $r\gets a\bmod b$
-\While{$r\not=0$}\Comment{We have the answer if r is 0}
-\State $a\gets b$
-\State $b\gets r$
-\State $r\gets a\bmod b$
-\EndWhile\label{euclidendwhile}
-\State \textbf{return} $b$\Comment{The gcd is b}
-\EndProcedure
-%\hline
-\end{algorithmic}
-\end{algorithm}
+The particles are conditionally independent given the observations, so that for large $N$,  the approximation $p_t^{(N)}\sim p_t^*$ holds in a weak sense.    This optimal choice for  $\bfmU^i$ that is obtained in  \cite{yanmehmey13} leads to the following particle dynamics:
+\begin{equation}
+\begin{aligned}
+\rmd  X^i(t)  =   & a(X^i(t))  \rmd  t  + \sigma_{B}\rmd B^i(t) + \Kfpf (X^i(t))\rmd I^i(t)  \\ & +  \half \sigma_{W}^{2}  \Kfpf (X^i(t)) \Kfpf'(X^i(t)) \rmd t
+\end{aligned}
+\label{particle_propagation}
+\end{equation}
+where $\{ I^i(t) : t\ge 0\}$, is the \textit{innovations} process corresponding to the $i^{th}$ particle:
+\begin{equation*}
+\rmd I^i(t) \eqdef   \rmd Z(t)- \half (c(X^i(t))+\hac)\rmd t,
+\end{equation*}
+where $\hac\eqdef \Expect [c(X(t)) \mid \clZ_t ] = \int c(x) p_t^*(x)\, dx$.
 
 
+There are similar Monte-Carlo implementations of the nonlinear filter in the literature, such as   Daum's particle flow filter \cite{DaumHuang10}.   See \cite{taoyang_acc14} for a survey.
+
+
+\subsection{Contributions}
+
+This paper is restricted to the scalar filtering problem. However, all of the theory is valid for multidimensional problems as well.
+
+The FPF requires the computation of the feedback particle filter gain $\Kfpf$ for each $t$. It can be expressed as $\Kfpf= h'$, where $h$ is a solution to a particular version of Poisson's equation:
+\begin{equation}
+\clD h
+\eqdef
+-U' h'+ h'' = -\tilc ,
+\label{eq_fish}
+\end{equation}
+in which $\tilc = c - \hac$,  and $U = -\log(p^*) $.
+Both $\hac$ and $\Kfpf$ are functionals of the actual posterior density $p^*$  which we wish to estimate.  This is resolved by using the empirical distribution \eqref{e:emp} as a surrogate for $p^*$.
+
+
+The contribution of this work is to develop algorithms to approximate the FPF gain, along with a smooth approximation of the empirical distributions.  The starting point is the specification of a parameterized family  of smooth and continuous densities, denoted  $\clP = \{ p_\alpha : \alpha\in\Re^m\}$,  and a parameterized family of continuous gain functions $\clK = \{K_\param : \param\in\Re^d\}$.
+The algorithm consists of two steps:
+\begin{arabnum}
+	\item Obtain $p\in\clP $ that most closely approximates $p^{(N)}$.
+	\item  Obtain an approximation within $\clK$ for the FPF gain, based on the solution to Step~1.
+\end{arabnum}
+The choice of $\clP$ will depend on the application.
+One example is a finite-dimensional class of Gaussian mixture models (GMM). An $m$-component Gaussian mixture density has the following general form:
+\begin{equation*}
+\begin{aligned}
+p(x)& = \sum_{i=1}^{m} w_{i} p_{i}(x) \qquad  \sum_{i=1}^{m} w_{i} &=1 ,
+\label{gaussian_mix}
+\end{aligned}
+\end{equation*}
+\noindent
+where each $p_{i}$ is a Gaussian density with mean $\mu_{i}$ and standard deviation $\sigma_{i}$.
+The choice of $\clK$ is also problem-specific -- examples are given in \Section{s:ex}.
+
+The density estimation problem in Step~1 is defined as follows: Given the set of $N$ particles, and a family $\clP $ of probability density functions,  find the probability density $p \in \clP $ that is most likely to have generated the given particles.  The
+Expectation Maximization (EM) algorithm is one approach to obtaining the maximum a posteriori (MAP) optimal density.
+
+The main contribution of the paper is the application of a new algorithm called \textit{differential-TD ($\nabla$-TD) learning} to address Step~2.   This algorithm is used to solve the minimization problem,
+\begin{equation}
+\min_{\param}\|\Kfpf - K_\param\|_p^{2}
+=
+\min_{\param} \Expect\bigl[   | \Kfpf (X) - K_\param(X) |^2 \bigr],
+\label{e:gradTDgoal}
+\end{equation}
+where $X \sim p$.
+
+This computation involves another layer of simulation that adds very little additional complexity to the FPF. 
+TD-learning algorithms are used to approximate value functions \cite{bertsi96a}.  In the context of average-cost optimal control,  the solution to Poisson's equation is known as the \textit{relative value function}.   Given a parameterized family of approximate solutions $\{h_\param\}$,  the TD-learning algorithm aims to minimize $\| h - h_\param\|_p^{2}$ over all $\param$. In $\nabla$-TD learning, the objective is to minimize the $p$-norm error of the gradients:
+\begin{equation}
+\param^* = \argmin_{\param} \| h' - h_\param'\|_p^{2}
+\label{e:gradTDobjective}
+\end{equation}
+Given the representation $\Kfpf = h' $,  it is evident that the goal of $\nabla$-TD learning
+is identical to the optimization problem \eqref{e:gradTDgoal}, in which $h$ is the solution to Poisson's equation \eqref{eq_fish} with $U=-\log(p)$.
+
+
+
+\textit{Independent of the research reported here is the remarkable paper \cite{tagmeh16}}.  It also seeks approximations of the  feedback particle filter gain. While the approach is entirely different,   it is likely that concepts from that concurrent work can strengthen the basis-oriented approach stressed in this paper.  
+
+
+
+The remainder of the paper is organized as follows.    \Section{section_learning} contains a review of approximation techniques for the FPF gain,  and develops several formulations of  $\nabla$-TD learning algorithm in the context of nonlinear filtering.   Results from numerical experiments are surveyed in \Section{s:ex}.    Conclusions and directions for future research are contained in \Section{section_conclusions}
+
+
+\section{Differential-TD Learning for the Feedback Particle Filter}
+\label{section_learning}
+
+\notes{not useful without references or explanation: There are several tools for approximating solutions to Poisson's equation using numerical methods.}
+
+\subsection{Function Approximation}
+
+Recall that the FPF gain is the derivative of the solution to Poisson's equation \eqref{eq_fish}.
+We first review a popular technique used to estimate $h$ \cite{yanmehmey13,yanlaumehmey16}.
+Suppose that we are given a $d$-dimensional  function class
+$\clH  \eqdef \{h_{\param} : \param \in \Re^d\}$ to approximate $h$, and a collection of $d$ \textit{test functions} $\{\test_{l}\}_{l=1}^{d}$; Then, the Galerkin relaxation of Poisson's equation is defined to be the set of $d$ equations in the parameter $\param$:
+\begin{equation}
+\begin{aligned}
+0 &= \langle \clD h_{\param}+\tilc, \test_{l} \rangle \\
+&= \int (-U'(x) h_{\param}'(x)+ h_{\param}''(x)+\tilc (x))\test_{l}(x) \rmd x,
+\end{aligned}
+\label{eq_weak_formulation}
+\end{equation}
+$ 1\leq l \leq d$.
+
+
+In prior work \cite{yanmehmey13,yanlaumehmey16}, $\clH$ is considered to be a linearly parameterized family of functions of the form $\clH =\{ h_{\param} = \sum_{l=1}^{d}\param_{l}\basis_{l} : \param\in\Re^d\}$, where $\{\basis_l\}$ are called the \textit{basis functions}. It is assumed that each $\basis_l$ is continuously differentiable,  with gradient denoted   $\gradbasis_{l} $. These   functions are used to define the approximation of the filter gain
+\begin{equation}
+K_\param = h_{\param}' = \sum_{l=1}^{d}\param_{l}\gradbasis_{l}.
+\label{eq_basis_galerkin}
+\end{equation}
+The
+Galerkin method provides a good algorithmic framework for approximating the gain. However, in general it is not easy to obtain performance guarantees.
+
+In this paper we obtain approximations by solving  the minimum norm problem \eqref{e:gradTDgoal} using $\nabla$-TD learning.  Under general conditions we can be assured that the approximation is the minimum-norm optimal solution.   We first review a recent representation of the gain $\Kfpf = h'$.
+
+
+\subsection{Gain Representation}
+
+The differential operator $\clD $ appearing in Poisson's equation \eqref{eq_fish}
+is the differential generator for the Langevin diffusion:
+\begin{equation}
+\rmd \Phi_t= - U'(\Phi_t) \rmd t + \sqrt{2} \rmd B_t,\\
+\label{e:LE}
+\end{equation}
+wherein $\bfmB$ is the standard Brownian motion.   Under mild conditions on $U$, it is known that the steady-state distribution of $\bfPhi$ is uniquely defined to be $e^{-U}$;  this is precisely $p$ since $U=-\log(p)$.
+
+A representation for the derivative $h'$ can be obtained based on this stochastic process, and  the generalized resolvent kernel of \cite{nev72,meytwe93e,devkonmey16a}: For a measurable function $G\colon\Re\to\Re$, and measurable functions $f$ in some domain,
+\begin{equation}
+R_G f\, (x) \eqdef \int_0^\infty \Expect_x\Bigl[ \exp\Bigl(-\int_0^t G(\process(s))\, \rmd s \Bigr) f(\process(t))\Bigr] dt,
+\label{e:Neveu}
+\end{equation}
+where the expectation is with respect to $\Phi(0)=x$.
+
+In  \cite{nev72,meytwe93e} it is assumed that $G>0$ everywhere. These conditions are relaxed in \cite{konmey03a,devkonmey16a}. In these papers, it is shown that $R_G$ is a right inverse of $[I_G -\clD]$ on some domain, i.e.,
+\begin{equation*}
+[I_G-\clD]R_G f = f,
+\end{equation*}
+where the operator $I_G$ represents multiplication by the function $G$.
+
+Differentiating each side of \eqref{eq_fish} with respect to $x$, we obtain
+\[
+\frac{d}{dx}  (\clD h) = -U'' h' - U' h '' +   h '''  =   - c'.
+\]
+In operator theoretic notation, this reduces to
+\[
+[I_{U''} -\clD] h' = c'.
+\]
+Hence, provided $c'$ satisfies the assumptions of \cite{devkonmey16b}, the derivative $h'$ has the following representation in terms of the resolvent kernel:
+\begin{equation}
+h' = R_{U''} c'\, .
+\label{e:gradhrep}
+\end{equation}
+These steps can be justified subject to a growth condition on $c'$,  and  regularity assumptions on $U$  \cite{devkonmey16b}.
+
+We say that a function $f\colon\Re\to\Re$ has at most \textit{exponential growth} if
+\[
+\sup_x  \frac{ \log(1+|f(x)|)}{1+|x|}  <\infty
+\]
+
+\begin{proposition}
+	\label{t:grad_h_LE}
+	Suppose that $U\colon\Re\to\Re$ satisfies the following assumptions:
+	\begin{romannum}
+		\item $U$ is $C^2$ with $\sup_x |U''(x)| <\infty$.
+		\item  For some $\epsy>0$,
+		\[
+		U''(x) \ge \epsy,\qquad \text{for} \ \ |x|\ge \epsy^{-1}.
+		\]
+	\end{romannum}
+	Suppose moreover that $c'$ is continuous, and has at most exponential growth.
+	Then $ R_{U''} c'$ is finite valued, and for any $n\ge 1$ we have
+	\[
+	\int   \bigl|  R_{U''} c'\, (x) \bigr|\exp(n |x|)  \, p(x) \rmd x  <\infty
+	\]
+	\qed
+\end{proposition}
 
 
 
 
 
+The algorithms described in the following are based on a Hilbert space setting.   Denote by $\|f\|_p^{2} = \int f^2(x) p(x)\, dx$ for measurable functions $f\colon\Re\to\Re$, and let $L_p^2$ denote the set of all functions $f$
+with finite norm.   This is a Hilbert space with inner product defined for $f,g\in L_p^2$ by
+\begin{equation*}
+\langle f,g \rangle_p \eqdef \int f(x)g(x)\, p(x)\rmd x
+\end{equation*}
+That is, $\langle f,g \rangle_p = \Expect[f(\Phi)g(\Phi)]$, where $\process\sim p$.   This norm is identical to what appears in  \eqref{e:gradTDobjective}.    
 
 
-\proposition{The Upsilon Function}
+The constructions that follow require methods to compute inner products of the form $\langle g, h' \rangle_p = \langle g, R_{U''} c'\rangle_p $ for functions $g$ and $c$ in a  suitable domain.   For this, we require the \textit{adjoint} $R_{U''}^\dagger$, defined such that the following holds:
+$$\langle g, R_{U''} c'\rangle_p = \langle R_{U''}^\dagger g, c'\rangle_p. $$
 
-(1) If $\bm{\beta}>0$ and $\alpha\neq0$, then for all $n\geq-1$,
+\begin{lemma}
+	\label{t:adjointRG}
+	Let $\bfPhi=\{\Phi(t) : t\in\Re\}$ denote a stationary version of the Langevin diffusion.
+	For measurable functions $f,g$ with at most exponential growths we have,
+	\begin{equation}
+	\langle g, R_{U''} f \rangle_p   = \Expect [ f(\Phi(t))	\varphi_g(t)   ]\,, \quad t\in\Re,
+	\label{e:t:adjointRG}
+	\end{equation}
+	wherein $\bfvarphi_g$ is the stationary process:
+	\begin{equation}
+	\varphi_g(t)
+	=
+	\int_{-\infty}^t  \exp\Bigl(-\int_r^t {U''}(\process(s))\, \rmd s  \Bigr) g(\process(r))   \,  \rmd r
+	\label{eq_eligibility_vec}
+	\end{equation}
+	Consequently, 
+	\[
+	R_{U''}^\dagger g(x) = \Expect [\varphi_g(t)|\Phi(t)=x]
+	\]
+\end{lemma}
 
-$I_{n}(c;\alpha; \beta; \delta) = - \frac{e^{\bm{\alpha c}}}{\alpha} \sum_{i=0}^{n}(\frac{\beta}{\alpha})^{\bm{n-i}} Hh_{i}(\beta c -\delta)$
-
-$$+ (\frac{\beta}{\alpha})^{n+1} \frac{\sqrt{2 \pi}}{\beta} e^{\frac{\alpha \delta}{\beta}+\frac{\alpha^{2}}{2\beta^{2}}} \phi(-\beta c + \delta + \frac{\alpha}{\beta})$$
-(2) If $\beta<0$ and $\alpha<0$, then for all $x \geq -1$
-
-$$I_{n}(c;\alpha; \beta; \delta) = - \frac{e^{\alpha c}}{\alpha} \sum_{i=0}^{n}(\frac{\beta}{\alpha})^{n-i} Hh_{i}(\beta c -\delta)$$
-
-$$- (\frac{\beta}{\alpha})^{n+1} \frac{\sqrt{2 \pi}}{\beta} e^{\frac{\alpha \delta}{\beta}+\frac{\alpha^{2}}{2\beta^{2}}} \phi(\beta c - \delta - \frac{\alpha}{\beta})$$
-
-\begin{proof}{Case 1.}
-
-$\beta>\mathbf{0}$ and $\alpha\neq0$. Since, for any constant $\alpha$ and $n \geq 0$, ${e^{\alpha x}} Hh_{n}(\beta x - \delta) \rightarrow 0$ as $x \rightarrow \infty$ thanks to (B4), integration by parts leads to
-
-$$I_{n}=-\frac{1}{\alpha}Hh(\beta c -\delta) e^{\alpha c} + \frac{\beta}{\alpha}\int_{c}^{\infty} e^{\alpha x} Hh_{n-1}(\beta c - \delta)dx$$
-
-In other words, we have a recursion, for $n \geq 0$, $I_{n}=-(e^{\alpha c}{\alpha})Hh_{n}(\beta c - \delta) + (\frac{\beta}{\alpha})I_{n-1}$ with
-
-$$I_{-1}=\sqrt{2 \pi} \int_{c}{\infty}e^{\alpha x}\varphi(-\beta x +\delta)dx$$
-
-$$=\frac{\sqrt{2 \pi}}{\beta} e^{\frac{\alpha \delta}{\beta}+\frac{\alpha^{2}}{2 \beta^{2}}}\phi(-\beta c + \delta +\frac{\alpha}{\beta})$$
-
-Solving it yields, for $n \geq -1$,
-
-$$I_{n}=-\frac{e^{\alpha c}}{\alpha}\sum_{i=0}^{n}(\frac{\beta}{\alpha})^{i}Hh_{n-i}(\beta c+\delta) + (\frac{\beta}{\alpha})^{n+1}I_{-1}$$
-
-$$=-\frac{e^{\alpha c}}{\alpha}\sum_{i=0}^{n}(\frac{\beta}{\alpha})^{n-i} Hh_{i}(\beta c+\delta)$$
-
-$$+ (\frac{\beta}{\alpha})^{n+1}\frac{\sqrt{2 \pi}}{\beta} e^{\frac{\alpha \delta}{\beta}+\frac{\alpha^{2}}{2 \beta^{2}}}\phi(-\beta c + \delta +\frac{\alpha}{\beta})$$
-
-where the sum over an empty set is defined to be zero.
+\begin{proof}
+	For ease of notation, we denote
+	\[
+	\clU_r^t \eqdef \int_{r}^{t} U''(\process(s)) \rmd s.
+	\]
+	Based on this definition,  and using \eqref{e:Neveu},  
+	\begin{equation*}
+	\begin{aligned}
+	\langle &g, R_{U''}   f \rangle_p 
+	\\
+	& =\Expect[g(\Phi(0))R_{U''}f(\Phi(0))]
+	\\
+	& = \Expect\Bigl[  [g(\Phi(0))\int_{0}^{\infty} \Expect\bigl[\exp\bigl(- \clU_0^\tau  \bigr)f(\Phi(\tau)) \mid \Phi(0)\bigr]\,d\tau \Bigr]
+	\\
+	& =\int_0^\infty \Expect\Bigl[ f(\process(\tau))  \exp\bigl(- \clU_0^\tau  \bigr) g(\Phi(0)) \Bigr]\, \rmd\tau.
+	\end{aligned}
+	\end{equation*}
+	This requires Fubini's theorem, which is justified by \Prop{t:grad_h_LE}. The change of variables $r = t - \tau$ gives
+	\[
+	\langle g, R_{U''} f \rangle_p =
+	\int_{-\infty}^t  \Expect\Bigl[ f(\process(t-r))  \exp \bigl(- \clU_0^{t-r} \bigr) g(\Phi(0))\Bigr]\, \rmd r,
+	\]
+	and applying stationarity,
+	\[
+	\langle g, R_{U''} f \rangle_p =
+	\int_{-\infty}^t \Expect\Bigl[ f(\process(t)) \exp\bigl(- \clU_r^t \bigr) g(\Phi(r))\Bigr] \rmd r.
+	\]
+	The proof of \eqref{e:t:adjointRG}
+	is complete via a second application of Fubini's theorem.
 \end{proof}
 
-\begin{proof}{Case2.} $\beta<0$ and $\alpha<0$. In this case, we must also have, for $n \geq 0$ and any constant $\alpha<0, e^{\alpha x}Hh_{n}(\beta x -\delta) \rightarrow 0$ as
 
-$x \rightarrow \infty$, thanks to (B5). Using integration by parts, we again have the same recursion, for $n \geq 0, I_{n}=-(e^{\alpha c}/\alpha)Hh_{n}(\beta c - \delta)+(\beta / \alpha)I_{n-1}$, but with a different initial condition
 
-$$I_{-1}=\sqrt{2 \pi}\int_{c}^{\infty}e^{\alpha x}\varphi(-\beta x + \delta)dx$$
 
-$$=-\frac{\sqrt{2 \pi}}{\beta} exp\{\frac{\alpha \delta}{\beta}+\frac{\alpha^{2}}{2 \beta^{2}}\}\phi(\beta c - \delta -\frac{\alpha}{\beta})$$
+\subsection{Differential TD Learning}
+We now turn to the optimization problem \eqref{e:gradTDgoal}.  The gradient $\nabla_{\param}K_\param$ is denoted $\gradbasispar $.  Applying the first order optimality conditions, optimizer $\param^*$ must satisfy,
+\begin{equation}
+\begin{aligned}
+0 & = \nabla_{\param} \|\Kfpf - K_{\param}\|_{p}^{2}\\
+& = 2 \Expect \bigl[\bigl(\Kfpf(\process) - K_{\param}(\process)\bigr) \gradbasispar (\process)\bigr], \quad \Phi \sim p.
+\label{eq_td_derivation}
+\end{aligned}
+\end{equation}
+We first consider the case of a linear parameterization.
 
-Solving it yields (B8), for $n \geq -1$.
+\subsubsection*{$\nabla$-LSTD Learning}
 
-\end{proof}
+Consider a linearly parameterized function class of the form \eqref{eq_basis_galerkin},  or written in more compact form, $h'_\param = K_\param=\param^\transpose \gradbasis$.    In this case the optimization problem \eqref{e:gradTDobjective} becomes a quadratic form:
 
-Finally, we sum the double exponential and the normal random variables
+\begin{lemma}
+	\label{t:LSTDquad}
+	The norm appearing in \eqref{e:gradTDobjective} is a quadratic form,
+	\begin{equation}
+	\|h' - h_\param'\|^2_p = \param^\transpose M \param - 2b^\transpose\param + k ,
+	\label{e:QuadtraticRep}
+	\end{equation}
+	in which for each $1\le i, j\le d$,
+	\begin{equation}
+	M_{i,j} = \langle \gradbasis_i, \gradbasis_j \rangle_p, \quad b_i = \langle \gradbasis_i,  h' \rangle_p,
+	\label{e:bMInitDef}
+	\end{equation}
+	and $k = \| h' \|_p$.  Consequently, the optimizer \eqref{e:gradTDobjective}
+	is any solution to
+	\begin{equation}
+	M \theta^* = b.
+	%\label{e:OptimalTstar}
+	\label{e:OptimalTheta}
+	\end{equation}
+	\qed
+\end{lemma}
 
-Proposition B.3.
 
-Suppose $\{\xi_{1},\xi_{2},...\}$ is a sequence of i.i.d. exponential random variables with rate $\eta>0$, and Z is a normal variable with distribution $N(0,\sigma^{2})$. Then for every $ n \geq 1$, we have: (1) The density functions are given by:
+We assume henceforth  that the basis is linearly independent in $L_p^2$, so that $M$ is invertible, and hence $\theta^* = M^{-1}b$.
 
-$$f_{Z+\sum_{i=1}^{n}\xi_{i}}(t)=(\sigma\eta)^{n}\frac{e^{(\sigma\eta)^{2}/2}}{\sigma\sqrt{2\pi}}e^{-t\eta}Hh_{n-1}(-\frac{t}{\sigma}+\sigma\eta)$$
+Under these conditions, the $\grad$-LSTD learning algorithm is an unbiased and asymptotically consistent estimate of $\theta^*$.  The algorithm is defined by three ODEs:
+\begin{subequations}
+	\begin{eqnarray}
+	&\ddt
+	\varphi(t) & =  -U''(\process(t))   \varphi(t) + \gradbasis(\process(t))
+	\label{e:dTD3_cts}
+	\\
+	&\ddt
+	b(t) & =  \varphi(t)   c'(\process(t))
+	\label{e:dTD2_cts}
+	\\
+	&\ddt M(t) & =   \gradbasis(\process(t))   {\gradbasis}^\transpose(\process(t))
+	\label{e:dTD1_cts}
+	\end{eqnarray}
+\end{subequations}
+The vector $\varphi(t)$ is analogous to the eligibility vector in TD learning \cite{bertsi96a,CTCN}. 
+The estimates of $\theta^*$ are generated via $\theta(t) = M(t)^{-1} b(t)$.   The ODE is initialized with $\varphi(0), b(0)\in \Re^d$,  and $M(0)>0$ a $d\times d$ matrix.
 
-$$f_{Z-\sum_{i=1}^{n}\xi_{i}}(t)=(\sigma\eta)^{n}\frac{e^{(\sigma\eta)^{2}/2}}{\sigma\sqrt{2\pi}}e^{-t\eta}Hh_{n-1}(\frac{t}{\sigma}+\sigma\eta)$$
-(2) The tail probabilities are given by
+\subsubsection*{Nonlinear Parameterization}
+\label{nl_theory}
 
-$$P(Z+\sum_{i=1}^{n}\xi_{i}\geq x) = (\sigma\eta)^{n}\frac{e^{(\sigma\eta)^{2}/2}}{\sigma\sqrt{2\pi}}e^{-t\eta}I_{n-1}(x;-\eta,-\frac{1}{\sigma},-\sigma\eta)$$
+For a nonlinear parameterization, following the first order optimality conditions for an optimizer $\theta^{*}$ in \eqref{eq_td_derivation}, we have,
+\begin{eqnarray*}
+	0 & = &2 \Expect \bigl[\bigl(\Kfpf(\process) - K_{\param}(\process)\bigr) \gradbasispar (\process)\bigr]\\
+	& = & 2 (\Expect \bigl[\bigl(\Kfpf(\process)\gradbasispar (\process)\bigr)\bigr] - \Expect \bigl[\bigl(K_{\param}(\process)\gradbasispar (\process)\bigr)\bigr])
+\end{eqnarray*}
+Using \Lemma{t:adjointRG}, we can write an alternate representation for $\Expect \bigl[\bigl(\Kfpf(\process)\gradbasispar (\process)\bigr)\bigr]$ as below:
+\begin{eqnarray*}
+	\Expect\bigl[\bigl(\Kfpf(\process)\gradbasispar (\process)\bigr)\bigr]=\langle R_{U''}c',\gradbasis_{i}^{\param}\rangle =\langle c', R_{U''}^\dagger \gradbasis_{i}^{\param}\rangle
+\end{eqnarray*}
+The optimizer $\param^{*}$ can be obtained by using a stochastic approximation algorithm based on gradient descent:
+\begin{equation*}
+\begin{aligned}
+\dot{\param}&=\gamma_{t}\nrgain_{t}^{-1} d(t) \\
+d(t) & =\varphi(t)c'(\Phi(t))-K_{\param_{t}}(\Phi(t))\gradbasis^{\param_{t}}(\Phi(t))
+\end{aligned}
+\end{equation*}
 
-$$P(Z-\sum_{i=1}^{n}\xi_{i}\geq x) = (\sigma\eta)^{n}\frac{e^{(\sigma\eta)^{2}/2}}{\sigma\sqrt{2\pi}}e^{-t\eta}I_{n-1}(x;\eta,\frac{1}{\sigma},-\sigma\eta)$$
+Here, $\gamma_{t}$ is a scalar gain term and is defined in \Section{Results}, and
+\[
+\nrgain_{t} =\frac{1}{t}\int_{0}^{t}\bigl(\gradbasis^{\param_{t}}(\process(s))\bigr)\bigl(\gradbasis^{\param_{t}}(\process(s))\bigr)^{\transpose}\, ds
+\]
 
-Proof. Case 1. The densities of $Z+\sum_{i=1}^{n}\xi_{i}$, and $Z-\sum_{i=1}^{n}\xi_{i}$. We have
+\section{Examples}
+\label{s:ex}
 
-$$f_{Z+\sum_{i=1}^{n}\xi_{i}}(t)=\int_{-\infty}^{\infty}f_{\sum_{i=1}^{n}\xi_{i}}(t-x)f_{Z}(x)dx$$
+Two general applications are considered in this section, distinguished by the finite dimensional class of densities $\clP$.  We first consider a Gaussian mixture model for a diffusion on the real line,  and for a diffusion on the unit circle we consider a mixture of \textit{von Mises densities} \cite{haspea00}.
 
-$$=e^{-t\eta}(\eta^{n})\int_{-\infty}{t}\frac{e^{x\eta}(t-x)^{n-1}}{(n-1)!}\frac{1}{\sigma\sqrt{2\pi}}e^{-x^{2}/(2\sigma^{2})}dx$$
+In each case it is also necessary to define a family of gain functions $\clK = \{K_\param : \param\in\Re^d\}$.  In control applications it is often possible to use the control solution for a stylized control model to inform the choice of basis  \cite{CTCN,huachemehmeysur11}.  In the filtering context here, we do not yet have many tools for basis selection.
 
-$$=e^{-t\eta}(\eta^{n})e^{(\sigma\eta)^{2}/(2)}\int_{-\infty}{t}\frac{(t-x)^{n-1}}{(n-1)!}\frac{1}{\sigma\sqrt{2\pi}}e^{-(x-\sigma^{2}\eta)^{2}/(2\sigma^{2})}dx$$
+One approach is to consider an asymptotic regime.  For example, in the nonlinear oscillator considered in \cite{yanmehmey13} it was possible to estimate the gain function for low signal-to-noise ratio through a Taylor series expansion.  The components of this approximation are used to obtain the family $\clK$ in
+\Section{section_nl_oscillator}.
 
-Letting $y=(x-\sigma^{2}\eta)/\sigma$ yields
+The rate of convergence of the parameter depends on properties of the stochastic process $\bfPhi$ described by Langevin's diffusion \eqref{e:LE},  and the associated stochastic process that defines the eligibility vectors  in \eqref{eq_eligibility_vec}.  While a stationary version of this process exists in all of the examples considered here,  it will be seen that in some examples the sample paths take on large values, which contributes to high variance.
 
-$$f_{Z+\sum_{i=1}^{n}\xi_{i}}(t)=e^{-t\eta}(\eta^{n})e^{(\sigma\eta)^{2}/(2)}\sigma^{n-1}$$
+These issues are most pronounced when the mixture density has a very shallow ``valley'', which is precisely the situation that leads to very large values of the true gain $\Kfpf$. This is illustrated in \Figure{gain_comparison} which shows two bimodal densities and their corresponding gain functions. The two densities are very similar in shape, but, $p_{1}$ results in a much higher value of gain than $p_{2}$. High magnitudes of FPF gain affect the particles that lie in this region of the state space, leading to numerical instabilities in filtering.
 
-$$\times\int_{-\infty}^{t/\sigma-\sigma\eta}\frac{(t/\sigma - y -\sigma\eta)^{n-1}}{(n-1)!}\frac{1}{\sqrt{2\pi}}e^{-y^{2}/2}dy$$
+\begin{figure}[h]
+	\begin{center}
+		\Ebox{.85}{Chap2_Fig_gain_comparison}
+		\caption{FPF gain $K(x)$ for $p(x)$ with $w_{0}=0.01$ and $w_{0}=0.1$}
+		\label{gain_comparison}
+	\end{center}
+\end{figure}
 
-$$=\frac{e^{(\sigma\eta)^{2}/2}}{\sqrt{2\pi}}(\sigma^{n-1}\eta^{n})e^{-t\eta}Hh_{n-1}(-t/\sigma + \sigma\eta)$$
+%\iffalse
+%\begin{figure}[h]
+%	\begin{center}
+%		\includegraphics[width=12cm]{Chap2_Fig_low_var_w0_pt01_K_900.eps}
+%		\caption{FPF gain $K(x)$ for $p(x)$ with $w_{0}=0.01$}
+%		\label{low_var}
+%	\end{center}
+%\end{figure}
+%
+%\begin{figure}[H]
+%	\begin{center}
+%		\includegraphics[width=12cm]{Chap2_Fig_low_var_w0_pt1_K_90.eps}
+%		\caption{FPF gain $K(x)$ for $p(x)$ with $w_{0}=0.1$}
+%		\label{high_var}
+%	\end{center}
+%\end{figure}
+%\fi
 
-because $(1/(n-1)!)\int_{-\infty}{a}(a-y)^{n-1}e^{-y^{2}/2}dy=Hh_{n-1}(a)$. The derivation of $f_{Z+\sum_{i=1}^{n}\xi_{i}}(t)$ is similar.
+\subsection{Gaussian mixture model}
+\label{Results}
 
-Case 2. $P(Z+\sum_{i=1}^{n}\xi_{i}\geq x)$ and $P(Z-\sum_{i=1}^{n}\xi_{i}\geq x)$. From (B9), it is clear that
+We begin with a survey of results obtained for the Gaussian mixture model (GMM).  An integer $m\ge 1$ is fixed, and a density $p\in \clP$ has the form
+\begin{equation*}
+\begin{aligned}
+p(x)& = \sum_{i=1}^{m} w_{i} p_{i}(x) \,,
+\end{aligned}
+\end{equation*}
+where each $p_{i}$ is a $\mathcal{N}(\mu_i,\sigma_i^2)$ Gaussian density, and the non-negative weights $\{w_i\}$ sum to one. Let $\mu$ and $\sigma^{2}$ denote the mean and the variance of $p$.
+%
+%\iffalse
+%\begin{figure}[h]
+%	\begin{center}
+%		\Ebox{.85}{Chap2_Fig_gain_comparison_low_var.eps}
+%		\caption{FPF gain $\Kfpf$ for the given density $p$ with low variance}
+%		\label{gain_comparison_1}
+%	\end{center}
+%\end{figure}
+%
+%
+%\begin{figure}
+%	\begin{center}
+%		\Ebox{.85}{Chap2_Fig_gain_comparison_high_var.eps}
+%		\caption{FPF gain $\Kfpf$ for the given density $p$ with high variance}
+%		\label{gain_comparison_2}
+%	\end{center}
+%\end{figure}
+%\fi
 
-$$P(Z+\sum_{i=1}^{n}\xi_{i}\geq x)=\frac{(\sigma\eta)^{n}e^{(\sigma\eta)^{2}/2}}{\sigma\sqrt{2\pi}}\int_{x}^{\infty}e^{(-i\eta)}Hh_{n-1}(-\frac{t}{\sigma}+\sigma\eta)dt$$
+In each of the following experiments the density $p\in\clP$ was chosen with $m=2$,
+\[
+p_1 = \mathcal{N}(-3, 4),\ \
+p_2 = \mathcal{N}(3, 1),\ \
+w_1 =0.75,\
+w_2 =0.25.
+\]
 
-$$=\frac{(\sigma\eta)^{n}e^{(\sigma\eta)^{2}/2}}{\sigma\sqrt{2\pi}}I_{n-1}(x;-\eta,-\frac{1}{\sigma},-\sigma\eta)dt$$
+\subsubsection*{Linear Parameterization}
 
-by (B6). We can compute
-$P(Z-\sum_{i=1}^{n}\xi_{i}\geq x)$ similarly.
+It is reasonable to search for a basis that offers flexibility where the density $p$ takes on non-negligible values.  The following $6$-dimensional basis was chosen with this idea in mind:
+\begin{equation*}
+\begin{aligned}
+\gradbasis_{1}(x) & = q_1(x)
+\, ,\qquad
+&\gradbasis_{2}(x)  = q_2(x)
+\\
+\gradbasis_{3}(x) & = \gradbasis_{1}(x) x \, ,\qquad
+&\gradbasis_{4}(x)  = \gradbasis_{2}(x) x \\
+\gradbasis_{5}(x) &= 1 \,  ,\qquad &\gradbasis_{6}(x) =q(x)/p^{\rho}(x)
+\end{aligned}
+\end{equation*}
+where $q_i$ is $\mathcal{N}(\mu_i,\gamma_i^2)$, with $\gamma_i>\sigma_i$ for each $i$. $\gamma_i=\sigma_i+1$ was used. It is not difficult to show that the true gain is nearly constant for large $x$, with $\lim_{|x|\to\infty} \Kfpf(x) = \Kkal$. The limit corresponds to the Kalman-like gain $\Kkal$ obtained for the model in which $p$ is replaced by $p_1$  (the Gaussian density with the highest variance). The function $\gradbasis_{5}$ accounts for this constant asymptotic gain value.
 
-\theorem{Theorem} With $\pi_{n}:= P(N(t)=n)=e^{-\lambda T}(\lambda T)^{n}/n!$ and $I_{n}$ in Proposition \ref{first}.
-, we have
+The form of the solution to \eqref{eq_fish} includes a factor of $p^{-1}$, which may explain the behavior seen in \Figure{gain_comparison} and this motivates the inclusion of $\gradbasis_{6}$ into the basis. Here, $q$ is $\mathcal{N}(\mu,\sigma^{2})$ and $\rho$ is chosen such that $\lim_{|x|\to\infty}\gradbasis_{6}(x)$ is bounded. The class $\clK$ is defined using this basis:
+% \begin{equation*}
+% K_\param = \Kkal + \param^{\transpose}\gradbasis = \Kkal + \sum_{i=1}^{d}\param_{i}\gradbasis_{i}\,, \quad\param\in\Re^d.
+% \end{equation*}
+\begin{equation*}
+K_\param = \param^{\transpose}\gradbasis = \sum_{i=1}^{d}\param_{i}\gradbasis_{i}\,, \quad\param\in\Re^d
+\end{equation*}
 
-$$P(Z(T)\geq a)=\frac{e^{(\sigma \eta_{1})^{2} T/2}}{\sigma \sqrt{2 \pi T}} \sum_{n=1}^{\infty} \pi_{n} \sum_{k=1}^{n} P_{n,k}(\sigma\sqrt{T}\eta_{1})^{k}\times I_{k-1}(a-\mu T; -\eta_{1},-\frac{1}{\sigma\sqrt{T}},-\sigma\eta_{1}\sqrt{T})$$
+\Figure{f:lstd} compares the actual FPF gain with the best approximation from within the parameterized family obtained using $\nabla$-LSTD learning. Although, the approximation is not tight everywhere, it is the best that is possible for the chosen basis. As expected, the accuracy is typically better at values of $x$ for which $p(x)$ is large.
 
-$$+\frac{e^{(\sigma\eta_{2})^{2}T/2}}{\sigma\sqrt{2\pi T}}\sum_{n=1}^{\infty}\pi_{n}\sum_{k=1}^{n}Q_{n,k}(\sigma\sqrt{T}\eta_{2})^{k}$$
+\begin{figure}[h]
+	\Ebox{.9}{Chap2_Fig_lstd}
+	\caption{$\nabla$-LSTD learning for the linear parameterization.}
+	\label{f:lstd}
+\end{figure}
 
-$$\times I_{k-1}(a-\mu T; \eta_{2},\frac{1}{\sigma\sqrt{T}},-\sigma\eta_{2}\sqrt{T})$$
+\subsubsection*{Nonlinear Parameterization}
+\label{sec_nl_param}
+In a nonlinear parameterization setting, the following form is chosen for the class $\clK$.
+\begin{equation*}
+K_\param(x) = K_{0} + \sum_{i=1}^m \xi_{i}^{\param}(x)
+\end{equation*}
+Of the various nonlinear parameterizations tested, the following produced the best results,
+\begin{equation*}
+\xi_{i}^{\param}(x) = \dfrac{a_{i}}{(x -b_{i})^2 + c_{i}^2}
+\end{equation*}
+The coefficients $\{a_{i}, b_{i}, c_{i} \}, K_{0}$ constitute the parameters to be estimated.
+In the simulation results surveyed here  $m=3$ and hence, $\param \in \Re^{d}$ with $d=10$.
+\begin{figure}[h]
+	\Ebox{1}{Chap2_Fig_nltdB}
+	\caption{Performance of nonlinear parameterization $\nabla$-LSTD}
+	\label{f:nltd}
+\end{figure}
 
-$$+\pi_{0}\phi(-\frac{a-\mu T}{\sigma\sqrt{T}})$$
+Optimal nonlinear parameterization can be obtained by running $\nabla$-TD learning using stochastic approximation techniques, discussed in \Section{nl_theory}. Two such techniques were used, namely stochastic Newton Raphson and approximation with Polyak averaging\cite{bor08a}. The scalar gain term $\gamma_t$ is set to $1/(t+1)^{\beta}$. For stochastic Newton Raphson, $\beta$ is chosen to be $1$, and $\beta=0.6$ was chosen for Polyak averaging.
 
-Proof by the decomposition (B2)
+\Figure{f:nltd} shows the approximate gain obtained using stochastic Newton Raphson algorithm and the  exact gain values. The approximation obtained using nonlinear parameterization matches the exact gain better than the linear parameterization. \Section{asym_variance} compares the asymptotic error variances obtained using both these algorithms.
 
-$$P(Z(T) \geq a)= \sum_{n=0}^{\infty}\pi_{n} P(\mu T +\sigma\sqrt{T} Z + \sum_{j=1}^{n}Y_{j} \geq a)$$
+\subsection{Nonlinear oscillator}
+\label{section_nl_oscillator}
 
-$$=\pi_{0}P(\mu T +\sigma\sqrt{T} Z  \geq a)$$
+We consider next the nonlinear oscillator example introduced in \cite{yanmehmey13}.
+The state evolves on the unit circle, and the observations are nonlinear:
+\begin{equation*}
+\begin{aligned}
+\rmd \oscState &= \omega \rmd t+\sigma_{B}\rmd B_t \quad \text{mod }2\pi,
+\\
+\rmd Z_t &= c(\oscState)\rmd t+ \sigma_{W} \rmd  W_t
+\end{aligned}
+\end{equation*}
+The parameter $\omega$ is  the
+mean angular velocity,  and $\bfmB$ and $\bfmW$ are mutually independent standard Brownian motions.
+The observation function is
+$c(\oscState)=\frac{1}{2}[1+\cos(\oscState)]$.
 
-$$+\sum_{n=1}^{\infty}\pi_{n}\sum_{k=1}^{n}P_{n,k} P(\mu T +\sigma\sqrt{T} Z + \sum_{j=1}^{n}\xi_{j}^{+} \geq a)$$
+The feedback particle filter for this model is given by :
+\begin{equation*}
+\rmd \oscState^{i}_t = \omega \rmd t
++\sigma_{B}\rmd B^{i}_t+K(\oscState^{i}_t) \rmd I^i(t)  \quad  \text{mod }2\pi\, ,
+\end{equation*}
+with $\rmd I^i(t) = \rmd Z_t-\frac{1}{2}(c(\oscState_t^{i}+\hac_t))\rmd t$.
+The gain function $K(\oscState,t)$ at each instant $t$ is obtained as the solution to \eqref{eq_fish}:
+\begin{equation*}
+- U'(\oscState) K(\oscState) + K'(\oscState) = -\tilc(\oscState)  %\qquad \{\tilc =c-\int c(\oscState)p(\oscState,t)d\oscState\}
+\end{equation*}
+The conditional density $p(\oscState,t)$ at any instant is modeled as a mixture of von Mises densities:
+\begin{equation*}
+p(\oscState)=\sum_{i=1}^{N}w_{i}p_{i}(\oscState)
+\end{equation*}
+Each component of the mixture $p_{i}(\oscState)$ is given as follows:
+\begin{equation*}
+p_{i}(\oscState,t) =  \beta^{-1} \exp  \bigl( \kappa_i \cos(\oscState-\mu_{i} )    \bigr),
+\end{equation*}
+where $\beta$ is a normalizing constant, and $\mu_{i}$ is the mean of the density. This reduces to   a uniform density for $\kappa_{i}=0$, and the variance vanishes as $\kappa_{i}\to \infty$ \cite{haspea00}. By choosing a family of a mixture of von Mises densities, it is possible to model any form of circular density from uniform to a bimodal Gaussian mixture.
+Poisson's equation can be numerically solved in the scalar case for this mixture density $p(\oscState)$, so that the gain function $\Kfpf$ is numerically computed.
+% \iffalse
 
-$$+\sum_{n=1}^{\infty}\pi_{n}\sum_{k=1}^{n}Q_{n,k} P(\mu T +\sigma\sqrt{T} Z - \sum_{j=1}^{n}\xi_{j}^{-} \geq a)$$
+\subsubsection*{Simulation results}
+We consider a mixture of von Mises densities with the following parameters: $\mu_1 = -\pi/3$,\ \
+$\mu_2 = \pi/3$,\ \
+$\kappa_1=\kappa_2=3$,\ \
+$w_1 =0.7$,\ \
+$w_2 =0.3$.
 
-The result now follows via (B11) and (B12) for $\eta_{1} > 1$ and $\eta_{2} >0$. 
+
+The $\nabla$-LSTD learning algorithm is applied to this nonlinear oscillator problem. A linearly parameterized family using sines and cosines is the chosen basis. This is a reasonable choice because for a uniform density, the gain $\Kfpf=-\frac{\sin \oscState}{2\sigma_{W}^{2}}$.
+
+\begin{figure*}
+	\Ebox{.9}{Chap2_Fig_TD_v_BE_468}
+	\caption{$\nabla$-LSTD learning for $4,6$ and $8$ dimensional basis}
+	\label{f:qad468}
+\end{figure*}
+
+For comparison, we also considered an approximation computed by minimizing the $p-$norm of the Bellman error:
+% \begin{equation*}
+\begin{align*}
+\min_{\param}\|\clE(\param)\|_{p}^{2}=\min_{\param}\langle \clD h_{\param} + \tilc \rangle_{p} = \min_{\param}\|\clD h_{\param} +\tilc \|_{p}^{2}
+\end{align*}
+% \end{equation*}
+This minimization problem can be solved using Monte-Carlo methods.
+
+Figure \ref{f:qad468} compare the performance of the $\nabla$-LSTD learning algorithm and the Bellman error minimization algorithm with the numerically computed exact gain function for basis functions of dimensions $4$, $6$ and $8$. It can be observed that $\nabla$-LSTD learning gives a better approximation than the $BE$ minimization algorithm in regions of high values of $p(\oscState)$.
+
+
+
+
+%\begin{figure}
+%	\Ebox{.85}{Chap2_Fig_TD_v_BE_4b}
+%	\caption{For a 4 dimensional basis}
+%	\label{f:qad4d}
+%\end{figure}
+%
+%
+%\begin{figure}
+%	\Ebox{.85}{Chap2_Fig_TD_v_BE_6b}
+%	\caption{For a 6 dimensional basis}
+%	\label{f:qad6d}
+%\end{figure}
+%
+%
+%\begin{figure}
+%	\Ebox{.85}{Chap2_Fig_TD_v_BE_8b}
+%	\caption{For an 8 dimensional basis}
+%	\label{f:qad8}
+%\end{figure}
+
+\begin{figure}[h]
+	\Ebox{1}{Chap2_Fig_hist_err_peak_1+2}
+	\caption{ Histogram of error between $\Kfpf$ and $K_\param$ at $\mu_{1}$ and $\mu_{2}$ }
+	\label{var_snr_1}
+	\vspace{-.15cm}
+\end{figure}
+
+\subsection{Variance analysis of stochastic approximation algorithms}
+\label{asym_variance}
+In this section, the variances in the parameter estimates obtained using stochastic approximation with Polyak averaging and stochastic Newton Raphson are compared. Stochastic Newton Raphson and the Polyak averaging method give the same theoretical optimal asymptotic variance. We investigate the realized variance after running the algorithms for $T=10,000$ seconds.
+
+The error measure is defined as
+\begin{equation*}
+\begin{aligned}
+\epsilon(x) &= \Kfpf(x)-K_\param(x)
+\end{aligned}
+\end{equation*}
+The error values at the peaks of the density are of utmost interest because these are the locations where a majority of the particle population lie. \Figure{var_snr_1}  compares the variance and bias of the error evaluated at $x=\mu_{1}$ and $x=\mu_{2}$, for each algorithm. The histograms are based on $1,000$ independent trials. Both methods have an error bias of close to $4$ at $\mu_{1}$ and $0$ at $\mu_{2}$. Stochastic Newton Raphson has a more unimodal error distribution compared to Polyak averaging. It also gives a slightly lower variance.
+
+
+
+
+\subsection{Parameter estimation experiment}
+
+
+TD learning using the nonlinear parameterization discussed in \Section{sec_nl_param} yields good approximation of the FPF gain function. Here, we perform a simulation experiment to investigate the effectiveness of using the gain obtained from TD learning for a parameter estimation example. Consider the following process where the state $X(t)$ remains at its initial value for all $t$. $X(0)$ is distributed in $[-3,3]$ with a higher probability near $\pm3$. The state-observation model is,
+\begin{equation*}
+\begin{aligned}
+\rmd X(t)&=0,\quad \\
+\rmd Z(t)&= X(t) \rmd t+\sigma_{W}\rmd W(t)
+\end{aligned}
+\end{equation*}
+The problem reduces to parameter estimation as the state remains constant. In such applications, the sequential importance resampling (SIR) particle filter may perform poorly. The transient response of the filter, i.e., how quickly the estimates reach a given neighborhood of the actual state is of interest
+\subsubsection*{Filter specification}  We assume a model with a 2-component Gaussian mixture as the prior $p(0)$. We take the modes of the initial Gaussian mixture at $\pm 3$. The standard deviations are chosen to be small, $\sigma_{1}=\sigma_{2}=1$, and let $w_{1}=w_{2}=0.5$.
+
+The EM algorithm was used for density estimation. We compare two different implementations of the FPF: one with the exact gain and the second with the approximate gain obtained using $\nabla$-TD learning using a nonlinear parameterization with $d=10$ discussed in \Section{sec_nl_param}. If the posterior density estimate $p(t)$ changes slowly, and if the parameter values are initialized with their steady state values obtained from the previous instant, convergence of parameters is quick, and thus $\nabla$-TD learning can be run in ``real time'' for filtering.
+
+\Figure{Chap2_Fig_FPF_EM_TD} compares the trajectories of the state estimates obtained using both these FPF versions. Both the implementations show similar filtering performance.
+
+\begin{figure}
+	\begin{center}
+		\Ebox{.85}{Chap2_Fig_FPF_EM_TD_2}
+		\caption{ State estimates from the two FPF implementations - actual and $\nabla$-TD learning }
+		\label{Chap2_Fig_FPF_EM_TD}
+	\end{center}
+\end{figure}
+
+
+\section{Conclusions}
+\label{section_conclusions}
+
+Gain approximation for the feedback particle filter is an essential part of this approach to nonlinear filtering.  We have seen that a combination of two statistical learning techniques address this approximation problem.
+
+There remain many open questions.   Alternatives to the EM algorithm must be explored for density approximation based on particles,  and it will be valuable to apply variance reduction techniques to improve the $\nabla$-TD learning algorithms.  Also, for real-time operation, the algorithms might be modified to take into account that the posterior densities and FPF gain evolve with known dynamics.  
+
+Basis selection is the most pressing open problem from a practical perspective.  In terms of mathematical challenges, the most important open problem is robustness of the filter to modeling error, including the impact of an imperfect FPF gain.
+
