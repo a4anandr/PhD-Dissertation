@@ -1,13 +1,15 @@
 \chapter{Differential TD learning} 
-\label{ch:chap2_diff_td}
+\label{ch:diff_td}
 The main goal of this chapter is to provide the mathematical foundations of the problem that is central to the applications we consider in this thesis.
-In \Section{langevin_diffusion}, a prerequisite introduction to the Langevin diffusion and its associated Poisson's equation is given. Sufficient motivation is provided as to why this equation is important to us. In \Section{s:diff_td_learning}, we derive the \textit{differential TD ($\gradTD$) learning} algorithm that tries to approximate the gradient of the solution to Poisson's equation directly rather than the function itself, which forms the major contribution in this chapter. 
+In \Section{langevin_diffusion}, a prerequisite introduction to the Langevin diffusion and its associated Poisson's equation is given. Sufficient motivation is provided as to why this equation is important to us. In \Section{s:diff_td_learning}, we derive the \textit{differential TD ($\gradTD$) learning} algorithm that tries to approximate the gradient of the solution to Poisson's equation directly rather than the function itself, which forms the major contribution in this chapter. The differential TD algorithm with its application to FPF gain function approximation was published as a conference proceeding \cite{raddevmey16}. 
 
  %along the lines of the LSTD algorithm described in Section 11.5.2 in \cite{ctcn}
 
 \section{Langevin Diffusion and Poisson's equation}
 \label{s:langevin_diffusion}
-In this section, we introduce the \textit{Langevin diffusion} with only the requisite amount of detail. A more elaborate discussion is reserved for \Section{s:langevin_mcmc}, so that the motivation is not obfuscated by the \rd{minor} technical details. 
+In this section, we introduce the \textit{Langevin diffusion} with only the requisite amount of detail. A more elaborate discussion is reserved for \Section{s:langevin_mcmc}, so that the motivation is not obfuscated by  technical details.  \anand{minor}
+
+\subsection{Langevin diffusion}
 
 The \textit{Langevin diffusion} may be regarded as  a $d$-dimensional gradient flow perturbed with ``noise'',  described by  the SDE,
 \begin{equation}
@@ -37,6 +39,9 @@ where $\nabla$ denotes the gradient and $\Delta$ is the Laplacian. Let $c \colon
 \[
 \eta := \Expect_{X \sim \pr}[c(X)] =  \int c(x) \pr(x) \ud x = \langle c, 1 \rangle_{L^2}.
 \]
+
+\subsection{Poisson's equation}
+
 A function $h\in C^2$ is said to be the solution to Poisson's equation with forcing function $c$ if
 \begin{equation}
 \generate h := - \tilc, \qquad  \tilc = c - \eta.
@@ -50,12 +55,13 @@ where $h(x)$ can be interpreted as the infinite-horizon expected normalized cost
 
 The existence of a solution $h$ in a weak sense holds under very weak assumptions on $\pot$ and $c$  \cite{glymey96a,konmey12a}.   Representations for the gradient of $h$ and bounds are obtained in \cite{laumehmeyrag15,devkonmey17b}.   The existence of  a  smooth solution $h\in C^2$ has been established under stronger conditions in \cite{parver01}, subject to growth conditions on $c$ similar to those used in  \cite{glymey96a}. 
 
+\subsection{Applications} 
 The function $h$ plays an important role in each of the applications we consider. In the feedback particle filter (FPF), the \textit{innovations gain} function $\kFPF$ is obtained as  the gradient of $h$ \cite{yanmehmey13}:
 \begin{equation}
 \kFPF (x) = \nabla h(x)\, ,  \quad x\in\state\, .
 \label{e:fpfgain}
 \end{equation}
-The FPF is described in detail in \Chapter{}.
+The FPF is described in detail in \Chapter{ch:filtering}.
 
 In MCMC algorithms, the quantity of interest is the \textit{asymptotic variance}. In this context, $\pr$ is the target density, and $c$ is the function whose expectation needs to be computed. The expected value is approximated using the empirical mean $\eta_N$:
 \[ \eta_N := \frac{1}{N} \sum_{n=0}^{N-1} c\,(\markovstate_n),\]
@@ -63,7 +69,7 @@ where $\markovstate_n$ is obtained by sampling from a Markov chain with invarian
 \[
 \sqrt{N} \Bigl( \eta_N - \eta \Bigr) \overset{d}{\to} \normal(0,\asymvar ^2),
 \]
-and the convergence is in distribution. Here, $\asymvar^2$ denotes the asymptotic variance that has a representation in terms of $h$ \cite{glymey96a,MT,asmgly07}. More details about the application to MCMC algorithms is in \Chapter{}. 
+and the convergence is in distribution. Here, $\asymvar^2$ denotes the asymptotic variance that has a representation in terms of $h$ \cite{glymey96a,MT,asmgly07}. More details about the application to MCMC algorithms is in \Chapter{ch:mcmc}. 
 
 Computation of $h$ is typically intractable and hence, approximation techniques are required. Algorithms based on reinforcement learning provide a suitable approach. \Section{lstd_learning} provides a description of the least-squares TD (LSTD) learning algorithm. Following a brief discussion on its limitations,  the derivation of the $\gradTD$ learning is presented in \Section{s:diff_td_learning}. 
 
@@ -245,7 +251,7 @@ In this Section, we provide the derivation of the differential TD ($\gradTD$) le
 \param^* = \argmin_\param \| \grad h -\grad h_\param\|^2_{L^2},
 \label{e:gradTD_norm_error}
 \end{equation}
-where $\grad$ denotes the gradient with respect to $x$. A derivation of the $\gradTD$ algorithm for a continuous-time diffusion is provided in \cite{devmey16arXiv}. It is discussed in the context of gain function approximation for the FPF in \Section{} and in \cite{raddevmey16}.  
+where $\grad$ denotes the gradient with respect to $x$. A derivation of the $\gradTD$ algorithm for a continuous-time diffusion is provided in \cite{devmey16arXiv}. It is discussed in the context of gain function approximation for the FPF in \Section{s:fpfgain} and in \cite{raddevmey16}.  
 
 The presentation of the algorithm here is restricted to the scalar case, where $\state = \Re$. However, the algorithm can be easily extended to higher dimensions.  \anand{not sure if this is true} Consider a general continuous-time diffusion process as defined in \eqref{e:cts_diffusion} with the associated definition in \eqref{e:diffusion_generator} for its differential generator $\generate$. Denote by $h$ the solution to Poisson's equation \eqref{e:poissons}.  Differentiating each side of \eqref{e:poissons} with respect to $x$, we obtain
 \[
@@ -409,7 +415,7 @@ A common choice is $\sagain_t = 1/(t+1)^\beta$, where $\beta$ can lie between $0
 M_T =\frac{1}{T}\int_0^T\bigl(\gradbasis_{\param_t}(\markovstate_t)\bigr)\bigl(\gradbasis_{\param_t}(\markovstate_t)\bigr)^{\transpose}\, dt.
 \]
 
-\subsection{Conclusions}
+\section{Conclusions}
 In this chapter, we introduced the Poisson's equation and motivated why the solution to Poisson's equation is central to this thesis. The main conclusions from this chapter are as follows:
 \begin{enumerate}
 	\item Poisson's equation is central to the ergodic theory of Markov chains and finds applications in average-cost optimal control, performance evaluation, variance reduction etc. 
