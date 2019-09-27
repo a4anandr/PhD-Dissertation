@@ -26,18 +26,18 @@ The main focus of this thesis is a class of \textit{controlled particle system} 
 The second application of interest is Markov chain Monte Carlo (MCMC) algorithms. MCMC algorithms have a long history of being applied to problems in Bayesian statistics \cite{}. 
 
 In standard Monte Carlo methods, expectation of a function $f$ of a random variable $X$ distributed according to a density $\pr$ is approximated empirically as,
-\[
+\begin{equation}
  \Expect_{X \sim \pr} [f(X)] \eqdef \int_\state f(x)\pr(x) dx \approx \frac{1}{N} \sum_{i=1}^N f(X_i) 
-\]
+\end{equation}
 where each $X_i$ is distributed according to $\pr$ and $N$ is sufficiently large. As is often the case, it may be difficult to generate a sequence of samples $\{X_i\}_1^N$ according to the desired \textit{target} distribution $\pr$. Methodologies such as \textit{rejection sampling} and \textit{importance sampling} make use of an easy-to-sample \textit{surrogate} distribution to sample from the original target distribution. But, if $\pr$ is high-dimensional, it is difficult to find a closely matching simple surrogate distribution. 
 
 MCMC algorithms provide an alternative solution in this situation. They are a special class of Monte Carlo methods in which the samples $X_i$ are the states of an \textit{ergodic Markov chain}. Given the target density $\pr$, the problem reduces to finding an appropriate \textit{transition kernel} for a Markov chain that has $\pr$ as its \textit{invariant} density. The \textit{Langevin diffusion}, which is a perturbed gradient flow with respect to a potential function in continuous time, forms the basis of many such algorithms. The Gibbs algorithm \cite{tanwon87} and Metropolis-Hastings (M-H)  algorithm \cite{has70} are popular discrete-time examples belonging to this class. They have been widely applied for problems in Bayesian inference, statistical physics, computation biology etc.
 
 %MCMC algorithms are a popular means of sampling from high dimensional densities. Typically, computing expectations of functions via integration is infeasible in high dimensions and MCMC algorithms provide a method to obtain numerical approximations to the expectation. 
 The convergence of the empirical averages to the true expected value is guaranteed under general conditions by law of large numbers \cite{}. The main drawback of these techniques as compared to standard Monte Carlo sampling which provides independent and identically distributed (i.i.d.) samples, is that the successive samples of the Markov chain are correlated to each other. This results is slower convergence of the algorithms. The central limit theorem states that,
-\[
+\begin{equation}
 \sqrt{N} \Bigl(\frac{1}{N} \sum_{i=1}^N f(X_i) - \Expect_{X \sim \pr} [f(X)] \Bigr) \overset{d}{\to} \normal(0, \asymvar^2),\qquad \text{as } N \to \infty, 
-\]
+\end{equation}
 where $\mathcal{N}(0,1)$ refers to the standard Gaussian distribution with mean zero and unit variance. \textit{Asymptotic variance} $\asymvar^2$ is a measure quantifying the rate of convergence. Lower its value, faster is the convergence of the Markov chain to its invariant distribution and hence, the goal is to minimize it. Asymptotic variance can be expressed in terms of the solution to Poisson's equation \cite{ctcn}. \textit{Control variates}, which are zero-mean terms added to the function $f$, have been used to reduce the asymptotic variance of the estimates without adding any bias. Henderson, in his thesis \cite{henthesis97} notes that the best choice of control variates can be constructed using the solution to Poisson's equation. They also feature prominently in Chapter 11 of the book \cite{ctcn} with the objective of constructing reduced-variance estimators for network models. Control variates constructed using the \textit{fluid value function} have been shown to produce a $100$-fold reduction in variance over the standard estimator for the KSRS queueing model. 
 
 In this thesis, we demonstrate that the same algorithms we propose for approximating the FPF gain function, find additional application in improving the performance of popular MCMC algorithms. In \Section{poissons_eq}, we give a preliminary description of the Poisson's equation that is crucial to both our applications of interest.
