@@ -1,12 +1,238 @@
-\chapter{SUMMARY AND CONCLUSIONS} \label{conclusion}
+\chapter{Application to Markov chain Monte Carlo algorithms}
+\label{ch:mcmc}
+One of the interesting applications of differential-TD learning is in the context of Markov chain Monte carlo simulations. In many scenarios, it is of interest to compute the expectation of a function $c$ with respect to a target distribution $\pr$:
+\begin{equation}
+\eta = \int c(x)\pr(x)\rmd x\, .
+\label{e:eta}
+\end{equation} Typically, computing integrals of the form \eqref{e:eta} analytically is difficult when $\pr$ is in high dimensions and Markov-chain Monte Carlo (MCMC) methods are used instead. MCMC provides numerical algorithms to obtain estimates of $\eta$. It can be approximated using time averages of the following form:
+\begin{equation}
+\eta_N =\frac{1}{N}\sum_{n=0}^{N-1} c(\markovstate_n)
+\label{e:sample_mean_HM}
+\end{equation}
+in which $\boldsymbol{\markovstate}$ is a Markov chain whose steady-state distribution has density $\pr$ \cite{asmgly07,MT}.
+This paper initially focuses on a formulation in continuous time and then extends the idea to discrete-time MCMC algorithms.
 
-\section{Non Porttitor Tellus}
+\section{Langevin Diffusion for MCMC}
+\label{s:langevin_mcmc}
+The \textit{Langevin Diffusion} \eqref{e:langevin}, introduced in \Section{s:langevin_diffusion} is the grandmother of all MCMC algorithms. It forms the basis for various other popular MCMC algorithms such as the unadjusted Langevin algorithm (ULA) and Metropolis-adjusted Langevin algorithm (MALA). The diffusion obeys the following stochastic differential equation:
+\begin{equation}
+\ud \markovstate_t = - \nabla \pot(\markovstate_t) \, \ud t
++  \sqrt{2} \, \ud W_t,
+\label{e:langevin}
+\end{equation}
+where $\bfmW=\{W_t : t\ge 0\}$ is a standard Brownian motion on $\Re^\ell$.
+Under general conditions, this diffusion is reversible, with unique invariant density $\pr=e^{-U +\Lambda}$,  where $\Lambda$ is a normalizing constant so that $\pr$ integrates to unity. The mean $\eta$ can be approximated as,
+\begin{equation}
+\eta_t =\frac{1}{T}\int_0^T c(\markovstate_t) \, dt,
+\label{e:sample_mean}
+\end{equation}
 
-Aliquam molestie sed urna quis convallis. Aenean nibh eros, aliquam non eros in, tempus lacinia justo. In magna sapien, blandit a faucibus ac, scelerisque nec purus. Praesent fermentum felis nec massa interdum, vel dapibus mi luctus. Cras id fringilla mauris. Ut molestie eros mi, ut hendrerit nulla tempor et. Pellentesque tortor quam, mattis a scelerisque nec, euismod et odio. Mauris rhoncus metus sit amet risus mattis, eu mattis sem interdum.
+To compare the different MCMC algorithms it  is convenient to consider an asymptotic setting.   Under general conditions, the estimates will obey a Central Limit Theorem (CLT) of the form
+%\cite{MCSS}
+\begin{equation}
+\sqrt{T} \tileta_T \xrightarrow[]{d} N(0,\asymvar^2)
+\end{equation}
+where $\tileta_T =\eta_T-\eta$, and the convergence is in distribution.   Under further mild assumptions,  the variance of the Gaussian limit is given by the so-called \textit{asymptotic variance}:
+\begin{equation}
+\asymvar^2 = \lim_{T \to \infty} \Expect \left[\left(\frac{1}{\sqrt{T}}\int_{0}^{T}(c(\markovstate_t)-\eta)dt\right)^2\right]
+\label{e:aVar}
+\end{equation}
+For example, these conclusions hold for a Markov chain that is $V$-uniformly ergodic,  provided $c^2\in\LV$  \cite{glymey96a,MT}.
+It has been shown in \cite{glymey96a,MT} that the asymptotic variance $\asymvar^2$ has the following general representation in terms of $h$,
+\begin{equation}
+\asymvar^2  =2\langle h, \tilc\rangle_{L^2}.
+\label{e:avarFish}
+\end{equation}
+The representation \eqref{e:avarFish} is valid for any diffusion that is $V$-uniformly ergodic.
+For the special case of the Langevin diffusion,  by application of \Prop{prop:lang_generator_grad}, $\asymvar^2 = 2 \| \nabla h \|^2_{L^2}$.
 
-\subsection{Nam Arcu Magna}
-Semper vel lorem eu, venenatis ultrices est. Nam aliquet ut erat ac scelerisque. Maecenas ut molestie mi. Phasellus ipsum magna, sollicitudin eu ipsum quis, imperdiet cursus turpis. Etiam pretium enim a fermentum accumsan. Morbi vel vehicula enim.
+The primary goal in the design of MCMC algorithms is the faster convergence of the Markov chain to its invariant distribution (i.e. the target distribution). The asymptotic variance is a measure of this convergence and hence, it is ideal to minimize $\asymvar^2$. Several approaches have been proposed to improve the convergence rate including constructing an irreversible Markov chain with the same invariant density \cite{hwanorwu15, dunlelpav16}, using an optimal scaling parameter \cite{robros01} etc. Most of these approaches alter the transition kernel of the Markov chain and hence, do not work well on samples already obtained. In the remainder of this paper, we restrict our discussion to \textit{post-hoc} schemes for reversible Markov chains.
 
-\subsubsection{Ut pellentesque velit sede}
- Placerat cursus. Integer congue urna non massa dictum, a pellentesque arcu accumsan. Nulla posuere, elit accumsan eleifend elementum, ipsum massa tristique metus, in ornare neque nisl sed odio. Nullam eget elementum nisi. Duis a consectetur erat, sit amet malesuada sapien. Aliquam nec sapien et leo sagittis porttitor at ut lacus. Vivamus vulputate elit vitae libero condimentum dictum. Nulla facilisi. Quisque non nibh et massa ullamcorper iaculis.
+\textit{Control variates} introduced in \cite{HenThesis,henmeytad03a,kimhen07,ctcn} are zero-mean terms, which when added to the estimator can produce a significant reduction in the asymptotic variance without adding bias. One of the advantages of this scheme is that they work \textit{post-hoc}, i.e. no changes are required in the sampling methodology and are independent of the MCMC algorithm used.
 
+Dellaportas et al. in \cite{delkon12} have employed control variates for particular examples of reversible Markov chains like the Gibbs sampler.
+More recently, Brosse et al. in \cite{brodurmeymou18} show that the asymptotic variances of ULA, MALA and RWM are close to the asymptotic variance of the Langevin diffusion and construct control variates that work for all the three methods. This work borrows heavily from both the above and demonstrates that with the use of RKHS as the approximating class, the variance reduction is improved manyfold. 
+
+The basic idea is described here. Let $\psi\colon\Re^d\to\Re^\ell$ denote a $C^2$ function, regarded as a set of $\ell$ basis functions, and denote for $\param\in\Re^\ell$,
+\begin{equation}
+\begin{aligned}
+c^\param  = c + \underbrace{\generate h^\param}_{\text{Control variate}} \,,
+\qquad
+\text{\it where}
+\quad
+h^\param  =  \sum_{i=1}^\ell \param_i \psi_i = \param^\transpose \psi\,
+\end{aligned}
+\label{e:h_and_c}
+\end{equation}
+% \notes{\rd{The reason for superscript for $h$ is that later, I use a subscript $k$ for $h$ in numerical examples. Maybe, I can change to $c^\param$ and check if there is any conflict.}}
+and $\generate$
+denotes the differential generator of the Langevin diffusion \eqref{e:langevin_generator}.
+Under the assumptions imposed it will follow that the steady-state means of $c$ and $c^\param$ coincide for any $\param\in\Re^\ell$,  so that we obtain a family of asymptotically unbiased estimators:
+\begin{equation}
+\eta^\param_T =\frac{1}{T}\int_0^T c^\param(\markovstate_t)  \, dt
+\label{e:eta_theta}
+\end{equation}
+It is then of interest to find the parameter with minimal asymptotic variance:
+\begin{equation}
+\param^* = \argmin_\param (\asymvar^\param)^2
+\label{e:thetastar}
+\end{equation}
+Here, $(\asymvar^\param)^2$ corresponds to the asymptotic variance of the new estimate \eqref{e:eta_theta}, i.e.
+\[
+\sqrt{T} (\eta^\param_T - \eta ) \xrightarrow[]{d} N (0,(\asymvar^\param)^2).
+\]
+
+\begin{proposition}
+	\label{t:CV}
+	Suppose that  $c$ and each $\psi_i$ lie in $\LsqrV$. Then, equation \eqref{e:eta_theta} defines an asymptotically unbiased estimate of $\eta$. Its asymptotic variance is
+	\begin{equation}
+	(\asymvar^\param)^2
+	= 2  \| \nabla  h - \nabla h^\param  \|^2_{L^2}
+	\label{e:avarCV}
+	\end{equation}
+\end{proposition}
+
+\begin{proof}
+	Applying the differential generator $\generate$ on $h - h^\param$, we have
+	\begin{equation}
+	\begin{aligned}
+	\generate ( h -h^\param) & = - \tilc - \generate h^\param\\
+	& = - c + \eta + c - c^\param  \qquad \text{From \eqref{e:h_and_c}} \\
+	& = - c^\param + \eta\, \eqdef -\tilc^\param
+	\end{aligned}	
+	\label{e:proof_i}
+	\end{equation}
+	Hence $h-h^\param$ is the solution to Poisson's equation with forcing function $c^\param$. Analogous to \eqref{e:avarFish}, the asymptotic variance for the new estimator in \eqref{e:eta_theta} is represented as $(\asymvar^\param)^2 = 2 \langle h - h^\param, \tilc^\param \rangle_{L^2}$, and applying \Prop{prop:lang_generator_grad} gives \eqref{e:avarCV}.
+\end{proof}
+
+It may be noted that the asymptotic variance $(\asymvar^\param)^2$ for the new estimator with control variates \eqref{e:avarCV} has the same form as \eqref{e:gradTD_norm_error}, and hence the differential TD-learning algorithm can be applied. Numerical examples using these algorithms are discussed in Section 5.3.  %\Section{s:numerics}.
+
+\section {Control Variates for a Reversible Markov Chain} %\anand{Very similar to \cite{delkon12}}
+\label{s:cv_reversible_mc}
+In this section, we extend the idea of control variates to the more general case of reversible Markov chains. \Prop{prop:lang_generator_grad} is absent here. However using reversibility, we obtain an expression for the optimal parameter values.
+
+Consider a discrete time Markov chain with a transition kernel $P$.  Let $h$ denote the solution to the Poisson's equation of this Markov chain,
+\[
+(P - I) h = -\tilc,
+\]
+where $I$ refers to the identity operator.
+In discrete time, the asymptotic variance has the following representation in terms of $h$,
+\begin{equation}
+\asymvar^2 = 2 \langle h, \tilc \rangle_{L^2} - \langle \tilc, \tilc \rangle_{L^2}.
+\label{e:avar_reversible}
+\end{equation}
+A linearly parameterized class of functions $h^\param$ is defined as in \eqref{e:h_and_c} and a new function $c^\param$ with the control variates is defined as
+\[
+c^\param \eqdef c +  (P - I) h^\param
+\]
+Denoting $\tilh^\param \eqdef h - h^\param$, a simple extension of \eqref{e:proof_i} is obtained:
+\[
+(P - I) \tilh^\param = -\tilc^\param.
+\]
+Following from \eqref{e:avar_reversible}, the asymptotic variance corresponding to this new estimator $c^\param$ has the following representation:
+\begin{equation}
+\begin{aligned}
+(\asymvar^\param)^2 \eqdef & 2 \langle \tilh^\param, \tilc^\param \rangle_{L^2} - \langle \tilc^\param, \tilc^\param \rangle_{L^2}\\
+= &  - 2 \langle \tilh^\param, (P - I) \tilh^\param \rangle_{L^2} -\langle (P - I) \tilh^\param, (P - I) \tilh^\param \rangle_{L^2}\\
+= & \langle \tilh^\param, \tilh^\param \rangle_{L^2} - \langle P \tilh^\param, P \tilh^\param \rangle_{L^2}
+\label{e:gamma_theta_discrete}
+\end{aligned}
+\end{equation}
+To eliminate the unknown term $h$ from \eqref{e:gamma_theta_discrete}, the self-adjoint property of the transition kernel of a reversible Markov chain is used (\Prop{t:self_adjoint}).
+\begin{proposition}
+	\label{t:self_adjoint}
+	For a reversible Markov chain the following holds:
+	\[
+	\langle P f , g \rangle_{L^2}= \langle f, P g \rangle_{L^2}, \qquad f,g \in L^2(\pi)
+	\]
+	% \notes{\rd{Proof might be simpler by using the CLT norm notation used in CTCN book. Do you want it redone?}}
+\end{proposition}
+\begin{proof}
+	For a reversible Markov chain, the detailed balance equations hold with respect to its unique invariant measure $\pi$:
+	\begin{equation}
+	\pi(dx) P(x,dy ) = \pi(dy) P(y,dx).
+	\label{e:det_bal}
+	\end{equation}
+	From the definition of the transition kernel $P$,
+	\begin{equation}
+	\begin{aligned}
+	P f (x) & = \Expect [f(\markovstate_{k+1}) | \markovstate_k = x] \\
+	& = \int P(x,dy) f(y)
+	\label{e:trans_kernel}
+	\end{aligned}
+	\end{equation}
+	Using the definition of the inner product,
+	\[
+	\begin{aligned}
+	\langle P f, g \rangle_{L^2} & \eqdef \int (Pf(x)) g(x) \pi(dx) \\
+	& = \int \left(\int P(x,dy)f(y)\right) g(x) \pi(dx)  \qquad (\text{From } \eqref{e:trans_kernel}) \\
+	& = \int \left(\int P(y,dx) g(x) \right) f(y) \pi(dy) \qquad (\text {Applying } \eqref{e:det_bal})\\
+	& = \int (P g(y)) f(y) \pi(dy) \\
+	& = \langle f, P g \rangle_{L^2}.
+	\end{aligned}
+	\]
+\end{proof}
+%Applying \Prop{t:self_adjoint} to \eqref{e:gamma_theta_discrete},
+%\begin{equation}
+%\begin{aligned}
+%\langle  h , P h^\param \rangle_{L^2} & = - \langle P h, h^\param \rangle_{L^2} \\
+%\langle h, (P -I) h^\param \rangle_{L^2} & = \langle (P - I) h, h^\param \rangle_{L^2} \\
+%& = -\langle \tilc, h^\param \rangle_{L^2}
+%\label{e:rev}
+%\end{aligned}
+%\end{equation}
+
+\begin{proposition}
+	\label{t:theta_discrete}
+	The optimal parameter vector $\param^* \in \Re^\ell$ that minimizes \eqref{e:gamma_discrete} is given by
+	\begin{equation}
+	\begin{aligned}
+	\param^* & \eqdef M^{-1} b \qquad \text{where,} \\
+	M &\eqdef \langle \psi, \psi \rangle_{L^2}- \langle P \psi,  P \psi \rangle_{L^2} \\
+	b & \eqdef  \langle \tilc, \psi \rangle_{L^2} +  \langle \tilc, P \psi \rangle_{L^2}.
+	\end{aligned}
+	\label{e:theta_star_discrete}
+	\end{equation}
+	The optimal control variate is then given by,
+	\[
+	(P-I) h^\param = \param^{* \transpose} (P \psi) - \param^{* \transpose} \psi.
+	\]
+\end{proposition}
+\begin{proof}
+	Expanding the expression for $(\asymvar^\param)^2$ \eqref{e:gamma_theta_discrete} gives,
+	\begin{equation}
+	\begin{aligned}
+	(\asymvar^\param)^2 & = \langle \tilh^\param, \tilh^\param \rangle_{L^2} - \langle P \tilh^\param, P \tilh^\param \rangle_{L^2} \\
+	& = \langle h, h \rangle_{L^2} - 2 \langle h, h^\param \rangle_{L^2} + \langle h^\param , h^\param \rangle_{L^2} - \langle P h, P h \rangle_{L^2} + 2 \langle P h , P h^\param \rangle_{L^2} - \langle P h ^\param , P h^\param \rangle_{L^2}
+	\label{e:gamma_discrete}
+	\end{aligned}
+	\end{equation}
+	Substituting for $h^\param$ in \eqref{e:gamma_discrete} and applying the first order necessary conditions for optimality by taking the derivative with respect to $\param$,
+	\begin{equation}
+	\begin{aligned}
+	0 & = - \langle h, \psi \rangle_{L^2} +  \param^\transpose \langle \psi, \psi \rangle_{L^2}+ \langle P h, P \psi \rangle_{L^2}-\param^\transpose  \langle P \psi, P  \psi \rangle_{L^2}  \\
+	& = - \langle h, \psi \rangle_{L^2} +  \param^\transpose \langle \psi, \psi \rangle_{L^2}+ \langle P h, P \psi \rangle_{L^2}-\param^\transpose  \langle P \psi, P  \psi \rangle_{L^2}  + \langle P h, \psi \rangle_{L^2} - \langle P h, \psi \rangle_{L^2} \\
+	& = - \langle \tilc , \psi \rangle_{L^2} + \langle P h, (P - I) \psi \rangle_{L^2} + \param^\transpose \Bigl( \langle \psi, \psi \rangle_{L^2}  - \langle P \psi, P \psi \rangle_{L^2} \Bigr)
+	\label{e:gradient_reversible}
+	\end{aligned}
+	\end{equation}
+	Applying \Prop{t:self_adjoint},
+	\[
+	\langle P h , (P -I) \psi \rangle_{L^2} = \langle (P - I) h, P \psi\rangle_{L^2} = - \langle \tilc, P \psi \rangle_{L^2}
+	\]
+	Denoting $M$ and $b$ as
+	\[
+	M \eqdef \langle \psi, \psi \rangle_{L^2} - \langle P \psi, P \psi \rangle_{L^2}, \qquad b \eqdef \langle \tilc, \psi \rangle_{L^2} + \langle \tilc, P \psi \rangle_{L^2}.
+	\]
+	completes the proof.
+\end{proof}
+It can be shown that $M$ is a symmetric positive definite matrix. The Monte Carlo estimates of $M$ are designed to respect this constraint:
+\[
+\begin{aligned}
+\hat{M}_N & \eqdef \frac{1}{N} \sum_{n=0}^{N-1} \Bigl(\psi(\markovstate_n) \cdot\psi^\transpose(\markovstate_n) - \psi(\markovstate_{n+1})\cdot \psi^\transpose(\markovstate_{n+1}) \Bigr) \\
+M_N  & \eqdef \frac{1}{2} (\hat{M}_N + \hat{M}_N^\transpose )\\
+b_N & \eqdef  \frac{1}{N} \sum_{n=0}^{N-1} \tilc(\markovstate_n)\, \Bigl( \psi(\markovstate_n) + \psi(\markovstate_{n+1}) \Bigr).
+\end{aligned}
+\]
+
+Similar results for optimal control variates for reversible Markov chains have been obtained in \cite{delkon12}. Although optimal parameter weight estimates $\param_N = M_N^{-1} b_N$ are easy to obtain, the main difficulty is to compute the term $P\psi$ which is part of the control variate defined in \Prop{t:theta_discrete}. In \cite{delkon12}, numerical examples are presented for a class of conjugate random-scan Gibbs samplers for which $P\psi$ is explicitly computable in closed form.  % In this paper, an approximation to $P\psi$ for the special case of random walk Metropolis algorithm is discussed in \Section{s:mh}.
