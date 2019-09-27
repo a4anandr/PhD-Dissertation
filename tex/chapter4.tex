@@ -164,7 +164,7 @@ wherein $\bfmB$ is the standard Brownian motion.   Under mild conditions on $U$,
 
 A representation for the derivative $h'$ can be obtained based on this stochastic process, and  the generalized resolvent kernel of \cite{nev72,meytwe93e,devkonmey16a}: For a measurable function $G\colon\Re\to\Re$, and measurable functions $f$ in some domain,
 \begin{equation}
-R_G f\, (x) \eqdef \int_0^\infty \Expect_x\Bigl[ \exp\Bigl(-\int_0^t G(\process(s))\, \rmd s \Bigr) f(\process(t))\Bigr] dt,
+R_G f\, (x) \eqdef \int_0^\infty \Expect_x\Bigl[ \exp\Bigl(-\int_0^t G(\markovstate(s))\, \rmd s \Bigr) f(\markovstate(t))\Bigr] dt,
 \label{e:Neveu}
 \end{equation}
 where the expectation is with respect to $\Phi(0)=x$.
@@ -222,7 +222,7 @@ with finite norm.   This is a Hilbert space with inner product defined for $f,g\
 \begin{equation*}
 \langle f,g \rangle_p \eqdef \int f(x)g(x)\, p(x)\rmd x
 \end{equation*}
-That is, $\langle f,g \rangle_p = \Expect[f(\Phi)g(\Phi)]$, where $\process\sim p$.   This norm is identical to what appears in  \eqref{e:gradTDobjective}.    
+That is, $\langle f,g \rangle_p = \Expect[f(\Phi)g(\Phi)]$, where $\markovstate\sim p$.   This norm is identical to what appears in  \eqref{e:gradTDobjective}.    
 
 
 The constructions that follow require methods to compute inner products of the form $\langle g, h' \rangle_p = \langle g, R_{U''} c'\rangle_p $ for functions $g$ and $c$ in a  suitable domain.   For this, we require the \textit{adjoint} $R_{U''}^\dagger$, defined such that the following holds:
@@ -240,7 +240,7 @@ $$\langle g, R_{U''} c'\rangle_p = \langle R_{U''}^\dagger g, c'\rangle_p. $$
 	\begin{equation}
 	\varphi_g(t)
 	=
-	\int_{-\infty}^t  \exp\Bigl(-\int_r^t {U''}(\process(s))\, \rmd s  \Bigr) g(\process(r))   \,  \rmd r
+	\int_{-\infty}^t  \exp\Bigl(-\int_r^t {U''}(\markovstate(s))\, \rmd s  \Bigr) g(\markovstate(r))   \,  \rmd r
 	\label{eq_eligibility_vec}
 	\end{equation}
 	Consequently, 
@@ -252,7 +252,7 @@ $$\langle g, R_{U''} c'\rangle_p = \langle R_{U''}^\dagger g, c'\rangle_p. $$
 \begin{proof}
 	For ease of notation, we denote
 	\[
-	\clU_r^t \eqdef \int_{r}^{t} U''(\process(s)) \rmd s.
+	\clU_r^t \eqdef \int_{r}^{t} U''(\markovstate(s)) \rmd s.
 	\]
 	Based on this definition,  and using \eqref{e:Neveu},  
 	\begin{equation*}
@@ -263,18 +263,18 @@ $$\langle g, R_{U''} c'\rangle_p = \langle R_{U''}^\dagger g, c'\rangle_p. $$
 	\\
 	& = \Expect\Bigl[  [g(\Phi(0))\int_{0}^{\infty} \Expect\bigl[\exp\bigl(- \clU_0^\tau  \bigr)f(\Phi(\tau)) \mid \Phi(0)\bigr]\,d\tau \Bigr]
 	\\
-	& =\int_0^\infty \Expect\Bigl[ f(\process(\tau))  \exp\bigl(- \clU_0^\tau  \bigr) g(\Phi(0)) \Bigr]\, \rmd\tau.
+	& =\int_0^\infty \Expect\Bigl[ f(\markovstate(\tau))  \exp\bigl(- \clU_0^\tau  \bigr) g(\Phi(0)) \Bigr]\, \rmd\tau.
 	\end{aligned}
 	\end{equation*}
 	This requires Fubini's theorem, which is justified by \Prop{t:grad_h_LE}. The change of variables $r = t - \tau$ gives
 	\[
 	\langle g, R_{U''} f \rangle_p =
-	\int_{-\infty}^t  \Expect\Bigl[ f(\process(t-r))  \exp \bigl(- \clU_0^{t-r} \bigr) g(\Phi(0))\Bigr]\, \rmd r,
+	\int_{-\infty}^t  \Expect\Bigl[ f(\markovstate(t-r))  \exp \bigl(- \clU_0^{t-r} \bigr) g(\Phi(0))\Bigr]\, \rmd r,
 	\]
 	and applying stationarity,
 	\[
 	\langle g, R_{U''} f \rangle_p =
-	\int_{-\infty}^t \Expect\Bigl[ f(\process(t)) \exp\bigl(- \clU_r^t \bigr) g(\Phi(r))\Bigr] \rmd r.
+	\int_{-\infty}^t \Expect\Bigl[ f(\markovstate(t)) \exp\bigl(- \clU_r^t \bigr) g(\Phi(r))\Bigr] \rmd r.
 	\]
 	The proof of \eqref{e:t:adjointRG}
 	is complete via a second application of Fubini's theorem.
@@ -288,7 +288,7 @@ We now turn to the optimization problem \eqref{e:gradTDgoal}.  The gradient $\na
 \begin{equation}
 \begin{aligned}
 0 & = \nabla_{\param} \|\Kfpf - K_{\param}\|_{p}^{2}\\
-& = 2 \Expect \bigl[\bigl(\Kfpf(\process) - K_{\param}(\process)\bigr) \gradbasispar (\process)\bigr], \quad \Phi \sim p.
+& = 2 \Expect \bigl[\bigl(\Kfpf(\markovstate) - K_{\param}(\markovstate)\bigr) \gradbasispar (\markovstate)\bigr], \quad \Phi \sim p.
 \label{eq_td_derivation}
 \end{aligned}
 \end{equation}
@@ -327,14 +327,14 @@ Under these conditions, the $\grad$-LSTD learning algorithm is an unbiased and a
 \begin{subequations}
 	\begin{eqnarray}
 	&\ddt
-	\varphi(t) & =  -U''(\process(t))   \varphi(t) + \gradbasis(\process(t))
+	\varphi(t) & =  -U''(\markovstate(t))   \varphi(t) + \gradbasis(\markovstate(t))
 	\label{e:dTD3_cts}
 	\\
 	&\ddt
-	b(t) & =  \varphi(t)   c'(\process(t))
+	b(t) & =  \varphi(t)   c'(\markovstate(t))
 	\label{e:dTD2_cts}
 	\\
-	&\ddt M(t) & =   \gradbasis(\process(t))   {\gradbasis}^\transpose(\process(t))
+	&\ddt M(t) & =   \gradbasis(\markovstate(t))   {\gradbasis}^\transpose(\markovstate(t))
 	\label{e:dTD1_cts}
 	\end{eqnarray}
 \end{subequations}
@@ -346,12 +346,12 @@ The estimates of $\theta^*$ are generated via $\theta(t) = M(t)^{-1} b(t)$.   Th
 
 For a nonlinear parameterization, following the first order optimality conditions for an optimizer $\theta^{*}$ in \eqref{eq_td_derivation}, we have,
 \begin{eqnarray*}
-	0 & = &2 \Expect \bigl[\bigl(\Kfpf(\process) - K_{\param}(\process)\bigr) \gradbasispar (\process)\bigr]\\
-	& = & 2 (\Expect \bigl[\bigl(\Kfpf(\process)\gradbasispar (\process)\bigr)\bigr] - \Expect \bigl[\bigl(K_{\param}(\process)\gradbasispar (\process)\bigr)\bigr])
+	0 & = &2 \Expect \bigl[\bigl(\Kfpf(\markovstate) - K_{\param}(\markovstate)\bigr) \gradbasispar (\markovstate)\bigr]\\
+	& = & 2 (\Expect \bigl[\bigl(\Kfpf(\markovstate)\gradbasispar (\markovstate)\bigr)\bigr] - \Expect \bigl[\bigl(K_{\param}(\markovstate)\gradbasispar (\markovstate)\bigr)\bigr])
 \end{eqnarray*}
-Using \Lemma{t:adjointRG}, we can write an alternate representation for $\Expect \bigl[\bigl(\Kfpf(\process)\gradbasispar (\process)\bigr)\bigr]$ as below:
+Using \Lemma{t:adjointRG}, we can write an alternate representation for $\Expect \bigl[\bigl(\Kfpf(\markovstate)\gradbasispar (\markovstate)\bigr)\bigr]$ as below:
 \begin{eqnarray*}
-	\Expect\bigl[\bigl(\Kfpf(\process)\gradbasispar (\process)\bigr)\bigr]=\langle R_{U''}c',\gradbasis_{i}^{\param}\rangle =\langle c', R_{U''}^\dagger \gradbasis_{i}^{\param}\rangle
+	\Expect\bigl[\bigl(\Kfpf(\markovstate)\gradbasispar (\markovstate)\bigr)\bigr]=\langle R_{U''}c',\gradbasis_{i}^{\param}\rangle =\langle c', R_{U''}^\dagger \gradbasis_{i}^{\param}\rangle
 \end{eqnarray*}
 The optimizer $\param^{*}$ can be obtained by using a stochastic approximation algorithm based on gradient descent:
 \begin{equation*}
@@ -363,7 +363,7 @@ d(t) & =\varphi(t)c'(\Phi(t))-K_{\param_{t}}(\Phi(t))\gradbasis^{\param_{t}}(\Ph
 
 Here, $\gamma_{t}$ is a scalar gain term and is defined in \Section{Results}, and
 \[
-\nrgain_{t} =\frac{1}{t}\int_{0}^{t}\bigl(\gradbasis^{\param_{t}}(\process(s))\bigr)\bigl(\gradbasis^{\param_{t}}(\process(s))\bigr)^{\transpose}\, ds
+\nrgain_{t} =\frac{1}{t}\int_{0}^{t}\bigl(\gradbasis^{\param_{t}}(\markovstate(s))\bigr)\bigl(\gradbasis^{\param_{t}}(\markovstate(s))\bigr)^{\transpose}\, ds
 \]
 
 \section{Examples}
