@@ -16,40 +16,47 @@ Reproducing kernel Hilbert spaces (RKHS) have been quite well-studied for over f
 \subsection{Reproducing kernels} 
 Before defining an RKHS, a positive definite kernel needs to be defined. A function $\Kern : \state \times \state \to \Re$ which for all $N \in \mathbb{N}$ and all $x_1,x_2,\cdots,x_N \in \state$ gives rise to a positive definite Gram matrix is a called a positive definite kernel. That is, given any set of points $\{x_i\}_{i=1}^N$, the $N\times N $ matrix whose $ij^{th}$ element $\gram_{i,j} = \Kern(x_i,x_j)$ is positive definite.  
 
-Also defined is $\featuremap: \state \to \Re^\state$, a feature map that maps each point from $\state$ into a function mapping $\state$ to $\Re$. Here $\Re^\state \eqdef \{f: \state \to \Re \}$. One such mapping, called the \textit{canonical} feature map is $\featuremap(x) = \Kern_x(\cdot) =  \Kern(x,\cdot)$. An inner product is defined such that for all $x,x' \in \state$, we have
-\begin{equation}
-\begin{aligned}
-\Kern(x,x') &= \langle \featuremap(x), \featuremap(x')\rangle \\
-& = \langle \Kern(x,\cdot), \Kern(x',\cdot)\rangle.
-\end{aligned}
-\label{e:rkhs_inner_product}
-\end{equation}
-The symmetry of the kernel $\Kern$ follows from the commutative property of the inner product, i.e.,
-\begin{equation}
-\Kern(x,x') = \langle \Kern(x, \cdot), \Kern(x',\cdot) \rangle = \langle \Kern(x',\cdot), \Kern(x,\cdot) \rangle = \Kern(x', x). 
-\end{equation}
 Let us consider a function $f$ which is a linear combination of the form,
 \begin{equation}
-f(\cdot) = \sum_{i=1}^N c_i \Kern(x_i, \cdot),
+f(\cdot) = \sum_{i=1}^N \alpha_i \Kern(x_i, \cdot),
 \label{e:f_rkhs}
 \end{equation}
-where $N \in \mathbb{N}, c_i \in \Re, \{ x_i \in \state: 1\leq i \leq N \}$ are arbitrary. Let $\clH^0$ denote the vector space (pre-Hilbert space) spanned by all functions $f$ of this form. 
+where $N \in \mathbb{N}, \alpha_i \in \Re, \{ x_i \in \state: 1\leq i \leq N \}$ are arbitrary. Let $\clH^0$ denote the vector space (pre-Hilbert space) spanned by all functions $f$ of this form. Evidently, the function $g$ defined in \eqref{e:g_rkhs} also belongs to this vector space:
+\begin{equation}
+g(\cdot) = \sum_{j=1}^M \beta_i \Kern(x_j, \cdot),
+\label{e:g_rkhs}
+\end{equation}
+where each $\beta_i \in \Re$ and $\{x_j\}_1^M$ are arbitrary points.  An inner product is defined such that, we have,
+\begin{equation}
+\langle f,\, g \rangle \eqdef \sum_{i=1}^N \sum_{j=1}^M \alpha_i \beta_j \Kern(x_i, x_j).
+\label{e:rkhs_inner_product}
+\end{equation}
 The reproducing property of the kernel $\Kern$ follows from the definition of the inner product \eqref{e:rkhs_inner_product},
 \begin{equation}
 \langle \Kern(x,\cdot), f(\cdot)\rangle = f(x) \qquad \forall x \in \state, \forall f \in \clH^0.
 \end{equation}
-Owing to this property, the kernel function $\Kern$ is called the \textit{reproducing kernel}. It is also called the \textit{evaluation functional} as it evaluates the function $f$ at a point $x$. 
-
+Owing to this property, the kernel function $\Kern$ is called the \textit{reproducing kernel}. It is also called the \textit{evaluation functional} as it evaluates the function $f$ at a point $x$. The symmetry of the kernel $\Kern$ guarantees that the inner product definition satisfies the commutative property, i.e. if $\Kern_x = \Kern(x, \cdot)$ we have,
+\begin{equation}
+\langle \Kern_x, \Kern_{x'} \rangle =  \Kern(x,x') = \Kern(x',x) =  \langle \Kern_{x'}, \Kern_x \rangle. 
+\end{equation}
 The space obtained by the completion of functions of the form $f$ defined in \eqref{e:f_rkhs}, that are endowed with the inner product as in \eqref{e:rkhs_inner_product} (denoted as $\langle \cdot, \cdot \rangle_{\clH}$ here onward) yields a Hilbert space $\clH$, called the reproducing kernel Hilbert space (RKHS). The corresponding norm is defined as $\|f\|_\clH \eqdef \sqrt{\langle f, f \rangle_\clH}$. The reproducing kernel Hilbert spaces have the remarkable property that norm convergence implies pointwise convergence. 
 For any function $f\in\clH$ and $\{f_n\}\subset \clH$ be a sequence with $\|f_n - f\|_\clH \to 0$ for $n \to \infty$, then for all $x \in \state$, we have,
 \begin{equation}
-\lim_{n\to\infty} f_n(x) = \lim_{n \to \infty} \langle \Kern(x,\cdot),  f_n(\cdot) \rangle_\clH = \langle \Kern(x, \cdot), f(\cdot) \rangle_\clH = f(x)
+\lim_{n\to\infty} f_n(x) = \lim_{n \to \infty} \langle \Kern_x,  f_n \rangle_\clH = \langle \Kern_x, f \rangle_\clH = f(x)
 \end{equation}
 If $\Kern$ is a continuous, symmetric and positive definite kernel satisfying, 
 \begin{equation}
 \kappa = \sup_{x \in \state} \sqrt{\Kern(x,x)} < \infty,
 \end{equation}
 then, \Prop{prop:RKHS_bounded} holds. Additionally, if $K$ is continuous, then every function in $\clH$ is continuous. 
+Also defined is $\featuremap: \state \to \Re^\state$, a feature map that maps each point from $\state$ into a function mapping $\state$ to $\Re$. Here $\Re^\state \eqdef \{f: \state \to \Re \}$. One such mapping, called the \textit{canonical} feature map is $\featuremap(x) = \Kern_x(\cdot) =  \Kern(x,\cdot)$. 
+\begin{equation}
+\begin{aligned}
+\Kern(x,x') &= \langle \featuremap(x), \featuremap(x')\rangle \\
+& = \langle \Kern(x,\cdot), \Kern(x',\cdot)\rangle.
+\end{aligned}
+\label{e:rkhs_feature_map}
+\end{equation}
 
 \begin{proposition}
 \label{prop:RKHS_bounded}
@@ -128,7 +135,7 @@ Some of the salient properties of the Gaussian kernel RKHS are summarized below:
 	\begin{equation}
 	\|h(x) - g(x)\|_\infty \leq \epsilon \qquad \forall x \in \state
 	\end{equation} 
-	\item Let $\Kern_{\epsilon}(x,x') = \exp(-\frac{\|x-x'\|^2}{4\epsilon})$. The Hilbert space $\clH_\epsilon$ induced by $\Kern_\epsilon$ on $\state$ contains the function $\exp(-\frac{\alpha \|x\|^2} {4 \epsilon})$ if and only if $0<\alpha <2$. For example, $\exp(-\frac{\|x\|^2}{2 \epsilon}) \in \clH_{\epsilon/2}$, but  $\exp(-\frac{\|x\|^2}{2 \epsilon}) \notin \clH_{\epsilon}$. As $\alpha=0$ is excluded, it validates the first property that constant functions do not belong to $\clH$.
+	\item Let $\Kern_{\epsilon}(x,x') = \exp(-\frac{\|x-x'\|^2}{4\epsilon})$. The Hilbert space $\clH_\epsilon$ induced by $\Kern_\epsilon$ on $\state$ contains the function $\exp(-\frac{c \|x\|^2} {4 \epsilon})$ if and only if $0<c <2$. For example, $\exp(-\frac{\|x\|^2}{2 \epsilon}) \in \clH_{\epsilon/2}$, but  $\exp(-\frac{\|x\|^2}{2 \epsilon}) \notin \clH_{\epsilon}$. As $c=0$ is excluded, it validates the first property that constant functions do not belong to $\clH$.
 	
 	\item The functions in $\clH$ that are smooth are not necessarily integrable, as $\clH \notin L^1(\Re^n)$ for any $\epsilon >0$.  This implies that $L^1$ norm optimization or regularization is infeasible in $\clH$. This could still be done on subsets of finite linear combinations of the basis functions.
 	
