@@ -183,7 +183,6 @@
 \newcommand{\generate}{\clD}
 \newcommand{\pot}{U}
 \newcommand{\pr}{\rho}
-
 \def\normal{\mathcal{N}}
 
 % FPF related
@@ -213,7 +212,7 @@
 \def\rkhsparam{\beta}
 
 % TD learning related
-\def\gradTD{\nabla\text{-TD}}
+\def\gradTD{\nabla\text{-LSTD}}
 \def\basis{\psi}
 \def\gradbasis{\grad \basis}
 \def\param{\theta}
@@ -222,6 +221,7 @@
 \def\discount{\gamma}
 \def\eligibvector{\varphi}
 \def\sagain{\alpha}
+\def\error{\mathcal{E}}
 
 
 \def\det{{\mathop{\rm det}}}
@@ -264,6 +264,12 @@
 \newcounter{rmnum}
 \newenvironment{romannum}{\begin{list}{{\upshape (\roman{rmnum})}}{\usecounter{rmnum}
 			\setlength{\leftmargin}{12pt}
+			\setlength{\rightmargin}{10pt}
+			\setlength{\itemindent}{-1pt}
+	}}{\end{list}}
+
+\newenvironment{arabnum}{\begin{list}{{\upshape \arabic{rmnum}.\ }}{\usecounter{rmnum}
+			\setlength{\leftmargin}{8pt}
 			\setlength{\rightmargin}{10pt}
 			\setlength{\itemindent}{-1pt}
 	}}{\end{list}}
