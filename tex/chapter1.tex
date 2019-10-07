@@ -1,5 +1,5 @@
 \chapter{INTRODUCTION} 
-\label{chap1_intro}
+\label{ch:intro}
 
 In a broad sense, this dissertation explores the development of reinforcement learning based techniques suited to applications in nonlinear filtering (or nonlinear state estimation) and Markov chain Monte Carlo (MCMC) algorithms. During the initial development of this dissertation, a special class of approximate nonlinear filters called the feedback particle filter (FPF) was the primary focus. Later, by lucky coincidence, it was observed that similar techniques could be applied to obtain interesting results in MCMC algorithms as well. Hence, the chapter on MCMC forms a smaller portion of the dissertation. 
 
@@ -59,7 +59,7 @@ In its most general form, Poisson's equation is a second-order differential equa
 \begin{equation*}
 \generate h \eqdef - f,
 \end{equation*}
-where $\generate$ is a second-order differential operator. Usually, $f$ is given and is ``centered'' by subtracting its mean. The function $h$ is unknown and is called the solution to the Poisson's equation. In Physics, the operator $\generate$ is often taken to be the Laplacian. Poisson's equation appears widely in the context of Markov chains and stochastic optimal control. In the context of a continuous-time diffusion process, the operator $\generate$ refers to the infinitesimal generator, also called the differential generator. 
+where $\generate$ is a second-order differential operator. Usually, $f \in C^2$ is given and is ``centered'' by subtracting its mean. The function $h$ is unknown and is called the solution to the Poisson's equation. In Physics, the operator $\generate$ is often taken to be the Laplacian. Poisson's equation appears widely in the context of Markov chains and stochastic optimal control. In the context of a continuous-time diffusion process, the operator $\generate$ refers to the infinitesimal generator, also called the differential generator.  \anand{ If $f \equiv 0$, then $h$ is precisely harmonic functions \cite{glymey96a}}.
 
 Poisson's equation is central to average-cost optimal control theory. In this case, $f$ is a one-step cost function and $h$ is called a relative value function. \anand{The states evolve in the form of a controlled Markov chain based on a given policy.} Relative value function gives the infinite-horizon expected cost when starting from a given state under this stationary policy. Approximate solutions to the equation lead to direct performance bounds of the control algorithm \cite{ctcn}. Explicit bounds on the solution $h$ have been obtained under general conditions of the chain in \cite{}.
 % measure of long-term system performance in \cite{brabar96}.
