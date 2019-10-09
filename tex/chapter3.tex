@@ -1,18 +1,18 @@
-\chapter{Reproducing kernel Hilbert space (RKHS) for learning}
+\chapter{Reproducing Kernel Hilbert space (RKHS) for Differential TD Learning}
 \label{ch:rkhs}
-The standard LSTD algorithm and two versions of the$\gradTD$ learning algorithm were discussed in \Chapter{ch:diff_td}. One of the important steps in both these algorithms is the selection of a suitable approximating function class, characterized by  a linear or nonlinear parameterization. It is noted in \cite{ctcn} that any insight about the true value function can aid in this step. For example, if the value function is known to obey certain properties, say convexity, then the basis functions chosen can also be convex.  In certain examples, the value function at a state can provide useful information about the values at ``neighboring'' states. In the case of stochastic optimal control, the \textit{fluid} value functions provide a natural starting point to approximate the solution to the average-cost value function. However, such choices are heavily problem-dependent and no standard methods exist\ In most traditional examples of TD learning, a predetermined set of basis functions is used to define the function class. This limits the learning problem in two ways:
-\begin{itemize}
+In \Chapter{ch:diff_td}, the standard LSTD algorithm was reviewed and two versions of the $\gradTD$ learning algorithm were  introduced. An important step in all these algorithms is the selection of a suitable approximating function class, characterized by  a linear or nonlinear parameterization. It is noted in \cite{ctcn} that any insight about the true value function can aid in this step. For example, if the value function is known to obey certain properties, say convexity, then the basis functions chosen can also be convex.  In certain examples, the value function at a state can provide useful information about the values at ``neighboring'' states. In the case of stochastic optimal control, the fluid value functions provide a natural starting point to approximate the solution to the average-cost value function. However, such choices are heavily problem-dependent and no standard methods exist. In most traditional examples of TD learning, a predetermined set of basis functions is used to define the function class. This limits the learning problem in two ways:
+\begin{romannum}
 	\item The chosen function class may not be rich enough to give a good approximation of the value function.
-	\item Additionally, the approximation algorithms discussed in this thesis are based on Monte Carlo methods with finite sample size. A predetermined set of basis functions will not be able to exploit information about the distribution of these samples.  
-\end{itemize}
-Hence, it seems better to choose a function class that adapts dynamically to suit the problem and the sample distribution. Kernel methods provide an alternative approach to basis selection. 
+	\item Additionally, the approximation algorithms discussed in this dissertation are based on Monte Carlo methods with finite sample size. A predetermined set of basis functions will not be able to exploit information about the distribution of these samples.  
+\end{romannum}
+Hence, it is a better idea to choose a function class that adapts dynamically to suit the problem and the sample distribution. Kernel methods provide an alternative approach to basis selection. 
 
-In this chapter, the $\gradTD$ algorithm proposed in \Chapter{ch:diff_td} is adapted to work in a reproducing kernel Hilbert space (RKHS) setting.  The remainder of this chapter is organized as follows - In \Section{s:rkhs_basics}, a very concise introduction to kernel functions and the RKHS theory is provided. We discuss some useful properties of the RKHS associated with the widely used Gaussian kernel in \Section{s:gaussian_rkhs}. A brief introduction to empirical risk minimization (ERM) problem is provided in \Section{s:erm} and the problem of approximating the gradient of the solution to Poisson's equation \eqref{e:gradTD_norm_error} is reformulated as an ERM in \Section{s:erm}. A solution is obtained using a generalized  version of the representer theorem in \Theorem{theorem:rep_theorem}.  A simplified suboptimal solution is also discussed. A short review of the various existing approaches to error analysis for a generic least squares regression problem is given in  Section 3.4. %\Section{s:erm_error}. 
-Error analysis where loss functions have gradient terms is in Section 3.5.
- 
+This chapter aims to adapt the $\gradTD$ algorithm proposed in \Chapter{ch:diff_td} in a reproducing kernel Hilbert space (RKHS) setting.  The remainder of this chapter is organized as follows - In \Section{s:rkhs_basics}, a very concise introduction to kernel functions and the RKHS theory is provided. A more detailed discussion of its properties including Mercer's theorem can be found in \Appendix{a:mercers_theorem}. Gaussian kernels have found wide acceptance in machine learning and function approximation and some of the useful properties of the RKHS induced by the Gaussian kernel is discussed in \Appendix{a:gaussian_rkhs}. Function approximation problems arising in machine learning are usually cast in the form of a regularized empirical risk minimization (ERM) problem - a brief introduction is provided in \Section{s:erm}. Obtaining solutions to such problems are made possible via the classical representer theorem. The theorem is stated in \Section{s:} and the proof is provided in \Appendix{a:rep_theorem_proof}. In \Section{s:erm}, the minimum-norm problem in $L^2(\pr)$ \eqref{e:gradTD_norm_error} of approximating the gradient of the solution to Poisson's equation is reformulated as an equivalent ERM problem to apply the RKHS machinery. As the ERM formulated consists of gradient terms, a generalized  version of the representer theorem (\Theorem{theorem:rep_theorem}) is required to obtain the optimal solution.  A simplified sub-optimal solution that lies on a subspace of the original RKHS is also presented. A short review of the various existing approaches to error analysis for a generic least squares regression problem is given  in \Appendix{a:erm_error}. Error analysis where loss functions have gradient terms is in Section 3.5.
+\anand{yet to be done}
+
 \section{RKHS Basics}
 \label{s:rkhs_basics}
-Reproducing kernel Hilbert spaces (RKHS) have been quite well-studied for over five decades now. Their mathematical properties were first studied by Moore \cite{moo1916} and Aroszajn \cite{aro50}. Although initial applications were in time series analysis, detection, filtering and prediction problems, more recently they have been found to be incredibly useful in machine learning \cite{wah90}. With the development of support vector machine (SVM) for classification and regression problems \cite{corvap95, drucburkaufsmovap97}, kernel methods have gained a lot of popularity in the machine learning community. 
+Kernel methods have been quite well-studied for over five decades now. They provide a flexible and mathematically-elegant framework for a range of estimation problems by relating them to a function reconstruction problem in a higher dimensional feature space. By controlling the features of this space, the properties of the candidate functions can also be implicitly controlled. \anand{From Bhujwalla's thesis, need to rephrase}The mathematical properties of kernel functions were first investigated by Moore \cite{moo1916} and Mercer \cite{merrus09} in the early twentieth century. Although initial applications were in time series analysis, detection, filtering and prediction problems, more recently they have been found to be incredibly useful in machine learning \cite{wah90}, especially after the advent of support vector machines (SVM) for classification and regression problems \cite{corvap95, drucburkaufsmovap97}. In this dissertation, the goal is to employ kernel methods as an alternative to choosing a finite set of basis functions for the $\gradTD$ learning algorithm. 
 
 \subsection{Reproducing Kernels} 
 Before defining an RKHS, a positive definite kernel needs to be defined. A function $\Kern : \state \times \state \to \Re$ which for all $N \in \mathbb{N}$ and all $x_1,x_2,\cdots,x_N \in \state$ gives rise to a positive definite Gram matrix is a called a positive definite kernel. That is, 
@@ -24,26 +24,34 @@ Let us consider a function $f$ which is a linear combination of the form,
 f(\cdot) = \sum_{i=1}^N \alpha_i \Kern(x_i, \cdot),
 \label{e:f_rkhs}
 \end{equation}
-where $N \in \mathbb{N}, \alpha_i \in \Re, \{ x_i \in \state: 1\leq i \leq N \}$ are arbitrary. Let $\clH^0$ denote the vector space (pre-Hilbert space) spanned by all functions $f$ of this form. Evidently, the function $g$ defined in \eqref{e:g_rkhs} also belongs to this vector space:
+where $N \in \mathbb{N}, \alpha_i \in \Re, \{ x_i \in \state: 1\leq i \leq N \}$ are arbitrary. Let $\clH^0$ denote the vector space (pre-Hilbert space) spanned by all functions $f$ of this form. Evidently, the function $g$ defined as,  
 \begin{equation}
-g(\cdot) = \sum_{j=1}^M \beta_i \Kern(x_j, \cdot),
+g(\cdot) = \sum_{j=1}^M \beta_j \Kern(x_j, \cdot),
 \label{e:g_rkhs}
 \end{equation}
-where each $\beta_i \in \Re$ and $\{x_j\}_1^M$ are arbitrary points.  An inner product is defined such that, we have,
+where each $\beta_i \in \Re$ and $\{x_j\}_1^M$ are arbitrary points, also belongs to this vector space.  An inner product of functions $f,g \in \clH^0$ is defined as,
 \begin{equation}
 \langle f,\, g \rangle \eqdef \sum_{i=1}^N \sum_{j=1}^M \alpha_i \beta_j \Kern(x_i, x_j).
 \label{e:rkhs_inner_product}
+\end{equation}
+It is interesting to note that the inner product is independent of the expansions used for $f$ and $g$, i.e.
+\begin{equation}
+\langle f, g \rangle = \sum_{i=1}^N \alpha_i g(x_i) = \sum_{j=1}^N \beta_j f(x_j)
 \end{equation}
 The reproducing property of the kernel $\Kern$ follows from the definition of the inner product \eqref{e:rkhs_inner_product},
 \begin{equation}
 \langle \Kern(x,\cdot), f(\cdot)\rangle = f(x) \qquad \forall x \in \state, \forall f \in \clH^0.
 \label{e:rkhs_rep_property}
 \end{equation}
-Owing to this property, the kernel function $\Kern$ is called the \textit{reproducing kernel}. It is also called the \textit{evaluation functional} as it evaluates the function $f$ at a point $x$. The symmetry of the kernel $\Kern$ guarantees that the inner product definition satisfies the commutative property, i.e. if $\Kern_x = \Kern(x, \cdot)$ we have,
+Owing to this property, the kernel function $\Kern$ is called the reproducing kernel. It is also called the evaluation functional as it evaluates the function $f$ at a point $x$. The symmetry of the kernel $\Kern$ guarantees that the inner product definition satisfies the commutative property, i.e. if $\Kern_x = \Kern(x, \cdot)$ we have,
 \begin{equation}
 \langle \Kern_x, \Kern_{x'} \rangle =  \Kern(x,x') = \Kern(x',x) =  \langle \Kern_{x'}, \Kern_x \rangle. 
 \end{equation}
-The space obtained by the completion of functions of the form $f$ defined in \eqref{e:f_rkhs}, that are endowed with the inner product as in \eqref{e:rkhs_inner_product} (denoted as $\langle \cdot, \cdot \rangle_{\clH}$ here onward) yields a Hilbert space $\clH$, called the reproducing kernel Hilbert space (RKHS). The corresponding norm is defined as $\|f\|_\clH \eqdef \sqrt{\langle f, f \rangle_\clH}$. The reproducing kernel Hilbert spaces have the remarkable property that norm convergence implies pointwise convergence. 
+The space obtained by the completion of functions of the form $f$ defined in \eqref{e:f_rkhs}, that are endowed with the inner product defined in \eqref{e:rkhs_inner_product} (denoted as $\langle \cdot, \cdot \rangle_{\clH}$ here onward to distinguish from the normal dot product definition) yields a Hilbert space $\clH$, called the reproducing kernel Hilbert space (RKHS). The corresponding norm is defined as $\|f\|_\clH \eqdef \sqrt{\langle f, f \rangle_\clH}$. 
+
+The Moore-Aronszajn theorem states that every symmetric, positive definite kernel $\Kern : \state \times \state \to \Re$ defines an RKHS $\clH$ for which $\Kern$ is the reproducing kernel. A Hilbert function space $\clH$ that has a reproducing kernel $\Kern$ is always an RKHS and conversely, every RKHS has a (unique) reproducing kernel. While all RKHS are Hilbert spaces, the converse is not true. For example, the space of square-integrable $L^2$ functions is a Hilbert space, but not an RKHS. 
+
+The reproducing kernel Hilbert spaces have the remarkable property that norm convergence implies pointwise convergence. 
 For any function $f\in\clH$ and $\{f_n\}\subset \clH$ be a sequence with $\|f_n - f\|_\clH \to 0$ for $n \to \infty$, then for all $x \in \state$, we have,
 \begin{equation}
 \lim_{n\to\infty} f_n(x) = \lim_{n \to \infty} \langle \Kern_x,  f_n \rangle_\clH = \langle \Kern_x, f \rangle_\clH = f(x)
@@ -73,98 +81,120 @@ then, \Prop{prop:RKHS_bounded} holds. Additionally, if $K$ is continuous, then e
 	\end{equation}
 \end{proof}
 
-A Hilbert function space $\clH$ that has a reproducing kernel $\Kern$ is always an RKHS and conversely, every RKHS has a (unique) reproducing kernel. 
-The RKHS also has a feature map representation. Let $\featuremap: \state \to \Re^\state$, a feature map that maps each point from $\state$ into a function mapping $\state$ to $\Re$, i.e. $\Re^\state \eqdef \{f: \state \to \Re \}$. The map $\featuremap$ is non-unique, but a \textit{canonical} feature map exists and is given by $\featuremap(x)  =  \Kern(x,\cdot)$, %\notes{needs citation}
+
+The RKHS also has a feature map representation. Let $\featuremap: \state \to \Re^\state$, a feature map that maps each point from $\state$ into a function mapping $\state$ to $\Re$, i.e. $\Re^\state \eqdef \{f: \state \to \Re \}$. The map $\featuremap$ is non-unique, but a canonical feature map exists and is given by $\featuremap(x)  =  \Kern(x,\cdot)$, %\notes{needs citation}
 \begin{equation}
 \begin{aligned}
 \Kern(x,x') &= \langle \featuremap(x), \featuremap(x')\rangle \\
-& = \langle \Kern_x, \Kern_{x'} \rangle_{L^2} 
+& = \langle \Kern_x, \Kern_{x'} \rangle_\clH
 \end{aligned}
 \label{e:rkhs_feature_map}
 \end{equation}
 
-\subsection{Orthonormal Basis Functions and Mercer's Theorem} %\anand{Mercer's theorem?}
-Given an RKHS $\clH$, it is useful to understand the set of functions that belong to the Hilbert space. This can be studied using Mercer's theorem \cite{merrus09}. Mercer's theorem forms the connection between the theory of reproducing kernels and integral operators. 
-Consider the integral operator (Hilbert-Schmidt operator) $L_K:L^2_\measure(x) \to L^2_\measure(x)$ defined by,
+%\subsection{Orthonormal Basis Functions and Mercer's Theorem} %\anand{Mercer's theorem?}
+%Given an RKHS $\clH$, it is useful to understand the set of functions that belong to the Hilbert space. This can be studied using Mercer's theorem \cite{merrus09}. Mercer's theorem forms the connection between the theory of reproducing kernels and integral operators. 
+%Consider the integral operator (Hilbert-Schmidt operator) $L_K:L^2_\measure(x) \to L^2_\measure(x)$ defined by,
+%\begin{equation}
+%(L_K f)(x) = \int_\state \Kern(x,t) f(t) d\measure(t)
+%\end{equation}
+%where $\measure$ is a finite Borel measure and $\state$ is a compact set.
+%The linear map $L_K^{1/2}$, which denotes the square root of $L_K$ is a Hilbert isomorphism between $L^2_{\measure}(\state)$ and $\clH$ as illustrated in \Fig{fig:rkhs_isomorphism}. 
+%
+%\begin{figure}[htbp]
+%	\centering
+%	\includegraphics[width=3in]{images/Chap3_RKHS_isomorphism}
+%	\caption{Diagram illustrating the isomorphic transformations between $\clH$ and $L^2_\measure$.}
+%	\label{fig:rkhs_isomorphism}
+%\end{figure}
+%
+%% $L_{K,C}$ emphasizes that the target is $\mathcal{C}(\state)$ and $I_K$ denotes the inclusion. If $\Kern$ is $\mathcal{C}^\infty$, then $I_K$ is compact. \anand{Gaussian kernel is $\mathcal{C}^\infty$}
+% $L_K$ is a self-adjoint, compact operator with eigenvalues $\reg_1 \geq \reg_2 \geq \cdots \geq 0$, with the corresponding normalized eigenfunctions $\{\phi_n\}_{n=1}^\infty$ forming an orthonormal basis for $L^2_\measure(\state)$. Mercer's theorem states that 
+%\begin{equation}
+%\Kern(x,x') = \sum_{n=1}^\infty \reg_n \phi_n(x) \phi_n(x'),
+%\end{equation}
+%where the series converges absolutely for each $x,x' \in \state$. The set $\{\sqrt{\reg_n}\phi_n\}_{n=1}^\infty$ forms an orthonormal basis for $\clH$. However, finding an eigenfunction feature representation for a kernel is challenging, except in special cases. 
+
+%\section{Properties of the Gaussian Kernel -  RKHS}
+%\label{s:gaussian_rkhs}
+%
+%Of the many kernels being used, Gaussian kernel is the most widely used and often gives the best performance \cite{min10}. The study of the properties of the Gaussan kernel has received a lot of attention \cite{stehussco06, min10,micchaxuzha06}. The Gaussian kernel is a translation-invariant kernel given by,
+%\begin{equation}
+%\Kern_{\epsilon}(x,x') := \exp(-\|x - x'\|^2/ 4\epsilon) \qquad \forall x,x' \in \state,
+%\end{equation}
+%where $\epsilon$ is a parameter that defines the width of the kernel. An illustration of the Gaussian kernel for $\epsilon = 0.125$ and the corresponding Fourier transform is given in \Fig{fig:gaussian_kernel}. It may be seen that the Fourier transform decays exponentially fast for large values of $\omega$. The lack of high frequency components in the Gaussian kernel indicates that the functions belonging to the induced RKHS are smooth.  
+%\begin{figure}[htbp]
+%	\centering
+%	\includegraphics[width=6in]{images/Chap3_Gaussian_kernel}
+%	\caption{Gaussian kernel with $\epsilon = 0.125$ and its Fourier transform \cite{schsmo01}.}
+%	\label{fig:gaussian_kernel}
+%\end{figure}
+%
+%Steinwart et al. in \cite{stehussco06} tries to answer questions like - which functions are contained in the RKHS induced by the Gaussian kernel, how the corresponding norms can be computed, and how the RKHS of different widths correlate to each other. 
+%In particular, RKHS of Gaussian kernels always have countable orthonormal bases. Theorem 3 of the paper gives the orthonormal basis functions for $\clH$ defined by the Gaussian kernel $\Kern_\epsilon$. It states that for $\epsilon >0$ and $n \in \mathbb{N}_0 := \mathbb{N} \cup \{0\}$, the sequence of functions $\{\phi_n : \Re \to \Re\}$ defined by,
+%\begin{equation}
+%\phi_n(x) := \sqrt{\frac{1}{(2\epsilon)^n n!}}x^n \exp(-x^2/4\epsilon).
+%\end{equation}
+%is an orthonormal basis for $\clH$.
+%
+%Minh in \cite{min10} gives several properties of the RKHS induced by Gaussian kernels. Theorem 1 of the paper states that the RKHS $\clH$ induced by the standard Gaussian kernel is infinite dimensional, i.e. dim($\clH$) = $\infty$ and 
+%\begin{equation}
+%\clH := \Bigl\{ f = \exp(-x^2/4\epsilon) \sum_{n=0}^\infty w_n x^n: \|f\|^2_\clH = \sum_{k=0}^\infty (2\epsilon)^k k! \sum_{n=0}^k w_n^2 <\infty \Bigr\}
+%\end{equation}
+%Some of the salient properties of the Gaussian kernel RKHS are summarized below: 
+%\begin{enumerate}
+%	\item $\clH$ induced by the standard Gaussian kernel does not contain any polynomial on $\state$, including the non-zero constant function. 
+%	
+%	\item If $\state$ is compact, $\clH$ induced by the Gaussian kernel is dense in the space of $\mathcal{C}(\state)$ of continuous functions on $\state$.
+%	This means that given a continuous function $h(x)$, for all $\varepsilon >0$, we can find a function $g(x) \in \clH$ such that 
+%	\begin{equation}
+%	\|h(x) - g(x)\|_\infty \leq \epsilon \qquad \forall x \in \state
+%	\end{equation} 
+%	\item Let $\Kern_{\epsilon}(x,x') = \exp(-\frac{\|x-x'\|^2}{4\epsilon})$. The Hilbert space $\clH_\epsilon$ induced by $\Kern_\epsilon$ on $\state$ contains the function $\exp(-\frac{c \|x\|^2} {4 \epsilon})$ if and only if $0<c <2$. For example, $\exp(-\frac{\|x\|^2}{2 \epsilon}) \in \clH_{\epsilon/2}$, but  $\exp(-\frac{\|x\|^2}{2 \epsilon}) \notin \clH_{\epsilon}$. As $c=0$ is excluded, it validates the first property that constant functions do not belong to $\clH$.
+%	
+%	\item The functions in $\clH$ that are smooth are not necessarily integrable, as $\clH \notin L^1(\Re^n)$ for any $\epsilon >0$.  This implies that $L^1$ norm optimization or regularization is infeasible in $\clH$. This could still be done on subsets of finite linear combinations of the basis functions.
+%	
+%
+%\item Partial derivatives of the Gaussian kernel denoted as $\frac{\partial^n}{\partial x^n} \Kern_x \in \clH$. As a corollary, it can be shown that $t^n \Kern_x(t)\in\clH$. Additionally, for any polynomial $p(t)$, $p(t) \Kern_x(t) \in \clH$. An expression for the Hilbert space norm for kernel derivative of any order $d$ is also provided in \cite{min10}. 
+%\end{enumerate}
+%
+%The paper by Michelli et al. \cite{micchaxuzha06} sets out to identify kernels with universal approximating property, i.e. given any compact set $\state$, any function $f \in \mathcal{C}(\state)$, there is a function $g \in \clH$ such that $\| f - g\|_{\infty} \leq \varepsilon$ holds for any $\varepsilon > 0$. Thus for any choice of compact set $\state$, the space $\clH$ is dense in $\mathcal{C}(\state)$ in the maximum norm. A kernel that satisfies this property is called the universal kernel. The paper discusses the characterization of universal kernels in terms of feature map representation of the kernel $\Kern$. It provides necessary and sufficient condition for $\Kern$ to have the universal approximation property in terms of its features. Under conditions provided in Theorem 17 of the paper, the standard Gaussian kernel is shown to be universal. 
+
+% The below section needs to go in Chapter 4 on FPF
+%An interesting question in the context of FPF gain function approximation would be whether the following holds true for a sequence of functions $\{g_n\} \subset \clH$.
+%\begin{enumerate}
+%\item $\lim_{n \to \infty} \sup_x |g_n(x) -h(x) | \to 0,\quad \forall x \in \Re$
+%\item $ \lim_{n \to \infty}\sup_{x \in \state} |g_n(x) - h(x) | \to 0$ and $\sup_x |g_n(x)| < \infty,  \forall x \in \Re$ and $\state$ is a compact subset of $\Re$. 
+%\end{enumerate}
+%The first condition is stronger than the second. The second condition ensures that the gain approximation $g_n$ is arbitrarily close to the true gain within a compact set $\state$ and it does not become unbounded anywhere. 
+\subsection{Choice of the kernel function}
+It is evident from the construction of the RKHS that the properties of the functions in $\clH$ are governed by the properties of its kernel $\Kern$. Therefore, by choosing different kernel functions, different function spaces can be generated. Typically, $\Kern$ depends on a variable hyperparameter, which can be tuned to control the scaling. Some commonly used kernel functions are:
+\begin{arabnum}
+\item Linear kernel: The simplest example is a linear kernel in one dimension:
 \begin{equation}
-(L_K f)(x) = \int_\state \Kern(x,t) f(t) d\measure(t)
+\Kern(x,x') \eqdef x x', \qquad x,x' \in \state.
 \end{equation}
-where $\measure$ is a finite Borel measure and $\state$ is a compact set.
-The linear map $L_K^{1/2}$, which denotes the square root of $L_K$ is a Hilbert isomorphism between $L^2_{\measure}(\state)$ and $\clH$ as illustrated in \Fig{fig:rkhs_isomorphism}. 
-
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=3in]{images/Chap3_RKHS_isomorphism}
-	\caption{Diagram illustrating the isomorphic transformations between $\clH$ and $L^2_\measure$.}
-	\label{fig:rkhs_isomorphism}
-\end{figure}
-
-% $L_{K,C}$ emphasizes that the target is $\mathcal{C}(\state)$ and $I_K$ denotes the inclusion. If $\Kern$ is $\mathcal{C}^\infty$, then $I_K$ is compact. \anand{Gaussian kernel is $\mathcal{C}^\infty$}
- $L_K$ is a self-adjoint, compact operator with eigenvalues $\reg_1 \geq \reg_2 \geq \cdots \geq 0$, with the corresponding normalized eigenfunctions $\{\phi_n\}_{n=1}^\infty$ forming an orthonormal basis for $L^2_\measure(\state)$. Mercer's theorem states that 
+\item Polynomial kernel: It has been shown by Aronszajn \cite{aro50} that sums and products of kernel functions are also kernels. Polynomial kernels are obtained by taking combinations of linear kernels:
 \begin{equation}
-\Kern(x,x') = \sum_{n=1}^\infty \reg_n \phi_n(x) \phi_n(x'),
+\Kern(x,x') = (xx' + a)^b, \qquad x,x'\in \state, a \in \Re, b \in \mathbb{N}.
 \end{equation}
-where the series converges absolutely for each $x,x' \in \state$. The set $\{\sqrt{\reg_n}\phi_n\}_{n=1}^\infty$ forms an orthonormal basis for $\clH$. However, finding an eigenfunction feature representation for a kernel is challenging, except in special cases. 
-
-\section{Properties of the Gaussian Kernel -  RKHS}
-\label{s:gaussian_rkhs}
-
-Of the many kernels being used, Gaussian kernel is the most widely used and often gives the best performance \cite{min10}. The study of the properties of the Gaussan kernel has received a lot of attention \cite{stehussco06, min10,micchaxuzha06}. The Gaussian kernel is a translation-invariant kernel given by,
+\item Radial basis function kernels: Both linear and polynomial kernels depend on the absolute location of the inputs. Radial basis functions are a class of kernels that are translation-invariant, i.e. their values only depend on the relative positions of the inputs, and not the absolute values themselves. They are essentially a measure of similarity, in the sense that the proximity of the points in the input space determines the value of the kernel. A class of radial basis function kernels may be defined as:
 \begin{equation}
-\Kern_{\epsilon}(x,x') := \exp(-\|x - x'\|^2/ 4\epsilon) \qquad \forall x,x' \in \state,
-\end{equation}
-where $\epsilon$ is a parameter that defines the width of the kernel. An illustration of the Gaussian kernel for $\epsilon = 0.125$ and the corresponding Fourier transform is given in \Fig{fig:gaussian_kernel}. It may be seen that the Fourier transform decays exponentially fast for large values of $\omega$. The lack of high frequency components in the Gaussian kernel indicates that the functions belonging to the induced RKHS are smooth.  
-\begin{figure}[htbp]
-	\centering
-	\includegraphics[width=6in]{images/Chap3_Gaussian_kernel}
-	\caption{Gaussian kernel with $\epsilon = 0.125$ and its Fourier transform \cite{schsmo01}.}
-	\label{fig:gaussian_kernel}
-\end{figure}
-
-Steinwart et al. in \cite{stehussco06} tries to answer questions like - which functions are contained in the RKHS induced by the Gaussian kernel, how the corresponding norms can be computed, and how the RKHS of different widths correlate to each other. 
-In particular, RKHS of Gaussian kernels always have countable orthonormal bases. Theorem 3 of the paper gives the orthonormal basis functions for $\clH$ defined by the Gaussian kernel $\Kern_\epsilon$. It states that for $\epsilon >0$ and $n \in \mathbb{N}_0 := \mathbb{N} \cup \{0\}$, the sequence of functions $\{\phi_n : \Re \to \Re\}$ defined by,
-\begin{equation}
-\phi_n(x) := \sqrt{\frac{1}{(2\epsilon)^n n!}}x^n \exp(-x^2/4\epsilon).
-\end{equation}
-is an orthonormal basis for $\clH$.
-
-Minh in \cite{min10} gives several properties of the RKHS induced by Gaussian kernels. Theorem 1 of the paper states that the RKHS $\clH$ induced by the standard Gaussian kernel is infinite dimensional, i.e. dim($\clH$) = $\infty$ and 
-\begin{equation}
-\clH := \Bigl\{ f = \exp(-x^2/4\epsilon) \sum_{n=0}^\infty w_n x^n: \|f\|^2_\clH = \sum_{k=0}^\infty (2\epsilon)^k k! \sum_{n=0}^k w_n^2 <\infty \Bigr\}
-\end{equation}
-Some of the salient properties of the Gaussian kernel RKHS are summarized below: 
-\begin{enumerate}
-	\item $\clH$ induced by the standard Gaussian kernel does not contain any polynomial on $\state$, including the non-zero constant function. 
-	
-	\item If $\state$ is compact, $\clH$ induced by the Gaussian kernel is dense in the space of $\mathcal{C}(\state)$ of continuous functions on $\state$.
-	This means that given a continuous function $h(x)$, for all $\varepsilon >0$, we can find a function $g(x) \in \clH$ such that 
-	\begin{equation}
-	\|h(x) - g(x)\|_\infty \leq \epsilon \qquad \forall x \in \state
-	\end{equation} 
-	\item Let $\Kern_{\epsilon}(x,x') = \exp(-\frac{\|x-x'\|^2}{4\epsilon})$. The Hilbert space $\clH_\epsilon$ induced by $\Kern_\epsilon$ on $\state$ contains the function $\exp(-\frac{c \|x\|^2} {4 \epsilon})$ if and only if $0<c <2$. For example, $\exp(-\frac{\|x\|^2}{2 \epsilon}) \in \clH_{\epsilon/2}$, but  $\exp(-\frac{\|x\|^2}{2 \epsilon}) \notin \clH_{\epsilon}$. As $c=0$ is excluded, it validates the first property that constant functions do not belong to $\clH$.
-	
-	\item The functions in $\clH$ that are smooth are not necessarily integrable, as $\clH \notin L^1(\Re^n)$ for any $\epsilon >0$.  This implies that $L^1$ norm optimization or regularization is infeasible in $\clH$. This could still be done on subsets of finite linear combinations of the basis functions.
-	
-
-\item Partial derivatives of the Gaussian kernel denoted as $\frac{\partial^n}{\partial x^n} \Kern_x \in \clH$. As a corollary, it can be shown that $t^n \Kern_x(t)\in\clH$. Additionally, for any polynomial $p(t)$, $p(t) \Kern_x(t) \in \clH$. An expression for the Hilbert space norm for kernel derivative of any order $d$ is also provided in \cite{min10}. 
-\end{enumerate}
-
-The paper by Michelli et al. \cite{micchaxuzha06} sets out to identify kernels with \textit{universal approximating property}, i.e. given any compact set $\state$, any function $f \in \mathcal{C}(\state)$, there is a function $g \in \clH$ such that $\| f - g\|_{\infty} \leq \varepsilon$ holds for any $\varepsilon > 0$. Thus for any choice of compact set $\state$, the space $\clH$ is dense in $\mathcal{C}(\state)$ in the maximum norm. A kernel that satisfies this property is called the \textit{universal kernel}. The paper discusses the characterization of universal kernels in terms of feature map representation of the kernel $\Kern$. It provides necessary and sufficient condition for $\Kern$ to have the universal approximation property in terms of its features. Under conditions provided in Theorem 17 of the paper, the standard Gaussian kernel is shown to be universal. 
+\Kern(x,x') \eqdef g(\gamma_1, \|x-x'\|^{\gamma_2})
+\end{equation}  
+The most popular example of a radial basis kernel is the exponential kernel defined as $\Kern(x,x') \eqdef \exp(-\gamma_1 \|x - x'\|^{\gamma_2})$, of which the standard Gaussian kernel is a special case:
+\[
+\Kern_\epsilon \eqdef \exp\Bigl(-\frac{\|x-x'\|^2}{4 \epsilon}\Bigr),
+\]
+where $\epsilon$ is the variance parameter that controls the width of the function. 
+\end{arabnum}
 
 
-An interesting question in the context of FPF gain function approximation would be whether the following holds true for a sequence of functions $\{g_n\} \subset \clH$.
-\begin{enumerate}
-\item $\lim_{n \to \infty} \sup_x |g_n(x) -h(x) | \to 0,\quad \forall x \in \Re$
-\item $ \lim_{n \to \infty}\sup_{x \in \state} |g_n(x) - h(x) | \to 0$ and $\sup_x |g_n(x)| < \infty,  \forall x \in \Re$ and $\state$ is a compact subset of $\Re$. 
-\end{enumerate}
-The first condition is stronger than the second. The second condition ensures that the gain approximation $g_n$ is arbitrarily close to the true gain within a compact set $\state$ and it does not become unbounded anywhere. 
-
-
+More composite kernel functions can be constructed by taking linear combinations of reproducing kernels. 
 \section{Empirical Risk Minimization (ERM)}
 \label{s:erm}
-In this thesis, kernel methods and RKHS are employed with the objective of learning functions from observed data. Such class of problems termed \textit{empirical risk minimization} (ERM) also have a rich history in statistical learning theory. The key objective in such problems is not just to obtain a good fit on the observed data, but to generalize well on ``unseen'' data as well. Regularization methods are used to prevent \textit{overfitting} and achieve better generalization. We consider a Tikhonov regularization scheme \cite{tikars79} associated with \textit{Mercer kernels}.
+In this dissertation, kernel methods and RKHS are employed with the objective of learning functions from observed data. Such class of problems termed empirical risk minimization (ERM) also have a rich history in statistical learning theory. The key objective in such problems is not just to obtain a good fit on the observed data, but to generalize well on ``unseen'' data as well. Regularization methods are used to prevent overfitting and achieve better generalization. We consider a Tikhonov regularization scheme \cite{tikars79} associated with Mercer kernels.
 
-In a general setting, the goal of a learning problem is to find an approximation of a function $f_\pr : \state \to Y$, when only a pair of values $z = (x_i, y_i)_{i=1}^N$ drawn from an unknown probability measure $\pr$ on $\state \times Y$ is available. Usually, $\state$ is a compact domain and $Y = \Re$. The best \textit{target} function often called the \textit{regression} function is the minimizer of:
+In a general setting, the goal of a learning problem is to find an approximation of a function $f_\pr : \state \to Y$, when only a pair of values $z = (x_i, y_i)_{i=1}^N$ drawn from an unknown probability measure $\pr$ on $\state \times Y$ is available. Usually, $\state$ is a compact domain and $Y = \Re$. The best target function often called the regression function is the minimizer of:
 \begin{equation}
 f_\pr \eqdef \argmin_f \int_{\state \times Y} (f(x) - y) ^2 d\pr,
 \end{equation}
@@ -190,7 +220,7 @@ f_\reg^* \eqdef \argmin_{f\in\clH} \frac{1}{N} \sum_{i=1}^N L(y_i,  f(x_i))     
 Here, $\Omega : [0, \infty] \to \Re$ is a strictly monotonically increasing function. Often, $\Omega$ is chosen to be proportional to a quadratic function of the norm $\|\cdot\|_\clH$, such as $\reg \|f\|^2_\clH$.
 The regularization parameter $\lambda>0$ is introduced to avoid overfitting. The value of this parameter controls the trade-off between the empirical error term and the smoothness of the estimated function.  
 The remarkable theme in this literature is that while the optimization problem is infinite dimensional,  the optimizer lies in an identifiable finite-dimensional subspace.
-The result is due to the classical version of the \textit{representer theorem} of Kimeldorf and Wahba \cite{kimwah71}. The original form of the theorem considered the mean-squared loss $L(y_i, f(x_i)) = (y_i - f(x_i))^2$.
+The result is due to the classical version of the representer theorem of Kimeldorf and Wahba \cite{kimwah71}. The original form of the theorem considered the mean-squared loss $L(y_i, f(x_i)) = (y_i - f(x_i))^2$. An extension to non-quadratic loss functions was 
 \begin{theorem}[Representer Theorem]
 \label{theorem:rep_theorem}
 The minimizer $f_\reg^* \in \clH$ of the regularized risk \eqref{e:erm_rkhs} for an arbitrary loss function $L(y_i, f(x_i))$ lies in the span of kernel functions centered at the sample points, $\Kern(x_i, \cdot)$,
@@ -252,12 +282,12 @@ admits a representation of the form
 with $\gamma_j \in \Re$ for all $j \leq M$. 
 \end{theorem}
 
-In this thesis, we are interested in loss functions of the form \eqref{e:erm_rkhs_gradient}, where gradient terms of the estimator $f$ are included in the function $L$,
+In this dissertation, we are interested in loss functions of the form \eqref{e:erm_rkhs_gradient}, where gradient terms of the estimator $f$ are included in the function $L$,
 \begin{equation}
 \min_{f\in\clH} \Bigl\{  \frac{1}{N} \sum_{i=1}^N L(x_i,  f(x_i), \nabla f\, (x_i))     + \lambda \| f\|^2_{\clH}  \Bigr\}.
 \label{e:erm_rkhs_gradient}
 \end{equation}
-In the standard representer theorem \Theorem{theorem:rep_theorem}, it has been assumed that the loss function $L$ depends only on $f$;  the extension to \textit{differential} loss (including gradient terms) appeared in \cite{zho08}.    The objective function is an empirical loss  because the $\{x_i\}$ are typically based on data.
+In the standard representer theorem \Theorem{theorem:rep_theorem}, it has been assumed that the loss function $L$ depends only on $f$;  the extension to differential loss (including gradient terms) appeared in \cite{zho08}.    The objective function is an empirical loss  because the $\{x_i\}$ are typically based on data.
 \begin{theorem}[Extended Representer Theorem]
 	\label{theorem:ext_rep_theorem}
 	Suppose that $L(x,\varble,\varble)$ is a convex function on $\Re^{d+1}$ for each $x\in\state$.
@@ -372,7 +402,7 @@ This follows from an application of \Prop{prop:lang_generator_grad}:
 \end{aligned}
 \]
 \qed
-\Prop{prop:lang_generator_grad} motivates the ERM introduced in this thesis:	
+\Prop{prop:lang_generator_grad} motivates the ERM introduced in this dissertation:	
 \begin{equation}
 g^*  := \argmin_{g \in \clH} \frac{1}{N} \sum_{i=1}^N\Bigl[ \| \nabla g(x_i) \|^2 - 2 \tilc_N(x_i)g(x_i)\Bigr] + \lambda \|g\|^2_\clH
 \label{e:erm}
