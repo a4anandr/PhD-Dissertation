@@ -166,7 +166,7 @@ The RKHS also has a feature map representation. Let $\featuremap: \state \to \Re
 %\item $ \lim_{n \to \infty}\sup_{x \in \state} |g_n(x) - h(x) | \to 0$ and $\sup_x |g_n(x)| < \infty,  \forall x \in \Re$ and $\state$ is a compact subset of $\Re$. 
 %\end{enumerate}
 %The first condition is stronger than the second. The second condition ensures that the gain approximation $g_n$ is arbitrarily close to the true gain within a compact set $\state$ and it does not become unbounded anywhere. 
-\subsection{Choice of the kernel function}
+\subsection{Choices of the kernel function}
 It is evident from the construction of the RKHS that the properties of the functions in $\clH$ are governed by the properties of its kernel $\Kern$. Therefore, by choosing different kernel functions, different function spaces can be generated. Typically, $\Kern$ depends on a variable hyperparameter, which can be tuned to control the scaling. Some commonly used kernel functions are:
 \begin{arabnum}
 \item Linear kernel: The simplest example is a linear kernel in one dimension:
@@ -183,36 +183,42 @@ It is evident from the construction of the RKHS that the properties of the funct
 \end{equation}  
 The most popular example of a radial basis kernel is the exponential kernel defined as $\Kern(x,x') \eqdef \exp(-\gamma_1 \|x - x'\|^{\gamma_2})$, of which the standard Gaussian kernel is a special case:
 \[
-\Kern_\epsilon \eqdef \exp\Bigl(-\frac{\|x-x'\|^2}{4 \epsilon}\Bigr),
+\Kern_\epsilon \eqdef \exp\Bigl\{\frac{\|x-x'\|^2}{4 \epsilon}\Bigr\},
 \]
-where $\epsilon$ is the variance parameter that controls the width of the function. 
+where $\epsilon$ is the variance parameter that controls the width of the function. Desirable properties of the Gaussian kernel that makes it widely used have been investigated in \cite{min10,stehussco06}. A brief review is provided in \Appendix{a:gaussian_rkhs}. 
 \end{arabnum}
 
-
-More composite kernel functions can be constructed by taking linear combinations of reproducing kernels. 
+More composite kernel functions can be constructed by taking various combinations of reproducing kernels. 
 \section{Empirical Risk Minimization (ERM)}
 \label{s:erm}
-In this dissertation, kernel methods and RKHS are employed with the objective of learning functions from observed data. Such class of problems termed empirical risk minimization (ERM) also have a rich history in statistical learning theory. The key objective in such problems is not just to obtain a good fit on the observed data, but to generalize well on ``unseen'' data as well. Regularization methods are used to prevent overfitting and achieve better generalization. We consider a Tikhonov regularization scheme \cite{tikars79} associated with Mercer kernels.
+In this dissertation, kernel methods and RKHS are employed with the ultimate objective of acting as an approximating function space to be used in the $\gradTD$ learning algorithms presented in \Chapter{ch:diff_td}. As mentioned earlier, RKHS has a rich history of being used for learning functions from observed data. Such class of problems termed empirical risk minimization (ERM) have been well studied in statistical learning theory. In order to utilize the RKHS theory, the $L^2(\pr)$ norm-minimization problem in \eqref{e:gradTD_norm_error} needs to be fit in an ERM framework. In this section, a primer on ERM is provided, followed by the necessary transformations that lead to an ERM formulation for the $\gradTD$ learning problem.  
 
-In a general setting, the goal of a learning problem is to find an approximation of a function $f_\pr : \state \to Y$, when only a pair of values $z = (x_i, y_i)_{i=1}^N$ drawn from an unknown probability measure $\pr$ on $\state \times Y$ is available. Usually, $\state$ is a compact domain and $Y = \Re$. The best target function often called the regression function is the minimizer of:
+In an ideal setting, the goal of a learning problem is to find an approximation of a function $f_\pr : \state \to Y$, when only a pair of values $\bm{z} = (x_i, y_i)_{i=1}^N$ drawn from an unknown probability measure $\pr$ on $\state \times Y$ is available. Usually, $\state$ is a compact domain and $Y = \Re$. For a least-squares regression problem, the best target function often called the regression function is the minimizer of:
 \begin{equation}
 f_\pr \eqdef \argmin_f \int_{\state \times Y} (f(x) - y) ^2 d\pr,
+\label{e:least_sq_regression}
 \end{equation}
 it takes the form:
 \begin{equation}
 f_\pr(x) = \int_Y y d\pr(y|x).
 \label{e:f_rho}
 \end{equation}
-Practically it is not possible to obtain $f_\pr$ due to two main reasons. First, since the approximating function space that is chosen is typically a small subspace, an exact match of $f_\pr$ may not be obtained. Secondly, only a finite number of sample points are available for estimation and hence, it is not possible to carry out the integration \eqref{e:f_rho}.
+In practice, it is not possible to obtain $f_\pr$ due to two reasons. First, $\pr$ is unknown and only a finite number of sample points are available for estimation and therefore, it is not possible to carry out the integration \eqref{e:f_rho}. Secondly, since the approximating function space that is chosen is typically a small subspace, an exact match for $f_\pr$ may not be obtained within this space. Hence, we focus on minimizing the empirical risk on observed data:
+\begin{equation}
+f_{\bm{z}} \eqdef \argmin_f \frac{1}{N} \sum_{i=1}^N (y_i - f(x_i))^2.
+\label{e:erm}
+\end{equation}
+Assuming, $N$ is large enough and $\bm{z} \sim \pr$, \eqref{e:erm} can be thought of as an approximating \eqref{e:least_sq_regression} quite well.   
+The key objective in an ERM problem is not just to obtain a good fit on the observed data, but to generalize well on ``unseen'' data as well. Regularization methods are used to prevent overfitting and achieve better generalization.   We consider a Tikhonov regularization scheme \cite{tikars79} associated with Mercer kernels.
 
 A common approach followed is to minimize,
 \begin{equation}
-f_\reg := \argmin_f \frac{1}{N}\sum_{i=1}^N (y_i - f(x_i))^2 + \reg \|A f \|^2_{\mathcal{L}_{\pr}^2(\state)}
-\label{e:erm1}
+f_\reg := \argmin_f \frac{1}{N}\sum_{i=1}^N (y_i - f(x_i))^2 + \reg \|A f \|^2_{\mathcal{L}_{\pr}^2(\state)},
+\label{e:erm_regularized}
 \end{equation}
 where $A$ is an operator and $\mathcal{L}^2_{\pr}(\state)$ is the Hilbert space of square integrable functions on $\state$ with measure $\pr_\state$ on $\state$ and $\reg>0$ is the regularization parameter. Optimization problems of this form fall into the class of \textit{empirical risk minimization} (ERM), and have been long-studied in the machine learning literature.   
 
-It is not necessary that the objective function is always in the mean-squared error form in \eqref{e:erm1}. We now consider a more general formulation of an ERM in an RKHS setting, where a loss function $L \colon  \state\times \Re \to\Re$ is given.   Given an RKHS $\clH$ ,   the goal is to find the function $f_\reg^*\in\clH$ that solves the infinite-dimensional regularized optimization problem:
+It is not necessary that the objective function is always in the mean-squared error form in \eqref{e:erm_regularized}. We now consider a more general formulation of an ERM in an RKHS setting, where a loss function $L \colon  \state\times \Re \to\Re$ is given.   Given an RKHS $\clH$ ,   the goal is to find the function $f_\reg^*\in\clH$ that solves the infinite-dimensional regularized optimization problem:
 \begin{equation}
 f_\reg^* \eqdef \argmin_{f\in\clH} \frac{1}{N} \sum_{i=1}^N L(y_i,  f(x_i))     + \Omega(\| f\|_{\clH}).
 \label{e:erm_rkhs}
@@ -405,14 +411,14 @@ This follows from an application of \Prop{prop:lang_generator_grad}:
 \Prop{prop:lang_generator_grad} motivates the ERM introduced in this dissertation:	
 \begin{equation}
 g^*  := \argmin_{g \in \clH} \frac{1}{N} \sum_{i=1}^N\Bigl[ \| \nabla g(x_i) \|^2 - 2 \tilc_N(x_i)g(x_i)\Bigr] + \lambda \|g\|^2_\clH
-\label{e:erm}
+\label{e:erm_diff_td}
 \end{equation}
 in which the centered function $\tilc$ is also approximated:
 \[
 \tilc_N(x) = c(x) - \frac{1}{N}  \sum_{i=1}^N  c(x_i)\,,\quad x\in\state\, .
 \label{e:tlcApprox}
 \]
-The term $\| \nabla h \|^2$ can be conveniently dropped from \eqref{e:erm} as it does not affect the optimization problem.
+The term $\| \nabla h \|^2$ can be conveniently dropped from \eqref{e:erm_diff_td} as it does not affect the optimization problem.
 
 
 %\section{Error analysis}
