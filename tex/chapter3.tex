@@ -208,17 +208,19 @@ In practice, it is not possible to obtain $f_\pr$ due to two reasons. First, $\p
 f_{\bm{z}} \eqdef \argmin_f \frac{1}{N} \sum_{i=1}^N (y_i - f(x_i))^2.
 \label{e:erm}
 \end{equation}
-Assuming, $N$ is large enough and $\bm{z} \sim \pr$, \eqref{e:erm} can be thought of as an approximating \eqref{e:least_sq_regression} quite well.   
-The key objective in an ERM problem is not just to obtain a good fit on the observed data, but to generalize well on ``unseen'' data as well. Regularization methods are used to prevent overfitting and achieve better generalization.   We consider a Tikhonov regularization scheme \cite{tikars79} associated with Mercer kernels.
-
+Assuming, $N$ is large enough and $\bm{z} \sim \pr$, \eqref{e:erm} can be thought of as approximating \eqref{e:least_sq_regression} quite well.   In a non-parametric setting, this problem is ill-posed and can have infinitely many solutions. This is resolved by adding an extra regularization term to the objective function. 
 A common approach followed is to minimize,
 \begin{equation}
-f_\reg := \argmin_f \frac{1}{N}\sum_{i=1}^N (y_i - f(x_i))^2 + \reg \|A f \|^2_{\mathcal{L}_{\pr}^2(\state)},
+f_{\bm{z},\reg} := \argmin_f \frac{1}{N}\sum_{i=1}^N (y_i - f(x_i))^2 + \reg \|A f \|^2_{\mathcal{L}_{\pr}^2(\state)},
 \label{e:erm_regularized}
 \end{equation}
-where $A$ is an operator and $\mathcal{L}^2_{\pr}(\state)$ is the Hilbert space of square integrable functions on $\state$ with measure $\pr_\state$ on $\state$ and $\reg>0$ is the regularization parameter. Optimization problems of this form fall into the class of \textit{empirical risk minimization} (ERM), and have been long-studied in the machine learning literature.   
+where $A$ is an operator and $\mathcal{L}^2_{\pr}(\state)$ is the Hilbert space of square integrable functions on $\state$ with measure $\pr_\state$ on $\state$ and $\reg>0$ is the regularization parameter. 
+The key objective in an ERM problem is not just to obtain a good fit on the observed data, but to generalize well on ``unseen'' data as well. Regularization is used to prevent overfitting and achieve better generalization.   In this dissertation, we consider a Tikhonov regularization scheme \cite{tikars79} associated with Mercer kernels.
+Optimization problems of this form fall into the class of regularized empirical risk minimization (ERM), and have been long-studied in the machine learning literature.   
 
-It is not necessary that the objective function is always in the mean-squared error form in \eqref{e:erm_regularized}. We now consider a more general formulation of an ERM in an RKHS setting, where a loss function $L \colon  \state\times \Re \to\Re$ is given.   Given an RKHS $\clH$ ,   the goal is to find the function $f_\reg^*\in\clH$ that solves the infinite-dimensional regularized optimization problem:
+\subsection{ERM in an RKHS setting}
+\label{s:erm_rkhs}
+It is not necessary that the objective function is always in the mean-squared error form in \eqref{e:erm_regularized}. Now that the utility of regularized empirical risk minimization has been motivated, we consider a more general formulation of an ERM in an RKHS setting. A loss function $L \colon  \state\times \Re \to\Re$ is given.   Given an RKHS $\clH$ ,   the goal is to find the function $f_\reg^*\in\clH$ that solves the infinite-dimensional regularized optimization problem:
 \begin{equation}
 f_\reg^* \eqdef \argmin_{f\in\clH} \frac{1}{N} \sum_{i=1}^N L(y_i,  f(x_i))     + \Omega(\| f\|_{\clH}).
 \label{e:erm_rkhs}
