@@ -1,141 +1,131 @@
-\chapter{DERIVATION OF THE $\Upsilon$ FUNCTION}%
-\label{appendixB}
+\chapter{Generalization Error Bounds for least-squares regression on RKHS }%
+\label{a:bousquet}
+Let $Z = X \times Y$ be the space of inputs and outputs and let $S = \{z_1 = (x_1, y_1), \cdots,z_N = (x_N,y_N)\}$ be a dataset of size $N$ drawn i.i.d. from an unknown distribution $\pr_{XY}$. Let $f:X \to Y$ be a function that maps from the input space $X$ to output space $Y$. A learning algorithm tries to learn the function $f_S$ from the given dataset $S$. 
 
-%\clearpage %remove this command if your appendix doesn't start with a landscaped page!!!!!
-%\thispagestyle{plain}
-%\begin{landscape}
-%\begin{figure}
+The generalization error or expected risk is defined as:
+\[
+R(f) := \Expect_{z \sim \pr_{XY}} [c(f,z)]
+\]
+The empirical error of a function $f$ measured on the training set $S$ is:
+\[
+R_N(f) := \frac{1}{N}\sum_{i=1}^N c(f,z_i)
+\]
+Our aim is to obtain bounds on the random variable $R(f_S) - R_N(f_S)$. 
 
-% \begin{center}
-  %  \includegraphics[width=6in]{LaTeX2e_logo.eps}
-   % \caption{\LaTeX 2\ensuremath{\epsilon.} logo}\label{biglogo}
-  %\end{center}
-%\end{figure}
-%\end{landscape}
+If $S = \{z_1,\dots, z_{i-1},z_i,z_{i+1},\dots z_N\}$, let us define a modified training set $S_i :=\{z_1,\dots, z_{i-1},z'_i,z_{i+1},\dots,z_N\}$ where the $i^{th}$ training sample $z_i$ is replaced by $z'_i$.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\textbf{Uniform stability}: A notion of uniform stability is defined for the algorithm as follows. If the training set $S$ is defined as above and $S_i$ be the training set where $i^{th}$ sample is removed, then the algorithm is $\beta$-stable if the following holds:
+\[
+\|c(f_S, z ) - c(f_{S_i},z)\|_{\infty} \leq \beta, \qquad \forall S \in Z^N, \forall z'_i, z \in Z
+\]
+This condition implies stability of the algorithm in the sense that if a training sample from the original set is replaced by a new sample, the difference in cost is smaller than some constant $\beta$. 
 
-%ADD LABEL
+\begin{lemma}
+	For any symmetric learning algorithm we have for all $1\leq i \leq N$:
+	\[
+	\Expect_{S \sim \pr^N_{XY}} [R(f_S) - R_N(f_S)] = \Expect_{S,z'_i \sim \pr^{N+1}_{XY}} [c(f_S,z'_i) - c(f_{S_i}, z'_i)]
+	\]
+	\begin{proof}
+		\[
+		\Expect_{S \sim \pr^N_{XY}} [R_N(f_S)] = \frac{1}{N} \sum_{i=1}^N \Expect_{S \sim \pr^N_{XY}} [c(f_S, z_i)] = \Expect_{S \sim \pr^N_{XY}} [c(f_S, z_i)], \, \forall i \in \{1,\dots, N\}
+		\]
+		The above is true by symmetry and the i.i.d assumption. Now by simply renaming $z_i$ as $z'_i$,
+		\[
+		\Expect_{S \sim \pr^N_{XY}}[R_N(f_S)] = \Expect_{S_i \sim \pr^N_{XY}}[c(f_{S_i}, z'_i)]
+		\]
+		The expected risk term can be written as, 
+		\[
+		\Expect_{S \sim \pr^N_{XY}}[R(f_S)] = \Expect_{S,z'_i \sim \pr^{N+1}_{XY}} [c(f_S, z'_i)]
+		\]
+		Using this and the fact that the algorithm is $\beta$-stable, 
+		\[
+		\begin{aligned}
+		\Expect_{S \sim \pr^N_{XY}} [R(f_S) - R_N(f_S)] &= \Expect_{S,z'_i\sim \pr^{N+1}_{XY}}[c(f_S,z'_i) - c(f_{S_i},z'_i)]\\
+		&\leq \Expect_{S,z'_i\sim \pr^{N+1}_{XY}}[\beta] \\
+		& = \beta
+		\end{aligned}
+		\]
+	\end{proof}
+\end{lemma}
+Now, the next step is to prove that our algorithm of interest is $\beta$-stable for some value of $\beta$. 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Application to regularization in Hilbert spaces}
+Let $\clH$ be an RKHS induced by a kernel function $K$. Let us assume that $K$ is continuous and bounded, so that
+\[
+\kappa := \sup_{x \in X} \sqrt{K(x,x)} < \infty
+\]
+and therefore, by Cauchy-Schwarz inequality,
+\begin{equation}
+|f(x)| \leq \kappa \|f\|_\clH, \, \forall x \in X, \forall f \in \clH 
+\label{e:cauchy_schwarz}
+\end{equation}
 
-We first decompose the sum of the double exponential random variables.
+\noindent \textbf{$\sigma$-admissibility}: A cost function $c(f(x),y)$ defined on $\clH \times Y$ is $\sigma$-admissible with respect to $\clH$ if $c$ is convex with respect to its first argument and the following condition holds
+\[
+|c(y_1, y') - c(y_2, y')| \leq \sigma |y_1 - y_2|, \, \forall y_1,y_2 \in \mathcal{D}, \forall y' \in Y,
+\]
+where $\mathcal{D} = \{y: \exists f \in \clH, \exists x \in X, f(x) = y\}$ is the domain of the first argument of $c$.  
 
-The memoryless property of exponential random variables yields $(\xi^{+}-\xi^{-}|\xi^{+}>\xi^{-})=^{d}\xi^{+}$ and $(\xi^{+}-\xi^{-}|\xi^{+}<\xi^{-})=^{d}-\xi^{-}$, thus leading to the conclusion that
+\noindent \begin{theorem}
+	If $l(f,z) = c(f(x),y)$ is $\sigma$-admissible with respect to $\clH$, then the learning algorithm defined by 
+	\[
+	A_S = \argmin_{g \in \clH} \frac{1}{N} \sum_{i=1}^N l(g, z_i) + \lambda \|g\|^2_\clH
+	\]
+	has uniform stability $\beta$ with respect to $l$ with
+	\[
+	\beta \leq \frac{\kappa^2 \sigma^2}{2 \lambda N}
+	\]
+	\begin{proof}
+		The proof uses Lemma 20 in the paper that gives bounds on a general regularization term $N(g)$ that appears in the ERM. Here, I just state the result without the proof. 
+		\begin{lemma}
+			Consider two ERM formulations:
+			\[
+			\begin{aligned}
+			\text{Problem 1:} & R_r(g) := \frac{1}{N} \sum_{j=1}^N l(g, z_j) + \lambda N(g), \\
+			\text{Problem 2:} & R_r^{\textbackslash i}(g) := \frac{1}{N} \sum_{j \neq i} l(g, z_j) + \lambda N(g)
+			\end{aligned}
+			\]
+			Let $f$ be the minimizer of $R_r$ in $\clH$ and let $f^{\textbackslash i}$ be the minimizer of $R_r^{\textbackslash i}$ in $\clH$ and denote $\Delta f = f^{\textbackslash i } - f$. Then for any $f \in [0,1]$,
+			\[
+			N(f) - N(f+t \Delta f) + N(f^{\textbackslash i}) - N(f^{\textbackslash i} - t \Delta f) \leq \frac{t \sigma}{\lambda N}|\Delta f(x_i)|
+			\]
+		\end{lemma}
+		
+		For regularization in the RKHS, where $N(g) = \|g\|^2_\clH$,
+		\[
+		2 \| \Delta f\|^2_\clH \leq \frac{\sigma}{\lambda N} | \Delta f(x_i)|
+		\] 
+		Using \eqref{e:cauchy_schwarz}, 
+		\[
+		\Delta f(x_i) \leq \kappa \|\Delta f \|_\clH ,
+		\]
+		so that, 
+		\[
+		\| \Delta f \|_\clH \leq \frac{ \sigma \kappa}{2 \lambda N}
+		\]
+		By the $\sigma$-admissibility of $l$,
+		\[
+		| l(f,z) - l(f^{\textbackslash i},z)| \leq \sigma |f(x) - f^{\textbackslash i}(x)| = \sigma |\Delta f(x) |
+		\]
+		Using \eqref{e:cauchy_schwarz},we have 
+		\[
+		| l(f,z) - l(f^{\textbackslash i},z)| \leq \sigma \kappa \|\Delta f\|_\clH = \frac{\kappa^2 \sigma^2}{2 \lambda N}
+		\]
+	\end{proof}
+\end{theorem}
 
-\begin{equation*}
-\xi^{+}-\xi^{-} =\left\{
-\begin{array}{rl}
-\xi^{+} & \text{with probability $\eta_{2}/(\eta_{1}+\eta_{2})$ }\\
--\xi^{-} & \text{with probability $\eta_{1}/(\eta_{1}+\eta_{2})$ }
-\end{array}\right\}.
-\end{equation*}
+One additional condition that is required is to bound the loss function. If we have an apriori bound on the target values $y_i$, then the boundedness condition is satisfied.
 
-because the probabilities of the events $\xi^{+}>\xi^{-}$ and $\xi^{+}<\xi^{-}$ are $\eta_{2}/(\eta_{1}+\eta_{2})$ and $\eta_{1}/(\eta_{1}+\eta_{2})$, respectively. The following proposition extends (B.1.)
 
-Proposition B.1. For every $n\geq1$, we have the following decomposition
+Let $f_\pr$ denote the \textit{regression function},
+\[
+f_\pr := \argmin \Expect_{\pr_{XY}}[(f(x) - y)^2]
+\]
 
-\begin{equation*}
-\sum_{i=1}^{n}Y_{i}=^{d}\left\{
-\begin{array}{rl}
-\sum_{i=1}^{k}\xi_{i}^{+} & \text{with probability $P_{n,k},k=1,2,...,n$ }\\
--\sum_{i=1}^{k}\xi_{i}^{-} & \text{with probability $Q_{n,k},k=1,2,...,n$ }
-\end{array}\right\}.
-\end{equation*}
-
-where $P_{n,k}$ and $Q_{n,k}$ are given by
-
-$$P_{n,k}=\sum_{i=k}^{n-1}\binom {n-k-1} {i-k}\binom {n} {i}(\frac{\eta_{1}}{\eta_{1}+\eta_{2}})^{i-k}(\frac{\eta_{2}}{\eta_{1}+\eta_{2}})^{n-i}p^{i}q^{n-i}$$
-
-$$1\leq k\leq n-1$$
-
-$$Q_{n,k}=\sum_{i=k}^{n-1}\binom {n-k-1} {i-k}\binom {n} {i}(\frac{\eta_{1}}{\eta_{1}+\eta_{2}})^{n-i}(\frac{\eta_{2}}{\eta_{1}+\eta_{2}})^{i-k}p^{n-i}q^{i}$$
-
-$$1\leq k\leq n-1, P_{n,n}=p^{n},Q_{n,n}=q^{n}$$
-
-and $\binom{0}{0}$ is defined to be one. Hence $\xi_{i}^{+}$ and $\xi_{i}^{-}$ are i.i.d. exponential random variables with rates $\eta_{1}$ and $\eta_{2}$, respectively.
-
-As a key step in deriving closed-form solutions for call and put options, this proposition indicates that the sum of the i.i.d. double exponential random variable can be written, in distribution, as a randomly mixed gamma random variable. To prove Proposition B.1, the following lemma is needed.
-
-Lemma B.1.
-
-$$\sum_{i=1}^{n}\xi_{i}^{+}-\sum_{i=1}^{n}\xi_{i}^{-}$$
-
-\begin{equation*}
-=^{d}\left\{
-\begin{array}{rl}
-\sum_{i=1}^{k}\xi_{i} & \text{with probability $\binom {n-k+m-1} {m-1}(\frac{\eta_{1}}{\eta_{1}+\eta_{2}})^{n-k}(\frac{\eta_{2}}{\eta_{1}+\eta_{2}})^{m}, k=1,...,n$ }\\
--\sum_{i=1}^{l}\xi_{i} & \text{with probability $\binom {n-l+m-1} {n-1}(\frac{\eta_{1}}{\eta_{1}+\eta_{2}})^{n}(\frac{\eta_{2}}{\eta_{1}+\eta_{2}})^{m-l}, l=1,...,m$ }
-\end{array}\right\}.
-\end{equation*}
-
-We prove it by introducing the random variables $A(n,m) = \sum_{i=1}^{n}\xi_{i}-sum_{j=1}^{m}\tilde{\xi}_{j}$ Then
-
-\begin{equation*}
-A(n,m) =^{d}\left\{
-\begin{array}{rl}
-A(n-1,m-1)+\xi^{+} & \text{with probability $\eta_{2}/(\eta_{1}+\eta_{2})$ }\\
-A(n-1,m-1)-\xi^{-} & \text{with probability $\eta_{1}/(\eta_{1}+\eta_{2})$ }
-\end{array}\right\}.
-\end{equation*}
-
-\begin{equation*}
- =^{d}\left\{
-\begin{array}{rl}
-A(n,m-1) & \text{with probability $\eta_{2}/(\eta_{1}+\eta_{2})$ }\\
-A(n-1,m) & \text{with probability $\eta_{1}/(\eta_{1}+\eta_{2})$ }
-\end{array}\right\}.
-\end{equation*}
-
-via B.1.. Now suppose horizontal axis that are representing the number of $\{\zeta_{i}^{+}\}$ and vertical axis representing the number of $\{\zeta_{i}^{-}\}$. Suppose we have a random walk on the integer lattice points. Starting from any point $(n,m),n,m \geq 1$, the random walk goes either one step to the left with probability $\eta_{1}/(\eta_{1}+\eta_{2})$ or one step down with probability $\eta_{2}/(\eta_{1}+\eta_{2})$, and the random walks stops once it reaches the horizontal or vertical axis. For any path from (n,m) to (k,0) , $1 \geq k \geq n$, it must reach (k,1) first before it makes a final move to (k,0). Furthermore, all the paths going from (n,m) to (k,1) must have exactly n-k lefts and m-1 downs, whence the total number of such paths is $\binom {n-k+m-1}{m-1}$. Similarly the total number of paths from (n,m) to (0,l) , $1 \geq l \geq m$, is $\binom {n-l+m-1}{n-1}$. Thus
-
-\begin{equation*}
-A(n,m)=^{d}\left\{
-\begin{array}{rl}
-\sum_{i=1}^{k}\xi_{i} & \text{with probability $\binom {n-k+m-1} {m-1}(\frac{\eta_{1}}{\eta_{1}+\eta_{2}})^{n-k}(\frac{\eta_{2}}{\eta_{1}+\eta_{2}})^{m}, k=1,...,n$ }\\
--\sum_{i=1}^{l}\xi_{i} & \text{with probability $\binom {n-l+m-1} {n-1}(\frac{\eta_{1}}{\eta_{1}+\eta_{2}})^{n}(\frac{\eta_{2}}{\eta_{1}+\eta_{2}})^{m-l}, l=1,...,m$ }
-\end{array}\right\}.
-\end{equation*}
-
-and the lemma is proven.
-
-Now, let's prove the proposition B.1. By the same analogy used in Lemma B.1 to compute probability $P_{n,m},1\geq k \geq n$, the probability weight assigned to $\sum_{i=1}^{k}\xi_{i}^{+}$ when we decompose $\sum_{i=1}^{k}Y_{i}$, it is equivalent to consider the probability of the random walk ever reach (k,0) starting from the point (i,n-i) being $\binom {n}{i}p^{i}q^{n-i}$. Note that the point (k,0) can only be reached from point (i,n-i) such that $k \geq i \geq n-1$, because the random walk can only go left or down, and stops once it reaches the horizontal axis. Therefore, for $1 \geq k \geq n-1$, (B3) leads to
-
-$$P_{n,k}=\sum_{i=k}{n-1}P(going from (i,n-i) to (k,0)). P(starting from (i,n-i))$$
-
-$$=\sum_{i=k}^{n-1}\binom {i+(n-i)-k-1} {(n-i)-1}\binom {n} {i}(\frac{\eta_{1}}{\eta_{1}+\eta_{2}})^{i-k}(\frac{\eta_{2}}{\eta_{1}+\eta_{2}})^{n-i}p^{i}q^{n-i}$$
-
-$$=\sum_{i=k}^{n-1}\binom {n-k-1} {n-i-1}\binom {n} {i}(\frac{\eta_{1}}{\eta_{1}+\eta_{2}})^{i-k}(\frac{\eta_{2}}{\eta_{1}+\eta_{2}})^{n-i}p^{i}q^{n-i}$$
-
-$$=\sum_{i=k}^{n-1}\binom {n-k-1} {i-k}\binom {n} {i}(\frac{\eta_{1}}{\eta_{1}+\eta_{2}})^{i-k}(\frac{\eta_{2}}{\eta_{1}+\eta_{2}})^{n-i}p^{i}q^{n-i}$$
-
-Of course $P_{n,n}=p^{n}$. Similarly, we can compute $Q_{n,k}$:
-
-$$Q_{n,k}=\sum_{i=k}{n-1}P(going from (n-i,i) to (0,k)). P(starting from (n-i,i))$$
-
-$$=\sum_{i=k}^{n-1}\binom {i+(n-i)-k-1} {(n-i)-1}\binom {n} {n-i}(\frac{\eta_{1}}{\eta_{1}+\eta_{2}})^{n-i}(\frac{\eta_{2}}{\eta_{1}+\eta_{2}})^{i-k}p^{n-i}q^{i}$$
-
-$$=\sum_{i=k}^{n-1}\binom {n-k-1} {i-k}\binom {n} {i}(\frac{\eta_{1}}{\eta_{1}+\eta_{2}})^{n-i}(\frac{\eta_{2}}{\eta_{1}+\eta_{2}})^{i-k}p^{n-i}q^{i}$$
-
-with $Q_{n,n}=q^{n}$. Incidentally, we have also got $\sum{k=1}{n}(P_{n,k}+Q_{n,k})=1$
-
-B.2. Let's develop now the results on Hh functions.
-First of all, note that $Hh_{n}(x)\rightarrow 0$, as $x \rightarrow \infty$, for $n \geq -1$; and $Hh_{n}(x) \rightarrow \infty$, as $x \rightarrow -\infty$, for $n \geq -1$; and $Hh_{0}(x)=\sqrt{2\pi} \phi(-x) \rightarrow \sqrt{2\pi}$, as $x \rightarrow -\infty$. Also, for every $n \geq -1$, as $x \rightarrow \infty$,
-
-$$lim Hh_{n}(x)/\{\frac{1}{x^{n+1}}e^{-\frac{x^{2}}{2}}\}=1$$
-
-and as $x \rightarrow \infty$
-
-$$Hh_{n}(x)=O(|x|^{n})$$
-
-Here (B4) is clearly true for $n=-1$, while for $n \geq 0$ note that as $x\rightarrow _\infty$,
-
-$$Hh_{n}(x)=\frac{1}{n!}\int_{x}{\infty}(t-x)^{n}e^{-\frac{t^{2}}{2}}dt$$
-
-$$\leq \frac{2^{n}}{n!}\int_{-\infty}^{\infty}|t|^{n}e^{-t^{2}}{2}dt+\frac{2^{n}}{n!}\int{-\infty}{\infty}|x|^{n}e^{-t^{2}}{2}dt=O(|x|^{n})$$
-
-For option pricing it is important to evaluate the integral $I_{n}(c;\alpha;\beta;\delta)$,
-
-$$I_{n}(c;\alpha;\beta;\delta)=\int_{c}{\infty}e^{\alpha x}Hh_{n}(\beta x-\delta)dx, n\geq 0$$
-
-for arbitrary constants $\alpha, c$ and $\beta$.
+For a more general problem
+\[
+f_\pr := \argmin_f \Expect_{\pr_{XY}}[c(f(x), y)]
+\]
+\[
+f_S := \argmin_{f \in \clH} \frac{1}{N} \sum_{i=1}^N c(f(x_i), y_i) + \lambda \|f\|^2_\clH 
+\]

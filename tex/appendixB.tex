@@ -5,7 +5,7 @@ Of the many kernels being used, Gaussian kernel is the most widely used and ofte
 \begin{equation}
 \Kern_{\epsilon}(x,x') := \exp(-\|x - x'\|^2/ 4\epsilon) \qquad \forall x,x' \in \state,
 \end{equation}
-where $\epsilon$ is a parameter that defines the width of the kernel. An illustration of the Gaussian kernel for $\epsilon = 0.125$ and the corresponding Fourier transform is given in \Fig{fig:gaussian_kernel}. It may be seen that the Fourier transform decays exponentially fast for large values of $\omega$. The lack of high frequency components in the Gaussian kernel indicates that the functions belonging to the induced RKHS are smooth.  
+where $\epsilon$ is the variance hyperparameter that defines the width of the kernel. An illustration of the Gaussian kernel for $\epsilon = 0.125$ and the corresponding Fourier transform is given in \Fig{fig:gaussian_kernel}. It may be seen that the Fourier transform decays exponentially fast for large values of $\omega$. The lack of high frequency components in the Gaussian kernel indicates that the functions belonging to the induced RKHS are smooth. It may be noted that the hyperparameter $\epsilon$ has an inverse relationship with the spread of the spectra of the kernel, i.e. lower the value of $\epsilon$, higher frequency components are more prominent in the Fourier transform. 
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=6in]{images/Chap3_Gaussian_kernel}
@@ -13,7 +13,10 @@ where $\epsilon$ is a parameter that defines the width of the kernel. An illustr
 	\label{fig:gaussian_kernel}
 \end{figure}
 
-Steinwart et al. in \cite{stehussco06} tries to answer questions like - which functions are contained in the RKHS induced by the Gaussian kernel, how the corresponding norms can be computed, and how the RKHS of different widths correlate to each other. 
+The Gaussian kernel can be interpreted as a similarity measure of the two points passed to it. If the two points are identical, $\Kern_{\epsilon}(x,x) = 1$ and if they are far apart, the value tends to $0$. 
+A simple analysis of the two extreme choices for $\epsilon$ helps us understand the behavior of the kernel better.  As $\epsilon \to 0$, $\Kern_{\epsilon}$ decays rapidly and increasingly tends to a dirac function centered at $x$ and all points on $\state$ are independent of each other. On the other hand as $\epsilon \to \infty$, $\Kern_\epsilon$ tends to $1$ everywhere and the points influence each other equally. In both these cases, the learning capability of the RKHS induced is poor. Hence, the choice of $\epsilon$ can be thought of as a complexity-flexibility or bias-variance trade-off.   
+
+Steinwart et al. in \cite{stehussco06} tries to answer questions like - which functions are contained in the RKHS induced by the Gaussian kernel, how the corresponding norms can be computed, and how the RKHS of different widths correlate to each other.
 In particular, RKHS of Gaussian kernels always have countable orthonormal bases. Theorem 3 of the paper gives the orthonormal basis functions for $\clH$ defined by the Gaussian kernel $\Kern_\epsilon$. It states that for $\epsilon >0$ and $n \in \mathbb{N}_0 := \mathbb{N} \cup \{0\}$, the sequence of functions $\{\phi_n : \Re \to \Re\}$ defined by,
 \begin{equation}
 \phi_n(x) := \sqrt{\frac{1}{(2\epsilon)^n n!}}x^n \exp(-x^2/4\epsilon).
