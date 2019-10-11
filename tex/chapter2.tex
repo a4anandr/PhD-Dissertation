@@ -292,14 +292,15 @@ The LSTD algorithm was presented in the context of approximating the discounted-
 
 The LSTD algorithm for the average cost case, that involves the Poisson's equation is also discussed in Section 11.5.4 of \cite{ctcn}. However, this algorithm yields asymptotically unbiased estimators only with the underlying assumption of the existence of a regenerating state. In informal terms, a regenerating state of a Markov chain is one that is visited infinitely often and when visited, the chain can be thought of as forgetting the past, i.e. once the regenerating state is reached, the future transitions of the chain are statistically independent from its past and hence, its entire history may be discarded. This requirement impedes the applicability of the algorithm, if the dimension of the state space is greater than one. This motivates the development of algorithms that can overcome these shortcomings in Sections \ref{s:diff_td_langevin} and \ref{s:diff_td_learning}.  
 
-\section{Differential TD ($\gradTD$) Learning for Langevin Diffusion}
-\label{s:diff_td_langevin}
+\section{Differential TD ($\gradTD$) Learning}
 In this Section, we describe the differential LSTD ($\gradTD$) learning algorithm, which tries to approximate the gradient of the solution to Poisson's equation \eqref{e:poissons} directly. The development of this algorithm is motivated by two factors - i) the shortcomings of the LSTD algorithm for dimensions $>1$, and ii) applications that only require the gradient of the solution like the FPF. In conventional applications, where we are interested in $h$ instead of $\nabla h$, in addition to obtaining the optimal parameter values, we also need to add an optimal constant term. Keeping the same notation in the previous section, the goal of the $\gradTD$ learning algorithm is:
 \begin{equation}
 \param^* = \argmin_\param \| \grad h -\grad h^\param\|^2_{L^2}.
 \label{e:gradTD_norm_error}
 \end{equation}
 
+\subsection{$\gradTD$ learning for Langevin diffusion}
+\label{s:diff_td_langevin}
 In this Section, we first focus on the special case of the Langevin diffusion \eqref{e:langevin_cts}. A more generic version of $\gradTD$ learning that is applicable to any continuous-time diffiusion process is described in \Section{s:diff_td_learning}. For the Langevin diffusion, a property of its differential generator \eqref{e:langevin_generator},  described in \Prop{prop:lang_generator_grad} allows the construction of a simple algorithm. The advantages of this simpler resolution will be more evident after the general version is presented in \Section{s:diff_td_learning}. \Prop{prop:lang_generator_grad} is a corollary to the following result from \cite{hwanorwu15,yanlaumehmey16} and can be proved by a simple application of the integration by parts formula:
 \begin{proposition}
 	\label{prop:lang_generator_grad}
@@ -345,8 +346,8 @@ In this Section, we first focus on the special case of the Langevin diffusion \e
 	\sum_{k=1}^{d} \langle\partial_k f, \partial_k g\rangle_{L^2}= -\langle f, \generate g\rangle = - \langle \generate g, f \rangle_{L^2}. 
 	\end{equation}
 \end{proof}
-The equality on the right side also implies the self-adjoint property of the Langevin generator $\generate$. This can also be proved using the reversibility property of the diffusion.
-\subsection{Linear Parameterization}
+The equality on the right side is a result of the self-adjoint property of the Langevin generator $\generate$. This can also be proved using the reversibility property of the diffusion.
+\subsection{Linear parameterization}
 If we assume a linear parameterization of the form in \eqref{e:linear_param} with $\param \in \Re^\ell$ as the parameters and $\{\basis_i \in C^2: 1\leq i \leq \ell \}$ as the basis functions, the optimization problem described by \eqref{e:gradTD_norm_error} becomes a quadratic form \eqref{e:gradTD_norm_quadratic}. Then an adjoint argument provided by \Prop{prop:lang_generator_grad} leads to a representation that can be applied for computation.  
 \begin{lemma}
 	\label{lemma:gradTD}
@@ -392,7 +393,7 @@ b &\approx b_T \eqdef \frac{1}{T} \int_0^T \tilc_T(\markovstate_t) \basis(\marko
 and $\param_T = M_T^{-1} b_T$. 
 It is interesting to note that the eligibility vector term $\eligibvector_t$ is absent in the $\gradTD$ algorithm for the Langevin diffusion. We shall discuss the benefits and limitations of this algorithm after presenting the more generic version in \Section{s:diff_td_learning}. 
  
-\section{Differential TD ($\gradTD$) Learning for a General Diffusion}
+\subsection{$\gradTD$ learning for a general diffusion}
 \label{s:diff_td_learning}
 % \cite{tsiroy99a}
 In this Section, we present the differential TD learning algorithm for a general continuous-time diffusion process. 
