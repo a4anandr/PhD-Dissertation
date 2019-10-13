@@ -5,13 +5,72 @@ Applications to nonlinear filtering was the main motivation behind the developme
 
 \section{Introduction to Nonlinear Filtering} 
 \label{s:nl_filtering_intro}
-A preliminary introduction to nonlinear filtering was provided in \Chapter{ch:intro}. To make things more precise, we provide a more formal description of the problem here. 
-origins in tracking problems in satellite and aircraft navigation. 
-\cite{kutsurpfi19}
+A preliminary introduction to nonlinear filtering was provided in \Chapter{ch:intro}. To make things more precise, we provide a more formal description of the problem here. First, we begin with a motivating application. Nonlinear filtering has its origins in tracking problems in satellite and aircraft navigation. The key goal of filtering is to obtain recursive estimates of the state of a stochastic dynamical system based on partial noisy observations. A typical example in a tracking application is the simultaneous estimation of position and velocity of a moving target. Here, position and velocity of the target constitute the state of the system and the observations are modeled as nonlinear functions of the state made in the presence of noise. More recently, filtering has found applications in diverse areas such as machine learning \cite{bishop06}, queueing networks, mathematical finance \cite{brihan08} and data assimilation problems for weather forecasting \cite{eve94}. 
 
+A filtering problem can be formulated in continuous or discrete-time and continuous or finite state-space depending on the application of interest. 
+The simplest dynamical model for filtering in discrete-time and state space is the Hidden Markov Model (HMM). In this dissertation however, we are primarily interested in a filtering problem in continuous-time with states evolving on a Euclidean space. For simplicity, let us restrict ourselves to the scalar filtering problem:
+\begin{equation}
+\begin{aligned}
+\text{State model}: \quad & \ud X_t&=a(X_t) \ud t +\sigma_{B}\ud B_t,\\
+\text{Observation model}: \quad & \ud Z_t&=c(X_t) \ud t + \sigma_{W}\ud W_t,
+\label{e:cts_filtering}
+\end{aligned}
+\end{equation}
+where $\bfmX=\{X_t\}$ is the scalar state process, $\bfmZ=\{Z_t\}$ is the scalar observation process, $a$ and $c$ are $C^{1}$ functions, and  $\bfmB= \{B_t\}$,  $\bfmW = \{W_t\}$ are mutually independent Brownian motions.   The state model describes the evolution of the hidden state of the system. The uncertainties in the state model and the external disturbances that affect the dynamics are modeled as the state noise term $\bfmB$. Indirect observations, in the form of nonlinear functions of the state corrupted by noise $\bfmW$ are available via the observation model. The goal of the filtering problem is to approximate the posterior density 
+$\pr^*_t$  of $X_t$,
+given the past observation history $\clZ_t\eqdef\sigma(Z_s:s\leq t)$. For any measurable set $A \subset \Re$, the posterior density $\pr^*_t$ is defined as, 
+\begin{equation}
+\int_A \pr^*_t(x) \ud x \eqdef \Prob\{ X_t \in A \mid \clZ_t\}.
+\label{e:posterior_exact}
+\end{equation}
+
+
+A huge body of literature has been devoted to the study of such problems. 
+The theory of nonlinear filtering has been described in \cite{kal80, baicri08}. A more accessible derivation of the nonlinear filter, from a change of measure standpoint is provided in \cite{kutsurpfi19}. In this section, without going into a lot of detail, we state some of the important results.
+\subsection{Zakai and Kushner-Stratonovich equations}
+Zakai's equation \cite{zak69} and Kushner-Stratonovich (K-S) \cite{kus67, str60} equations are the key results in this area. 
+The Kushner-Stratonovich equation provides a stochastic PDE describing the evolution of $\pr^*_t$:
+\begin{equation}
+\ud \pr^*_t(x) = \generate^\dagger \pr^*_t(x) \ud t + \frac{1}{\sigma^2_W} (c(x) - \hat{c}_t) (\ud Z_t - \hat{c}_t\ud t) \pr^*_t(x),
+\label{e:kushner_stratonovich}
+\end{equation}
+where $\generate^\dagger \pr \eqdef - (d(\pr a) / dx) + (\sigma^2_B/2) (d^2 \pr /d x^2)$ is the adjoint operator to the differential generator of the SDE describing the state model in \eqref{e:cts_filtering} and $\hac_t \eqdef \int c(x) \pr^*_t(x) dt$. 
+For a nonlinear observation function $c(x)$, a moment closure problem arises in the K-S equation and hence, it cannot generally be reduced to stochastic PDEs so that they could be numerically integrated. In some cases, it is convenient to use the Zakai's equation, which is a linear stochastic PDE that describes the evolution of the unnormalized posterior density $\tilde{\pr}^*_t$: 
+\begin{equation}
+\ud \tilde{\pr}^*_t(x) = \generate^\dagger \tilde{\pr}^*_t(x) \ud t + \frac{1}{\sigma^2_W}  c(x) \ud Z_t \tilde{\pr}^*_t(x), 
+\label{e:zakai}
+\end{equation}
+\anand{need the definition of $\generate^\dagger$. Is it the adjoint to the differential generator?}
+
+\subsection{Kalman-Bucy filter}
+Solution to the \cref{e:kushner_stratonovich,e:zakai} are in general, infinite dimensional. In the special case where the functions $a(x)$ and $c(x)$ are linear, i.e. $a(x) = Ax$ and $c(x) = Cx$ and the prior distribution $\pr_0$ is Gaussian, it is guaranteed that the posterior density $\pr^*_t$ also remains Gaussian for all $t$. A closed-form solution can be obtained to the filtering problem in this case. The posterior density $\pr^*_t$ is completely characterized by the conditional mean $\mu_t$ and the state covariance $\Sigma_t$. The optimal filter is given by the classical Kalman-Bucy filter \cite{kal64}, which is described by the set of \cref{e:kalman_mu,e:kalman_sigma}, for a scalar system:
+\begin{align}
+\text{Conditional mean:} \quad \ud \mu_t & = A \mu_t \ud t + \underbrace{\frac{\Sigma_t C}{\sigma^2_W}}_{\text{Kalman gain}} ( \ud Z_t - C \mu_t \ud t), 
+\label{e:kalman_mu} \\
+\text{State covariance:}  \quad  \ud \Sigma_t &= \Bigl(2 A \Sigma_t + \sigma^2_B - \frac{\Sigma^2_t C^2}{\sigma^2_W} \Bigr) \ud t. 
+\label{e:kalman_sigma}
+\end{align}
+Here, the conditional mean $\mu_t$ evolves according to the SDE in \eqref{e:kalman_mu} and \eqref{e:kalman_sigma} is an ODE called the continuous-time Riccati equation. The state covariance $\Sigma_t$ evolves independent of the observations $Z_t$ and the conditional mean $\mu_t$ and as a result, it can be solved offline.  
+The term $\frac{\Sigma_t C}{\sigma^2_W}$ is called the Kalman gain, denoted as $\Kkal$. 
 \section{Approximations to the Nonlinear Filter}
 \label{s:approx_nl_filter}
+In a general nonlinear setting, excepting special cases like the Bene\v{s} filter \cite{ben81}, the optimal nonlinear filter cannot expressed by a finite set of parameters. \Cref{e:kushner_stratonovich,e:zakai} show that the posterior density can be computed in a recursive fashion. This leads to the development of discretization schemes to approximate the nonlinear filter. However, numerical approximations to the solution of the K-S equation using an Euler-type discretization are not accurate or robust. 
 
+As noted in \Section{s:filtering}, typically a filtering problem can be separated into two steps - prediction step, where the posterior density $\pr^*_t$ at time $t$ is propagated according to the state model, without accounting for the current observations, and the updation step, where the estimates are corrected after receiving the latest observations. As the state dimension increases, numerical solutions to both these steps become prohibitively expensive and approximate solutions are sought. Approaches to approximating the prediction step and the correction step can be chosen independently and then combined. In a broad sense, two approaches can be taken, one where an exact solution is obtained under the assumptions of linearity and another, where a finite-dimensional approximation of the Kushner-Stratonovich equation is used.  
+\subsection{Extended Kalman filter}
+\label{s:ekf}
+Extended Kalman filter (EKF) \cite{jaz70} is based on the principle of local linearization of the state and observation models around the mean $\mu_t$. Consequently, the resulting posterior densities are approximated as Gaussians. In the EKF, the conditional mean and state covariance estimates for the system in \eqref{e:cts_filtering} are governed by the following equations: 
+\begin{align}
+\ud \mu_t = a(\mu_t) \ud t + \frac{\Sigma_t C(\mu_t)}{\Sigma^2_W} (\ud Z_t - c(\mu_t) \ud t), \\
+\ud \Sigma_t = \Bigl(2 A(\mu_t) \Sigma_t  + \sigma^2_B - \frac{\Sigma^2_t C^2(\mu_t)}{\sigma^2_W}\Bigr) \ud t, 
+\label{e:ekf}
+\end{align}
+where $A = \frac{d a}{dx}$ and $C = \frac{d c}{dx}$. In higher dimensional state spaces, $A$ and $C$ are the Jacobian matrices. These are fairly easy to implement for moderate state dimensions. The performance of the EKF deteriorates if the state and observation models deviate significantly from linearity or if the noise variances are high and suffer from severe degeneracy and instability problems. 
+\subsection{Particle filters}
+\label{e:particle}
+Particle filters are Monte Carlo based approximations to the nonlinear filter. They belong to the second category mentioned, wherein the goal is to obtain a finite dimensional approximation to the nonlinear filter. The basic idea is this: a large number of particles drawn independently from the same prior distribution $\pr^*_0$ are propagated according to the state model. 
+Budhiraja et al. in \cite{budchelee07} provide a comprehensive survey of approximation techniques for nonlinear filtering, with a particular focus on particle filtering based algorithms. A tutorial on a number of variants of particle filter algorithms, particularly in the discrete-time setting is given in \cite{arumasgorcla02}. These are a very flexible family of schemes which provide an attractive they do not rely on linearization
+of dynamics, are easy to implement and are ideally suited for a parallel computing architecture.
 \section{Feedback Particle Filter (FPF)}
 \label{s:fpf}
 % \anand{Include block diagrams comparing FPF and KF}
@@ -20,162 +79,10 @@ origins in tracking problems in satellite and aircraft navigation.
 \subsection{Enhanced $\gradTD$ algorithms for FPF} 
 \subsection{Galerkin-based methods}
 \subsection{Markov semigroup approximation}
-
+\subsection{Computational complexity}
 
 \section{Numerical Experiments}
 \label{s:fpf_numerics}
-%
-%- Introduction to the problem
-%- Theory of nonlinear filtering -Crisan, Xiong (Fokker Planck equations, Kolmogrov forward equation and Kushner-Stratonovich equation)
-%- Survey on approximate filters, particle filters and its associated particle degeneracy problems
-%- Introduction to FPF, a bit about its derivation
-%- Gain function approximation problem - Galerkin, Markov semigroup approximation
-%- Enhanced algorithms 
-%- Numerical applications
-
-\label{s:intro}
-This paper introduces design techniques for nonlinear filtering based on the  feedback particle filter (FPF).   For simplicity, the paper restricts to the scalar filtering problem:
-\begin{equation*}
-\begin{aligned}
-\ud X(t)&=a(X(t)) \ud t +\sigma_{B}\ud B(t),\\
-\ud Z(t)&=c(X(t)) \ud t + \sigma_{W}\ud W(t),
-\end{aligned}
-\end{equation*}
-where $\bfmX=\{X(t)\}$ is the scalar state process, $\bfmZ=\{Z(t)\}$ is the scalar observation process, $a$ and $c$ are $C^{1}$ functions, and  $\bfmB= \{B(t)\}$,  $\bfmW = \{W(t)\}$ are mutually independent Brownian motions.   The goal of the filtering problem is to approximate the posterior density 
-$p^*_t$  of $X(t)$,
-given the past observation history $\clZ(t)\eqdef\sigma(Z(s):s\leq t)$.
-
-Some background on the FPF is required before discussing the contributions of the current paper.
-
-\subsection{Background}
-
-Particle filter techniques are based on the following common architecture:  A family of $N$ stochastic processes represent particles, denoted by $ \{X^i(t) : t\in\Re,\ 1\le i\le N  \}$, where $N$ is a large number.   The estimate of the posterior at time $t$ is given by the
-empirical distribution,
-\begin{equation}
-\pr^{(N)}_t(A)=\dfrac{1}{N}\sum_{i=1}^{N} %\ind  \{X^i(t)\in A \},\quad A\subset \Re.
-\label{e:emp}
-\end{equation}
-In the feedback particle filter,  the particle evolution equations mimic those of the state space model:
-\begin{equation}
-\ud X^i(t)=a(X^i(t)) \ud t+\sigma_{B}\ud B^i(t)+\ud \bfmU^i(t),
-\label{eq_controlled_sys}
-\end{equation}
-where $i=1$ to $N$, $X^i(t) \in \Re$ is the state of the $i^{th}$ particle at time $t$, $N$ is the total number of particles, $\bfmU^i(t)$ is the control input applied to this particle, and $\{\bfmB^i\}$ are mutually independent standard Brownian motions. For each $i$, the control input $\bfmU^i$ is constructed so that for any $t$ and any $A\in\clB $  (Borel measurable subsets of $\Re$),
-\[
-\Prob\{ X^i(t) \in A \mid \clZ_t\} 
-=
-\Prob\{ X(t) \in A \mid \clZ_t\}
-=
-\int_A p^*_t(x) \ud x
-\]
-
-The particles are conditionally independent given the observations, so that for large $N$,  the approximation $p_t^{(N)}\sim p_t^*$ holds in a weak sense.    This optimal choice for  $\bfmU^i$ that is obtained in  \cite{yanmehmey13} leads to the following particle dynamics:
-\begin{equation}
-\begin{aligned}
-\ud  X^i(t)  =   & a(X^i(t))  \ud  t  + \sigma_{B}\ud B^i(t) + \kFPF (X^i(t))\ud I^i(t)  \\ & +  \half \sigma_{W}^{2}  \kFPF (X^i(t)) \kFPF'(X^i(t)) \ud t
-\end{aligned}
-\label{particle_propagation}
-\end{equation}
-where $\{ I^i(t) : t\ge 0\}$, is the innovations process corresponding to the $i^{th}$ particle:
-\begin{equation*}
-\ud I^i(t) \eqdef   \ud Z(t)- \half (c(X^i(t))+\hac)\ud t,
-\end{equation*}
-where $\hac\eqdef \Expect [c(X(t)) \mid \clZ_t ] = \int c(x) p_t^*(x)\, dx$.
-
-
-There are similar Monte-Carlo implementations of the nonlinear filter in the literature, such as   Daum's particle flow filter \cite{DaumHuang10}.   See \cite{taoyang_acc14} for a survey. This paper is restricted to the scalar filtering problem. However, all of the theory is valid for multidimensional problems as well.
-
-The FPF requires the computation of the feedback particle filter gain $\kFPF$ for each $t$. It can be expressed as $\kFPF= h'$, where $h$ is a solution to a particular version of Poisson's equation:
-\begin{equation}
-\clD h
-\eqdef
--U' h'+ h'' = -\tilc ,
-\label{eq_fish}
-\end{equation}
-in which $\tilc = c - \hac$,  and $U = -\log(p^*) $.
-Both $\hac$ and $\kFPF$ are functionals of the actual posterior density $p^*$  which we wish to estimate.  This is resolved by using the empirical distribution \eqref{e:emp} as a surrogate for $p^*$.
-
-
-The contribution of this work is to develop algorithms to approximate the FPF gain, along with a smooth approximation of the empirical distributions.  The starting point is the specification of a parameterized family  of smooth and continuous densities, denoted  $\clP = \{ p_\alpha : \alpha\in\Re^m\}$,  and a parameterized family of continuous gain functions $\clK = \{K_\param : \param\in\Re^d\}$.
-The algorithm consists of two steps:
-\begin{arabnum}
-	\item Obtain $\pr\in\clP $ that most closely approximates $\pr^{(N)}$.
-	\item  Obtain an approximation within $\clK$ for the FPF gain, based on the solution to Step~1.
-\end{arabnum}
-The choice of $\clP$ will depend on the application.
-One example is a finite-dimensional class of Gaussian mixture models (GMM). An $m$-component Gaussian mixture density has the following general form:
-\begin{equation*}
-\begin{aligned}
-p(x)& = \sum_{i=1}^{m} w_{i} p_{i}(x) \qquad  \sum_{i=1}^{m} w_{i} &=1 ,
-\label{gaussian_mix}
-\end{aligned}
-\end{equation*}
-\noindent
-where each $p_{i}$ is a Gaussian density with mean $\mu_{i}$ and standard deviation $\sigma_{i}$.
-The choice of $\clK$ is also problem-specific -- examples are given in \Section{s:ex}.
-
-The density estimation problem in Step~1 is defined as follows: Given the set of $N$ particles, and a family $\clP $ of probability density functions,  find the probability density $p \in \clP $ that is most likely to have generated the given particles.  The
-Expectation Maximization (EM) algorithm is one approach to obtaining the maximum a posteriori (MAP) optimal density.
-
-The main contribution of the paper is the application of a new algorithm called differential-TD ($\nabla$-TD) learning to address Step~2.   This algorithm is used to solve the minimization problem,
-\begin{equation}
-\min_{\param}\|\kFPF - K_\param\|_p^{2}
-=
-\min_{\param} \Expect\bigl[   | \kFPF (X) - K_\param(X) |^2 \bigr],
-\label{e:gradTDgoal}
-\end{equation}
-where $X \sim p$.
-
-This computation involves another layer of simulation that adds very little additional complexity to the FPF. 
-TD-learning algorithms are used to approximate value functions \cite{bertsi96a}.  In the context of average-cost optimal control,  the solution to Poisson's equation is known as the relative value function.   Given a parameterized family of approximate solutions $\{h_\param\}$,  the TD-learning algorithm aims to minimize $\| h - h_\param\|_p^{2}$ over all $\param$. In $\nabla$-TD learning, the objective is to minimize the $p$-norm error of the gradients:
-\begin{equation}
-\param^* = \argmin_{\param} \| h' - h_\param'\|_p^{2}
-\label{e:gradTDobjective}
-\end{equation}
-Given the representation $\kFPF = h' $,  it is evident that the goal of $\nabla$-TD learning
-is identical to the optimization problem \eqref{e:gradTDgoal}, in which $h$ is the solution to Poisson's equation \eqref{eq_fish} with $U=-\log(p)$.
-
-
-
-\textit{Independent of the research reported here is the remarkable paper \cite{tagmeh16}}.  It also seeks approximations of the  feedback particle filter gain. While the approach is entirely different,   it is likely that concepts from that concurrent work can strengthen the basis-oriented approach stressed in this paper.  
-
-
-
-The remainder of the paper is organized as follows.    \Section{section_learning} contains a review of approximation techniques for the FPF gain,  and develops several formulations of  $\nabla$-TD learning algorithm in the context of nonlinear filtering.   Results from numerical experiments are surveyed in \Section{s:ex}.    Conclusions and directions for future research are contained in \Section{section_conclusions}
-
-
-\section{Differential-TD Learning for the Feedback Particle Filter}
-\label{section_learning}
-
-\notes{not useful without references or explanation: There are several tools for approximating solutions to Poisson's equation using numerical methods.}
-
-\subsection{Function Approximation}
-
-Recall that the FPF gain is the derivative of the solution to Poisson's equation \eqref{eq_fish}.
-We first review a popular technique used to estimate $h$ \cite{yanmehmey13,yanlaumehmey16}.
-Suppose that we are given a $d$-dimensional  function class
-$\clH  \eqdef \{h_{\param} : \param \in \Re^d\}$ to approximate $h$, and a collection of $d$ test functions $\{\test_{l}\}_{l=1}^{d}$; Then, the Galerkin relaxation of Poisson's equation is defined to be the set of $d$ equations in the parameter $\param$:
-\begin{equation}
-\begin{aligned}
-0 &= \langle \clD h_{\param}+\tilc, \test_{l} \rangle \\
-&= \int (-U'(x) h_{\param}'(x)+ h_{\param}''(x)+\tilc (x))\test_{l}(x) \ud x,
-\end{aligned}
-\label{eq_weak_formulation}
-\end{equation}
-$ 1\leq l \leq d$.
-
-
-In prior work \cite{yanmehmey13,yanlaumehmey16}, $\clH$ is considered to be a linearly parameterized family of functions of the form $\clH =\{ h_{\param} = \sum_{l=1}^{d}\param_{l}\basis_{l} : \param\in\Re^d\}$, where $\{\basis_l\}$ are called the basis functions. It is assumed that each $\basis_l$ is continuously differentiable,  with gradient denoted   $\gradbasis_{l} $. These   functions are used to define the approximation of the filter gain
-\begin{equation}
-K_\param = h_{\param}' = \sum_{l=1}^{d}\param_{l}\gradbasis_{l}.
-\label{eq_basis_galerkin}
-\end{equation}
-The
-Galerkin method provides a good algorithmic framework for approximating the gain. However, in general it is not easy to obtain performance guarantees.
-
-In this paper we obtain approximations by solving  the minimum norm problem \eqref{e:gradTDgoal} using $\nabla$-TD learning.  Under general conditions we can be assured that the approximation is the minimum-norm optimal solution.   We first review a recent representation of the gain $\kFPF = h'$.
-\section{Examples}
-\label{s:ex}
 
 Two general applications are considered in this section, distinguished by the finite dimensional class of densities $\clP$.  We first consider a Gaussian mixture model for a diffusion on the real line,  and for a diffusion on the unit circle we consider a mixture of von Mises densities \cite{haspea00}.
 
@@ -419,11 +326,11 @@ The error values at the peaks of the density are of utmost interest because thes
 \subsection{Parameter estimation experiment}
 
 
-TD learning using the nonlinear parameterization discussed in \Section{sec_nl_param} yields good approximation of the FPF gain function. Here, we perform a simulation experiment to investigate the effectiveness of using the gain obtained from TD learning for a parameter estimation example. Consider the following process where the state $X(t)$ remains at its initial value for all $t$. $X(0)$ is distributed in $[-3,3]$ with a higher probability near $\pm3$. The state-observation model is,
+TD learning using the nonlinear parameterization discussed in \Section{sec_nl_param} yields good approximation of the FPF gain function. Here, we perform a simulation experiment to investigate the effectiveness of using the gain obtained from TD learning for a parameter estimation example. Consider the following process where the state $X_t$ remains at its initial value for all $t$. $X(0)$ is distributed in $[-3,3]$ with a higher probability near $\pm3$. The state-observation model is,
 \begin{equation*}
 \begin{aligned}
-\ud X(t)&=0,\quad \\
-\ud Z(t)&= X(t) \ud t+\sigma_{W}\ud W(t)
+\ud X_t&=0,\quad \\
+\ud Z_t&= X_t \ud t+\sigma_{W}\ud W_t
 \end{aligned}
 \end{equation*}
 The problem reduces to parameter estimation as the state remains constant. In such applications, the sequential importance resampling (SIR) particle filter may perform poorly. The transient response of the filter, i.e., how quickly the estimates reach a given neighborhood of the actual state is of interest
@@ -440,6 +347,147 @@ The EM algorithm was used for density estimation. We compare two different imple
 		\label{Chap4_Fig_FPF_EM_TD}
 	\end{center}
 \end{figure}
+
+%
+%- Introduction to the problem
+%- Theory of nonlinear filtering -Crisan, Xiong (Fokker Planck equations, Kolmogrov forward equation and Kushner-Stratonovich equation)
+%- Survey on approximate filters, particle filters and its associated particle degeneracy problems
+%- Introduction to FPF, a bit about its derivation
+%- Gain function approximation problem - Galerkin, Markov semigroup approximation
+%- Enhanced algorithms 
+%- Numerical applications
+
+\label{s:intro}
+This paper introduces design techniques for nonlinear filtering based on the  feedback particle filter (FPF).   
+
+Some background on the FPF is required before discussing the contributions of the current paper.
+
+\subsection{Background}
+
+Particle filter techniques are based on the following common architecture:  A family of $N$ stochastic processes represent particles, denoted by $ \{X^i_t : t\in\Re,\ 1\le i\le N  \}$, where $N$ is a large number.   The estimate of the posterior at time $t$ is given by the
+empirical distribution,
+\begin{equation}
+\pr^{(N)}_t(A)=\frac{1}{N}\sum_{i=1}^{N} \ind \{X^i_t\in A \},\quad A\subset \Re.
+\label{e:posterior_emp}
+\end{equation}
+In the feedback particle filter,  the particle evolution equations mimic those of the state space model:
+\begin{equation}
+\ud X^i_t=a(X^i_t) \ud t+\sigma_{B}\ud B^i(t)+\ud \bfmU^i(t),
+\label{eq_controlled_sys}
+\end{equation}
+where $i=1$ to $N$, $X^i_t \in \Re$ is the state of the $i^{th}$ particle at time $t$, $N$ is the total number of particles, $\bfmU^i(t)$ is the control input applied to this particle, and $\{\bfmB^i\}$ are mutually independent standard Brownian motions. For each $i$, the control input $\bfmU^i$ is constructed so that for any $t$ and any $A\in\clB $  (Borel measurable subsets of $\Re$),
+\[
+\Prob\{ X^i_t \in A \mid \clZ_t\} 
+=
+\Prob\{ X_t \in A \mid \clZ_t\}
+=
+\int_A \pr^*_t(x) \ud x
+\]
+
+The particles are conditionally independent given the observations, so that for large $N$,  the approximation $p_t^{(N)}\sim p_t^*$ holds in a weak sense.    This optimal choice for  $\bfmU^i$ that is obtained in  \cite{yanmehmey13} leads to the following particle dynamics:
+\begin{equation}
+\ud  X^i_t  =    a(X^i_t)  \ud  t  + \sigma_{B}\ud B^i(t) + \kFPF (X^i_t)\ud I^i(t)   +  \half \sigma_{W}^{2}  \kFPF (X^i_t) \kFPF'(X^i_t) \ud t
+\label{e:particle_propagation}
+\end{equation}
+where $\{ I^i(t) : t\ge 0\}$, is the innovations process corresponding to the $i^{th}$ particle:
+\begin{equation*}
+\ud I^i(t) \eqdef   \ud Z_t- \half (c(X^i_t)+\hac)\ud t,
+\end{equation*}
+where $\hac\eqdef \Expect [c(X_t) \mid \clZ_t ] = \int c(x) p_t^*(x)\, dx$.
+
+
+There are similar Monte-Carlo implementations of the nonlinear filter in the literature, such as   Daum's particle flow filter \cite{DaumHuang10}.   See \cite{taoyang_acc14} for a survey. This paper is restricted to the scalar filtering problem. However, all of the theory is valid for multidimensional problems as well.
+
+The FPF requires the computation of the feedback particle filter gain $\kFPF$ for each $t$. It can be expressed as $\kFPF= h'$, where $h$ is a solution to a particular version of Poisson's equation:
+\begin{equation}
+\clD h
+\eqdef
+-U' h'+ h'' = -\tilc ,
+\label{eq_fish}
+\end{equation}
+in which $\tilc = c - \hac$,  and $U = -\log(\pr^*) $.
+Both $\hac$ and $\kFPF$ are functionals of the actual posterior density $\pr^*$  which we wish to estimate.  This is resolved by using the empirical distribution \eqref{e:posterior_emp} as a surrogate for $\pr^*$.
+
+
+The contribution of this work is to develop algorithms to approximate the FPF gain, along with a smooth approximation of the empirical distributions.  The starting point is the specification of a parameterized family  of smooth and continuous densities, denoted  $\clP = \{ p_\alpha : \alpha\in\Re^m\}$,  and a parameterized family of continuous gain functions $\clK = \{K_\param : \param\in\Re^d\}$.
+The algorithm consists of two steps:
+\begin{arabnum}
+	\item Obtain $\pr\in\clP $ that most closely approximates $\pr^{(N)}$.
+	\item  Obtain an approximation within $\clK$ for the FPF gain, based on the solution to Step~1.
+\end{arabnum}
+The choice of $\clP$ will depend on the application.
+One example is a finite-dimensional class of Gaussian mixture models (GMM). An $m$-component Gaussian mixture density has the following general form:
+\begin{equation*}
+\begin{aligned}
+p(x)& = \sum_{i=1}^{m} w_{i} p_{i}(x) \qquad  \sum_{i=1}^{m} w_{i} &=1 ,
+\label{gaussian_mix}
+\end{aligned}
+\end{equation*}
+\noindent
+where each $p_{i}$ is a Gaussian density with mean $\mu_{i}$ and standard deviation $\sigma_{i}$.
+The choice of $\clK$ is also problem-specific -- examples are given in \Section{s:ex}.
+
+The density estimation problem in Step~1 is defined as follows: Given the set of $N$ particles, and a family $\clP $ of probability density functions,  find the probability density $p \in \clP $ that is most likely to have generated the given particles.  The
+Expectation Maximization (EM) algorithm is one approach to obtaining the maximum a posteriori (MAP) optimal density.
+
+The main contribution of the paper is the application of a new algorithm called differential-TD ($\nabla$-TD) learning to address Step~2.   This algorithm is used to solve the minimization problem,
+\begin{equation}
+\min_{\param}\|\kFPF - K_\param\|_p^{2}
+=
+\min_{\param} \Expect\bigl[   | \kFPF (X) - K_\param(X) |^2 \bigr],
+\label{e:gradTDgoal}
+\end{equation}
+where $X \sim p$.
+
+This computation involves another layer of simulation that adds very little additional complexity to the FPF. 
+TD-learning algorithms are used to approximate value functions \cite{bertsi96a}.  In the context of average-cost optimal control,  the solution to Poisson's equation is known as the relative value function.   Given a parameterized family of approximate solutions $\{h_\param\}$,  the TD-learning algorithm aims to minimize $\| h - h_\param\|_p^{2}$ over all $\param$. In $\nabla$-TD learning, the objective is to minimize the $p$-norm error of the gradients:
+\begin{equation}
+\param^* = \argmin_{\param} \| h' - h_\param'\|_p^{2}
+\label{e:gradTDobjective}
+\end{equation}
+Given the representation $\kFPF = h' $,  it is evident that the goal of $\nabla$-TD learning
+is identical to the optimization problem \eqref{e:gradTDgoal}, in which $h$ is the solution to Poisson's equation \eqref{eq_fish} with $U=-\log(p)$.
+
+
+
+\textit{Independent of the research reported here is the remarkable paper \cite{tagmeh16}}.  It also seeks approximations of the  feedback particle filter gain. While the approach is entirely different,   it is likely that concepts from that concurrent work can strengthen the basis-oriented approach stressed in this paper.  
+
+
+
+The remainder of the paper is organized as follows.    \Section{section_learning} contains a review of approximation techniques for the FPF gain,  and develops several formulations of  $\nabla$-TD learning algorithm in the context of nonlinear filtering.   Results from numerical experiments are surveyed in \Section{s:ex}.    Conclusions and directions for future research are contained in \Section{section_conclusions}
+
+
+\section{Differential-TD Learning for the Feedback Particle Filter}
+\label{section_learning}
+
+\notes{not useful without references or explanation: There are several tools for approximating solutions to Poisson's equation using numerical methods.}
+
+\subsection{Function Approximation}
+
+Recall that the FPF gain is the derivative of the solution to Poisson's equation \eqref{eq_fish}.
+We first review a popular technique used to estimate $h$ \cite{yanmehmey13,yanlaumehmey16}.
+Suppose that we are given a $d$-dimensional  function class
+$\clH  \eqdef \{h_{\param} : \param \in \Re^d\}$ to approximate $h$, and a collection of $d$ test functions $\{\test_{l}\}_{l=1}^{d}$; Then, the Galerkin relaxation of Poisson's equation is defined to be the set of $d$ equations in the parameter $\param$:
+\begin{equation}
+\begin{aligned}
+0 &= \langle \clD h_{\param}+\tilc, \test_{l} \rangle \\
+&= \int (-U'(x) h_{\param}'(x)+ h_{\param}''(x)+\tilc (x))\test_{l}(x) \ud x,
+\end{aligned}
+\label{eq_weak_formulation}
+\end{equation}
+$ 1\leq l \leq d$.
+
+
+In prior work \cite{yanmehmey13,yanlaumehmey16}, $\clH$ is considered to be a linearly parameterized family of functions of the form $\clH =\{ h_{\param} = \sum_{l=1}^{d}\param_{l}\basis_{l} : \param\in\Re^d\}$, where $\{\basis_l\}$ are called the basis functions. It is assumed that each $\basis_l$ is continuously differentiable,  with gradient denoted   $\gradbasis_{l} $. These   functions are used to define the approximation of the filter gain
+\begin{equation}
+K_\param = h_{\param}' = \sum_{l=1}^{d}\param_{l}\gradbasis_{l}.
+\label{eq_basis_galerkin}
+\end{equation}
+The
+Galerkin method provides a good algorithmic framework for approximating the gain. However, in general it is not easy to obtain performance guarantees.
+
+In this paper we obtain approximations by solving  the minimum norm problem \eqref{e:gradTDgoal} using $\nabla$-TD learning.  Under general conditions we can be assured that the approximation is the minimum-norm optimal solution.   We first review a recent representation of the gain $\kFPF = h'$.
+
 
 
 \section{Conclusions}
