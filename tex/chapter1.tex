@@ -6,7 +6,8 @@ In a broad sense, this dissertation explores the development of reinforcement le
 The goal of this chapter is a cursory introduction of the elements that are key to the problems considered in this dissertation. In \Section{s:goals}, we describe the two major goals undertaken - in the areas of nonlinear filtering and MCMC. Subsequently, in \Section{s:tools}, we introduce the various tools used, motivate the solution approaches adopted, without delving much into the technical details. 
 \section{Goals of the Dissertation}
 \label{s:goals}
-\subsection{Nonlinear state estimation}
+\subsection{Nonlinear filtering/state estimation}
+\label{s:filtering}
 Consider a dynamic system evolving in time according to a given mathematical model. A complete characterization of the system is given by its states. Uncertainties in the system model or external disturbances are modeled as process noise, and indirect observations of the state, corrupted by measurement noise are available. The observation model and the noise statistics are assumed to be known. The state dynamics and observations may be in either continuous or discrete time depending on the system properties. The state dynamics are assumed to be Markovian, i.e. in rough terms, the probability of the current state just depends on the previous state, and not on the entire history. 
 
 A generic block diagram of a state estimator is depicted in \Fig{Fig:state_estimator}. The goal of any filtering/state estimation problem is to recursively estimate the states of the system based on noisy partial observations. The top row of the block diagram, with the state and observation models, indicates the actual evolution of the system. The prediction and correction blocks form part of the state estimator. Given the current estimate of the state, the prediction block gives the best state estimate, called the prior estimate for the next time instant using the state model. The correction block updates the prior after receiving the most recent observation, and outputs the posterior estimate. All filtering approaches share this basic structure, although in some cases, the prediction and correction steps may be combined.  
@@ -25,7 +26,8 @@ Linear approximations like the extended Kalman filter (EKF) were studied for app
 
 The main focus of this dissertation is a class of controlled particle system algorithms called the feedback particle filter (FPF). Feedback particle filter was originally formulated for the continuous-time nonlinear filtering problem in the Euclidean setting \cite{yanmehmey13}. They have since been extended to Riemannian manifolds and matrix Lie groups \cite{zhatagmeh16}. The FPF is similar in its feedback structure to the Kalman filter and in its empirical approximation approach to the standard particle filter. In other respects, they are significantly different. A crucial component of the FPF is the gain function, which is analogous to the Kalman gain in the Kalman filter. The optimal gain function in the FPF is obtained as the gradient of the solution to a particular version of Poisson's equation \cite{yanmehmey13, laumehmeyrag14}. Obtaining an analytical solution to the Poisson's equation is often difficult and hence, approximation is required. In this dissertation, our main focus is on developing algorithms to approximate the gain function. A detailed discussion is reserved for \Chapter{ch:filtering}. 
 
-\subsection{Markov Chain Monte Carlo (MCMC) algorithms}
+\subsection{Markov chain Monte Carlo (MCMC) algorithms}
+\label{s:mcmc}
 The second application of interest is Markov chain Monte Carlo (MCMC) algorithms. MCMC algorithms have a long history of being applied to problems in Bayesian statistics \cite{}. 
 
 In standard Monte Carlo methods, expectation of a function $f$ of a random variable $X$ distributed according to a density $\pr$ is approximated empirically as,
@@ -54,7 +56,7 @@ In this dissertation, we demonstrate that the same algorithms we propose for app
 \label{s:tools}
 Now, that the main application areas of the dissertation have been described briefly, we introduce the various tools that help us achieve our goal. In \Section{poissons_eq}, a preliminary description of the Poisson's equation, that is crucial to both our applications of interest is given.
 \subsection{Poisson's equation} 
-\label{poissons_eq}
+\label{s:poissons}
 In its most general form, Poisson's equation is a second-order differential equation of the form,
 \begin{equation*}
 \generate h \eqdef - f,
@@ -72,7 +74,7 @@ Obtaining a closed form solution is difficult outside of special cases and this 
 
 
 \subsection{Reinforcement learning and TD learning}
-\label{rl_td}
+\label{s:rl_td}
 In this section, a beginner level introduction to reinforcement learning algorithms is provided. Reinforcement learning algorithms have gained popularity over the last decade having achieved major successes in a wide variety of applications like AlphaGo, backgammon etc. \anand{need references} In a general setting, such algorithms involve learning what actions to take in a given situation, so as to maximize a numerical reward (or equivalently minimize a numerical cost) over a (possibly infinite) time-horizon. The learned set of actions, called a policy is a mapping from the state space to the action space. In a stochastic setting, this mapping is expressed in terms of probability of taking a particular action in a given state. The learning is performed purely based on interactions with the environment without any prior knowledge of the system model. A whole variety of algorithms including Q-learning \cite{watday92a} and temporal difference (TD) learning \cite{sut88} belong to this category. A slightly different class of algorithms that makes use of model information also exists, called approximate dynamic programming. \anand{needs rephrasing}
 Although, the end objective is to obtain optimal policies, a central theme in all these algorithms is value function approximation. This aspect is what makes these algorithms an attractive choice for our objective. 
 
@@ -86,17 +88,20 @@ A similar algorithm for discrete-time examples with applications to optimal cont
 % nonlinear parameterization in Section 11.5.3 
 % average-cost TD learning based on \cite{kontsi03a}
 \subsection{Reproducing kernel Hilbert space (RKHS)}
+\label{s:rkhs}
 Traditionally, TD learning has been tested on spaces spanned by a carefully chosen finite set of basis functions. However, there are no standard approaches to choosing the basis.  If any insight about the structure of the true value function is available, this can be exploited in choosing an appropriate function class. In optimal control problems, this insight is available in the form of fluid value functions. But this is not true for Poisson's equation of interest. One of the novelties of this dissertation is the use of reproducing kernel Hilbert space (RKHS) as an approximating function space for TD learning algorithms. This simplifies the choice of problem dependent basis functions by making use of the information about particle locations effectively. 
  
 Reproducing kernel Hilbert spaces form an important class of function spaces in learning theory \cite{aro50, schsmo01}. They are complete Hilbert spaces uniquely characterized by a kernel function. The use of RKHS for function approximation provides us with greater flexibility and potentially a richer function class. Although optimization in an RKHS is typically infinite dimensional, they are endowed with useful properties that help us reduce the problem to finding a finite set of parameters via the representer theorem \cite{kimwah71, schhersmo01}. A brief background of the RKHS theory along with properties that make them useful in this dissertation is provided in \Chapter{ch:rkhs}. The differential TD learning algorithm specific to the Langevin diffusion is adapted to accommodate an RKHS as the approximating function space in \Chapter{ch:rkhs}.
  
 
 \section{Dissertation Outline}
+\label{s:outline}
 The various topics discussed in this chapter may seem distinct and disconnected. This dissertation attempts to tie them together as it progresses. To summarize, we restrict our attention to approximating solutions of a particular version of the Poisson's equation. Differential TD learning algorithms using a finitely parameterized family of functions and an RKHS are studied and presented. Approximations obtained using these algorithms are tested and have been shown to improve the performance of the FPF and MCMC algorithms. 
 
 The main contributions of this dissertation that form the remaining chapters can be summarized as - i) development of differential LSTD learning algorithm, similar to LSTD in \cite{ctcn} to approximate the gradient of the solution to Poisson's equation directly in \Chapter{ch:diff_td}, ii) refinement of this algorithm with a simpler resolution \cite{radmey18a} in \Section{s:diff_td_langevin}, iii) address the problem of basis selection by the use of RKHS in Chapter \ref{ch:rkhs}, iv) applications to nonlinear filtering in \Chapter{ch:filtering} and MCMC algorithms in \Chapter{ch:mcmc}. Finally, conclusions and scope for future work are included in Chapter 6.  
 
 \section{Notation}
+\label{s:notation}
 $\bfmX\eqdef \{X_t: t\ge 0\}$ is a stochastic process, evolving on the state space  $\state$, which is taken to be $\Re^d$, unless specified. A subscript notation $X_t$ is often used to denote $X(t)$, where $t$ is an index of time. The symbol $\pr$   denotes a probability density on $\state$, and $L^2(\state,\pr)$ is the Hilbert space of square integrable functions with the usual inner product,
 $\langle \phi,\psi\big\rangle_{L^2}\eqdef\int\phi(x)\psi(x) \pr(x)\ud x$, where $\phi$ and $\psi$ are scalar valued functions in $L^2(\state, \pr)$;
 written $L^2$ when there is no risk of ambiguity.  The associated norm is
