@@ -106,7 +106,7 @@ and an empirical approximation of $\pr_t$ is obtained as:
 \end{equation}
 The particles are conditionally independent given the observations, so that for large $N$,  the approximation $\pr_t^{(N)}\sim \pr_t^*$ holds in a weak sense.    
 
-The main difference in \eqref{e:fpf_emp_posterior} compared to the estimate in \eqref{e:particle_empirical} is that all the particles are weighted equally in the FPF. Similar unweighted particle filter approaches were proposed in \cite{mitnew04,crixio05}. Daum et al. discuss the limitations of the conventional particle filter and present an unweighted filtering scheme for the continuous-discrete time case, called the information flow filter in. There are similar Monte-Carlo implementations of the nonlinear filter in the literature, such as   Daum's particle flow filter \cite{dauhua10}. See \cite{taoyang_acc14} for a survey. In this dissertation, the discussion is restricted to the scalar filtering problem. However, all of the theory is valid for multidimensional problems as well.
+The main difference in \eqref{e:fpf_emp_posterior} compared to the estimate in \eqref{e:particle_empirical} is that all the particles are weighted equally in the FPF. Similar unweighted particle filter approaches were proposed in \cite{mitnew04,crixio05}. Daum et al. discuss the limitations of the conventional particle filter and present an unweighted filtering scheme for the continuous-discrete time case, called the information flow filter. See \cite{taoyang_acc14} for a survey of these algorithms. 
 
 It may also be noted that prediction and correction operations are performed in a single step in \eqref{e:fpf_nonlin_intro}. The correction step is implemented via the control input term $U^i_t$. For each $i$, the control input $\bfmU^i$ is constructed so that for any $t$ and any $A\in\clB $  (Borel measurable subsets of $\Re$),
 \[
@@ -144,35 +144,71 @@ It is evident from \eqref{e:fpf_stratonovich}, that the FPF exhibits a gain $\ti
 	\end{center}
 \end{figure}
 
-To implement the FPF, the gain function $\kFPF_t$ needs to be computed for each $t$. To simplify notation, consider a fixed time $t\ge 0$,  and suppress dependency on $t$.  In particular, let $\kFPF$ denote the gain function that appears as  $ \kFPF_t$  in \eqref{e:fpf_nonlin_intro},  and let $\pr$ denote the conditional density $\pr_t$. It has been proved in \cite{yanmehmey13} that the optimal gain is obtained as the solution to the following Euler-Lagrange boundary value problem:
+To implement the FPF, the gain function $\kFPF_t$ needs to be computed for each $t$. To simplify notation, consider a fixed time $t\ge 0$,  and suppress dependency on $t$.  In particular, let $\kFPF$ denote the gain function that appears as  $ \kFPF_t$  in \eqref{e:fpf_nonlin_intro},  and let $\pr$ denote the conditional density $\pr_t$. It has been proved in \cite{yanmehmey13} that the optimal gain is obtained as the solution to the following Euler-Lagrange boundary value problem (EL-BVP):
 \begin{equation}
 -\frac{\partial}{\partial x} \Bigl( \frac{1}{\pr(x)} \frac{\partial}{\partial x} \{\pr(x) \kFPF(x)\}\Bigr) = \frac{1}{\sigma_W^2} c'(x), 
 \label{e:fpf_el_bvp}
 \end{equation}
-where $c'(x) = \frac{\partial c }{\partial x}$. Denoting $\pot=-\log(\pr)\in C^1$ and assuming its gradient is globally Lipschitz continuous, it can be shown that the EL-BVP in \eqref{e:fpf_el_bvp} takes the standard form of Poisson's equation for the Langevin diffusion \eqref{e:poissons}.
+where $c'(x) = \frac{\partial c }{\partial x}$. Denoting $\pot=-\log(\pr)\in C^1$ and assuming its gradient is globally Lipschitz continuous, it is easy to show that the EL-BVP in \eqref{e:fpf_el_bvp} takes the standard form of Poisson's equation for the Langevin diffusion \eqref{e:poissons}.
 \begin{equation}
--\pot' K + K''  = -\tilc, \qquad \tilc = c - \hat{c},
+\generate h = -\nabla \pot \cdot \nabla h + \Delta h  = -\tilc, \qquad \tilc = c - \int c(x) \pr(x)\, \ud x, 
 \end{equation}
-The formula for the gain is obtained through the following steps: Obtain a solution $h$ to Poisson's equation:
-\begin{equation}
-\generate h = -\tilc \,
-\label{e:fpf_gain_poissons}
-\end{equation}
-where $\hac = \int c(x) \pr(x)\, \ud x$.  Conditions on $U$ and $c$ under which the solution $h$ and its gradient exists has been discussed in \Chapter{ch:diff_td}. Under these conditions, the gain coincides with the gradient:
+where the gain $\kFPF$ coincides with the gradient of $h$:
 \begin{equation}
 \kFPF (x) = \nabla h(x)\, ,  \quad x\in\state\, .
 \label{e:fpf_k_gradient}
 \end{equation}
+The formula for the gain is thus obtained via a solution to the Poisson's equation:
+Conditions on $U$ and $c$ under which the solution $h$ and its gradient exists has been discussed in \Chapter{ch:diff_td}. In the remainder, it is assumed that these regularity conditions are satisfied and that the gain $\kFPF$ exists and is unique. Theorem 3.3 in \cite{yanmehmey13} states that provided the prior densities match, i.e. $\pr^*_0(x) = \pr_0(x)$, the FPF in \eqref{e:fpf_stratonovich} with the gain $\kFPF$ obtained as a solution to \eqref{e:fpf_el_bvp} is consistent with the optimal nonlinear filter \eqref{e:kushner_stratonovich}, i.e.
+\begin{equation}
+\pr_t(x) = \pr^*_t(x) 
+\end{equation}
+An estimate of $\pr_t$ given by the empirical distribution of the particles $\pr^{(N)}_t$ approximates $\pr^*_t$ as $N \to \infty$. 
+\section{FPF gain approximation}
+The major challenge in the implementation of the FPF is the computation of the gain function. The exact computation of $\kFPF$ is intractable outside of these particular cases. 
+\begin{romannum}
+\item When $\pot$ is quadratic and $c$ is linear,  then $\kFPF$ is a constant independent of $x$, and can be interpreted as a Kalman gain \cite{yanlaumehmey13}. 
 
-When $\pot$ is quadratic and $c$ is linear,  then $\kFPF$ is a constant independent of $x$, and can be interpreted as a Kalman gain \cite{yanlaumehmey13}. In the general scalar case $d=1$, $\kFPF$ has an explicit solution:
+\item In the general scalar case, when $d=1$, $\kFPF$ has an explicit solution:
 \begin{equation}
 \kFPF(x) = - \frac{1}{\pr(x)} \int_{-\infty}^{x} (c(y) - \hat{c}) \pr(y) \ud y.
 \label{e:kfpf1d}
 \end{equation}
-The exact computation of $\kFPF$ is intractable for $d > 1$ outside of particular cases. This motivates approximation techniques to obtain an estimate of $\kFPF$ that is optimal in some meaningful metric.
+\end{romannum}
+
+This motivates approximation techniques to obtain an estimate of $\kFPF$ that is optimal in some meaningful metric. In the first part of this section, we discuss Galerkin-based gain approximation algorithms. An algorithm based on approximation of the transition kernel of the Langevin diffusion was developed in parallel research by Taghvaei et al. \cite{tagmeh16} and error analysis of this method was studied in \cite{tagmehmey17}. This algorithm has been used in this dissertation as an important benchmark for comparing the performance in numerical simulations. A short review is provided in \Section{s:coifman}. 
+
+It is clear from \eqref{e:fpf_k_gradient}, that the objective function used in \eqref{e:gradTDobjective}  
+As motivated in Chapters \ref{ch:diff_td} and \ref{ch:rkhs}, approximation algorithms based on $\gradTD$ learning form the core topic of this dissertation. Two refinements of the RKHS based $\gradTD$ learning algorithm are proposed in \Section{s:fpf_rkhs_improvements}.
+
+\subsection{Galerkin-based methods}
+\label{s:galerkin}
+
+Recall that the FPF gain is the derivative of the solution to Poisson's equation \eqref{eq_fish}.
+We first review a popular technique used to estimate $h$ \cite{yanmehmey13,yanlaumehmey16}.
+Suppose that we are given a $d$-dimensional  function class
+$\clH  \eqdef \{h_{\param} : \param \in \Re^d\}$ to approximate $h$, and a collection of $d$ test functions $\{\test_{l}\}_{l=1}^{d}$; Then, the Galerkin relaxation of Poisson's equation is defined to be the set of $d$ equations in the parameter $\param$:
+\begin{equation}
+\begin{aligned}
+0 &= \langle \clD h_{\param}+\tilc, \test_{l} \rangle \\
+&= \int (-U'(x) h_{\param}'(x)+ h_{\param}''(x)+\tilc (x))\test_{l}(x) \ud x,
+\end{aligned}
+\label{eq_weak_formulation}
+\end{equation}
+$ 1\leq l \leq d$.
 
 
-\subsection{FPF gain approximation}
+In prior work \cite{yanmehmey13,yanlaumehmey16}, $\clH$ is considered to be a linearly parameterized family of functions of the form $\clH =\{ h_{\param} = \sum_{l=1}^{d}\param_{l}\basis_{l} : \param\in\Re^d\}$, where $\{\basis_l\}$ are called the basis functions. It is assumed that each $\basis_l$ is continuously differentiable,  with gradient denoted   $\gradbasis_{l} $. These   functions are used to define the approximation of the filter gain
+\begin{equation}
+K_\param = h_{\param}' = \sum_{l=1}^{d}\param_{l}\gradbasis_{l}.
+\label{eq_basis_galerkin}
+\end{equation}
+The
+Galerkin method provides a good algorithmic framework for approximating the gain. However, in general it is not easy to obtain performance guarantees.
+
+In this paper we obtain approximations by solving  the minimum norm problem \eqref{e:gradTDgoal} using $\nabla$-TD learning.  Under general conditions we can be assured that the approximation is the minimum-norm optimal solution.   We first review a recent representation of the gain $\kFPF = h'$.
+
+
 % \anand{Provide a gain approx in algorithmx format}
 The following \textit{constant gain approximation}  for $\kFPF$ is easily computable, and is a component of an algorithm proposed in this paper:
 \[
@@ -195,7 +231,7 @@ This approximation has been successfully tested in \cite{tilghiomeh13}.
 
 \subsection{Enhanced $\gradTD$ algorithms for FPF} 
 
-\label{s:RKHS_improvements}
+\label{s:fpf_rkhs_improvements}
 
 The online filtering problem is considered here.
 It is assumed that time is sampled with constant inter-sampling time $\delta$.     The gain updates are performed at $t = n \delta$,   and use $\kFPF_n$ rather than $\kFPF_t$.  In numerical results described below,  the  SDE is approximated using the same time discretization.
@@ -226,11 +262,8 @@ g^*_n(.)  \eqdef \sum_{j=1}^N \beta_{j,n} \Kern(x^j_n, . ) \, .
 \end{equation}
 Substituting \eqref{e:grad_g_star} into \eqref{e:erm_regularized}, and using the vector/matrix notation as defined in \eqref{e:beta_2N} gives,
 \begin{equation}
-\begin{aligned}
 \beta ^*_n =
-\argmin_{\beta  \in \Re^N}  &  \frac{1}{N} \Bigl[ (1 + \lambda_1) \beta ^\transpose \Bigl( \sum_{k=1}^d M_{x_k}^\transpose M_{x_k} \Bigr) \beta  \\
-& -  \beta ^\transpose  ( 2 \lambda_1 \sum_{k=1}^d M_{x_k}^\transpose \kFPF_{n-1,k} +M_0 \vectilc  \Bigr) ] + \lambda \beta ^\transpose M_0 \beta
-\end{aligned}
+\argmin_{\beta  \in \Re^N}  \frac{1}{N} \Bigl[ (1 + \lambda_1) \beta ^\transpose \Bigl( \sum_{k=1}^d M_{x_k}^\transpose M_{x_k} \Bigr) \beta  -  \beta ^\transpose  ( 2 \lambda_1 \sum_{k=1}^d M_{x_k}^\transpose \kFPF_{n-1,k} +M_0 \vectilc  \Bigr) ] + \lambda \beta ^\transpose M_0 \beta
 \end{equation}
 This is a quadratic optimization problem with solution
 \begin{equation}
@@ -322,31 +355,7 @@ $
 
 Performance of the resulting RKHS-OM algorithm is illustrated in the next section.
 
-\subsection{Galerkin-based methods}
 
-Recall that the FPF gain is the derivative of the solution to Poisson's equation \eqref{eq_fish}.
-We first review a popular technique used to estimate $h$ \cite{yanmehmey13,yanlaumehmey16}.
-Suppose that we are given a $d$-dimensional  function class
-$\clH  \eqdef \{h_{\param} : \param \in \Re^d\}$ to approximate $h$, and a collection of $d$ test functions $\{\test_{l}\}_{l=1}^{d}$; Then, the Galerkin relaxation of Poisson's equation is defined to be the set of $d$ equations in the parameter $\param$:
-\begin{equation}
-\begin{aligned}
-0 &= \langle \clD h_{\param}+\tilc, \test_{l} \rangle \\
-&= \int (-U'(x) h_{\param}'(x)+ h_{\param}''(x)+\tilc (x))\test_{l}(x) \ud x,
-\end{aligned}
-\label{eq_weak_formulation}
-\end{equation}
-$ 1\leq l \leq d$.
-
-
-In prior work \cite{yanmehmey13,yanlaumehmey16}, $\clH$ is considered to be a linearly parameterized family of functions of the form $\clH =\{ h_{\param} = \sum_{l=1}^{d}\param_{l}\basis_{l} : \param\in\Re^d\}$, where $\{\basis_l\}$ are called the basis functions. It is assumed that each $\basis_l$ is continuously differentiable,  with gradient denoted   $\gradbasis_{l} $. These   functions are used to define the approximation of the filter gain
-\begin{equation}
-K_\param = h_{\param}' = \sum_{l=1}^{d}\param_{l}\gradbasis_{l}.
-\label{eq_basis_galerkin}
-\end{equation}
-The
-Galerkin method provides a good algorithmic framework for approximating the gain. However, in general it is not easy to obtain performance guarantees.
-
-In this paper we obtain approximations by solving  the minimum norm problem \eqref{e:gradTDgoal} using $\nabla$-TD learning.  Under general conditions we can be assured that the approximation is the minimum-norm optimal solution.   We first review a recent representation of the gain $\kFPF = h'$.
 
 
 \subsection{Markov semigroup approximation}
@@ -628,16 +637,6 @@ The EM algorithm was used for density estimation. We compare two different imple
 %- Enhanced algorithms 
 %- Numerical applications
 
-
-
-The FPF requires the computation of the feedback particle filter gain $\kFPF$ for each $t$. It can be expressed as $\kFPF= h'$, where $h$ is a solution to a particular version of Poisson's equation:
-\begin{equation}
-\clD h
-\eqdef
--U' h'+ h'' = -\tilc ,
-\label{eq_fish}
-\end{equation}
-in which $\tilc = c - \hac$,  and $U = -\log(\pr^*) $.
 Both $\hac$ and $\kFPF$ are functionals of the actual posterior density $\pr^*$  which we wish to estimate.  This is resolved by using the empirical distribution \eqref{e:posterior_emp} as a surrogate for $\pr^*$.
 
 
