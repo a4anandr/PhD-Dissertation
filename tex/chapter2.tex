@@ -527,7 +527,7 @@ The $\gradTD$ learning algorithm provides an unbiased and asymptotically consist
 The vector $\eligibvector(t)$ is analogous to the eligibility vector in TD learning \cite{bertsi96a,ctcn}. Existence of a steady state solution to \eqref{e:gradTD_eligib} of the form in \eqref{e:gradTD_eligib_integral} is guaranteed under a Lyapunov drift condition in \cite{devkonmey17b}.
 The estimates of $\param^*$ are generated via $\param(t) = M(t)^{-1} b(t)$.   The ODE is initialized with $\eligibvector(0), b(0)\in \Re^\ell$,  and $M(0)>0$ a $\ell \times  \ell$ matrix.
 
-\subsection{Nonlinear Parameterization}
+\subsection{Nonlinear parameterization}
 Consider a more general case of nonlinear parameterization with an $\ell$- dimensional function class $\clH \eqdef \{h^\param : \param \in \Re^\ell\}$. In this case, the optimization problem \eqref{e:gradTD_norm_error} may not be convex. Let $\basis_\param$ denote the gradient of $h^\param$ with respect to $\param$, i.e. $\grad_\param h^\param = \basis_\param$. For a nonlinear parameterization, following the first order optimality conditions for an optimizer $\param^{*}$ of \eqref{e:gradTD_norm_error}, we have,
 
 %\begin{eqnarray*}
