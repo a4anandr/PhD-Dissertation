@@ -1,11 +1,11 @@
 \chapter{Applications to Nonlinear Filtering} 
 \label{ch:filtering}
 % introduction to the chapter
-Applications to nonlinear filtering was the main motivation behind the development of the $\gradTD$ learning algorithms in Chapters \ref{ch:diff_td} and \ref{ch:rkhs}. In this chapter, the problem of nonlinear filtering and the associated theory is described in detail in \Section{s:nl_filtering_intro}. A brief survey on approximations to the nonlinear filter is provided in \Section{s:approx_nl_filter}. Feedback particle filter (FPF), which is the main focus of the dissertation is formally introduced in \Section{s:fpf}. A critical component of the FPF is the gain function, which is obtained as the gradient of the solution to Poisson's equation associated to the Langevin diffusion. A sketch of the derivation of the optimal gain function that guarantees asymptotic exactness of the FPF to the nonlinear filter is provided in \Appendix{a:fpf}. As has been already elaborated in \Chapter{ch:diff_td}, $\gradTD$ algorithms offer a natural solution to approximating the gain function. Two enhancements to the RKHS based $\gradTD$ learning algorithm are proposed to improve the performance in the FPF in \Section{s:fpf_enhanced_td}. A Galerkin-based approximation method and one based on approximating the transition kernel of the Langevin diffusion \cite{tagmeh16a}, which was developed in parallel research is also presented. Finally, \Section{s:fpf_numerics} contains a number of numerical experiments that compare the performance of the various algorithms in gain approximation and in filtering problems.  
+Applications to nonlinear filtering was the main motivation behind the development of the $\gradTD$ learning algorithms in Chapters \ref{ch:diff_td} and \ref{ch:rkhs}. In this chapter, the problem of nonlinear filtering and the associated theory is described in detail in \Section{s:nl_filtering_intro}. A brief survey on approximations to the nonlinear filter is provided in \Section{s:approx_nl_filter}. Feedback particle filter (FPF), which is the main focus of the dissertation is formally introduced in \Section{s:fpf}. A critical component of the FPF is the gain function, which is obtained as the gradient of the solution to Poisson's equation associated to the Langevin diffusion. A sketch of the derivation of the optimal gain function that guarantees asymptotic exactness of the FPF to the nonlinear filter is provided in \Appendix{a:fpf}. Galerkin-based approximation methods and an algorithm based on approximating the Markov semigroup of the Langevin diffusion \cite{tagmeh16a}, which was developed in parallel research are presented in Sections \ref{s:galerkin} and \ref{s:coifman} respectively. Due to the gradient representation of the gain, $\gradTD$ algorithms described in \Chapter{ch:diff_td} and its RKHS based variants from \Chapter{ch:rkhs} offer a natural solution to approximating it. Two enhancements to the RKHS based $\gradTD$ learning algorithm are proposed to improve their performance in the FPF in \Section{s:fpf_rkhs_improvements}. Finally, \Section{s:fpf_numerics} contains a number of numerical experiments that compare the performance of the various algorithms for gain approximation and for filtering problems.  
 
 \section{Introduction to Nonlinear Filtering} 
 \label{s:nl_filtering_intro}
-A preliminary introduction to nonlinear filtering was provided in \Chapter{ch:intro}. A schematic diagram of a state estimator is shown in \Fig{Chap1_state_est_block}. To make things more precise, we provide a more formal description of the problem here. First, we begin with a motivating application. Nonlinear filtering has its origins in tracking problems in satellite and aircraft navigation. The key goal of filtering is to obtain recursive estimates of the state of a stochastic dynamical system based on partial noisy observations. A typical example in a tracking application is the simultaneous estimation of position and velocity of a moving target. Here, position and velocity of the target constitute the state of the system and the observations are modeled as nonlinear functions of the state made in the presence of noise. More recently, filtering has found applications in diverse areas such as machine learning \cite{bishop06}, queueing networks, mathematical finance \cite{brihan08} and data assimilation problems for weather forecasting \cite{eve94}. 
+A preliminary introduction to nonlinear filtering was provided in \Chapter{ch:intro}. A schematic diagram of a state estimator is shown in \Fig{Fig:state_estimator}. To make things more precise, we provide a more formal description of the problem here. First, we begin with a motivating application. Nonlinear filtering has its origins in tracking problems in satellite and aircraft navigation. The key goal of filtering is to obtain recursive estimates of the state of a stochastic dynamical system based on partial noisy observations. A typical example in a tracking application is the simultaneous estimation of position and velocity of a moving target. Here, position and velocity of the target constitute the state of the system and the observations are modeled as nonlinear functions of the state made in the presence of noise. More recently, filtering has found applications in diverse areas such as machine learning \cite{bishop06}, queueing networks, mathematical finance \cite{brihan08} and data assimilation problems for weather forecasting \cite{eve94}. 
 
 A filtering problem can be formulated in continuous or discrete-time and continuous or finite state-space depending on the application of interest. 
 The simplest dynamical model for filtering in discrete-time and state space is the Hidden Markov Model (HMM). In this dissertation however, we are primarily interested in a filtering problem in continuous-time with states evolving on a Euclidean space. For simplicity, let us restrict ourselves to the scalar filtering problem:
@@ -259,7 +259,7 @@ h = P_\epsilon h + \int_0^\epsilon P_s (h - \hah) \ud s,
 \end{equation}
 where $P_\epsilon$ refers to the transition semigroup of the Langevin diffusion, defined in \eqref{e:lang_generate_semigroup}. The main step is the use of an approximate semigroup $\text{T}$ in place of $P_\epsilon$.
 An empirical solution to the fixed-point equation at the particle locations is obtained through successive approximation. The gain is subsequently obtained by taking the gradient.  A summary of the algorithm to approximate the gain for a fixed time $t$ is tabulated in \Algorithm{alg:coifman}:
-%\begin{algorithm}
+\begin{algorithm}{Markov semigroup gain function approximation algorithm}
 \begin{algorithmic}[1]
 	%\caption{Markov semigroup algorithm for gain function approximation}
 	\Require $\{x^i\}_{i=1}^N, \{c(x^i)\}_{i=1}^N, h_{prev}, \epsilon, L$.
@@ -279,7 +279,7 @@ An empirical solution to the fixed-point equation at the particle locations is o
 	\State Calulate $\text{K}_i  = \sum_j s_{ij} x^j$ for $i =1$ to $N$ \Comment{FPF gain function approximation}
 	\label{alg:coifman}
 \end{algorithmic}
-%\end{algorithm}
+\end{algorithm}
 
 Similar to the RKHS-based $\gradTD$ learning, the Markov semigroup approximation provides a basis-independent solution to FPF gain function approximation. The only hyperparameter that needs to be selected is the time-step parameter $\epsilon$ and it has been remarked in \cite{tagmeh16} that the approximation is valid for small values of $\epsilon$. However, the algorithm may lead to two potential difficulties. Solving for the Poisson's equation on the particles may result in overfitting,  and numerical issues may be magnified in the subsequent gradient approximation. The RKHS method addresses these difficulties via regularization. Another potential drawback is the use of successive approximation, which might require a large number of iterations to converge. 
 
@@ -293,6 +293,8 @@ In this section, two new enhancements to the RKHS based $\gradTD$ learning algor
 \item Dynamic regularization - The online filtering problem is considered here. To obtain the estimates of the posterior using the FPF, we need to compute the gain function $\kFPF_t$ for all $t$. This necessitates computationally simple algorithms that can update the gain function in an iterative fashion.
 \item Utilizing the constant gain - To obtain good approximations using the RKHS based $\gradTD$ algorithm, a suitable choice of the hyperparameters $\reg$ and $\epsy$ are required. As described in \Chapter{ch:rkhs}, there are no standard rules to choose the optimal values and the selection is usually done by cross-validation in a supervised learning setting. However, this may not always be possible in gain function approximation and any additional information that can aid in this selection or make the algorithm robust to the values of hyperparameters is useful. We propose to use the easily computable constant gain approximation \eqref{e:fpf_const} as an additional constraint in the ERM problem. 
 \end{romannum}
+It is possible to apply both the enhancements independently or simultaneously to improve performance. 
+
 \subsection{Dynamic regularization - RKHS with memory}
 \label{s:fpf_rkhs_memory}
 In a discrete implementation of the FPF, it is assumed that time is sampled with constant inter-sampling time $\delta$. The gain updates are performed at $t = n \delta$, and the FPF uses $\kFPF_n$ rather than $\kFPF_t$. It is expected that $\kFPF_{n} = \kFPF_{t_n}  \approx \kFPF_{t_{n-1}}$ if $\delta\approx 0$.   This is the motivation for the dynamic regularization developed in this section.    Given an additional regularization parameter $\lambda_1$,  the proposed ERM is defined as in \eqref{e:erm},  with modified loss function:
@@ -399,16 +401,164 @@ The gain $\kFPF$ is then computed as
 $
 \kFPF = \hakFPF^* + \nabla \tilg^*$.
 
-\subsection{Computational complexity}
+\subsection{Algorithm summary}
+\label{alg:rkhs}
+\begin{algorithm}{RKHS based $\gradTD$ learning algorithms for gain function approximation}
+	\begin{algorithmic}[1]
+		\Require $\{x^i\}_{i=1}^N, \{c(x^i)\}_{i=1}^N, \beta_{n-1}, \epsilon, \reg$.
+		\Ensure $\{\kFPF^i\}_{i=1}^N$
+		\State Calculate $\Kern_{ij} = \exp(-\|x^i - x^j\|^2/ 4\epsilon)$ for $i,j = 1$ to $N$  \Comment{Gaussian kernel}
+		\State Calculate $ \partial_{x_k}\Kern_{ij} = -\frac{(x_k^i - x_k^j)}{2\epsilon} \Kern_{ij}$ for all $i,j =1$ to $N$ and $k = 1$ to $d$ \Comment{Gaussian kernel derivative}
+		\State Calculate $M$ and $b$ according to Equations (give list based on the variant chosen)
+		\State Calculate $\beta^* = M^{-1}b$
+		\State Calulate $\text{K}_i  = \sum_j \beta_{ik} \partial_{x_k} \nabla_{x}Kern{ij}$ for $i =1$ to $N$ \Comment{FPF gain function approximation}
+		% \label{alg:rkhs}
+	\end{algorithmic}
+\end{algorithm} \anand{Needs more work}
+
+\section{Computational complexity}
+\label{s:computational_complexity}
+\anand{Need Prof. Meyn's help on this}
 
 \section{Numerical Experiments}
 \label{s:fpf_numerics}
-Filtering experiments were performed using the various FPF gain function approximation approaches discussed in this paper. Additionally, comparisons are made with conventional techniques: the extended Kalman filter (EKF), and \textit{sequential importance sampling} particle filter (SIS PF).
-The examples surveyed in this section are the following:
-\begin{itemize}
-	\item A parameter estimation problem with linear observations and bimodal prior
-	\item A nonlinear multidimensional ship dynamics model.
-\end{itemize}
+In this section, we present a number of numerical experiments that compare the various approaches discussed in this dissertation. 
+	\subsection{Approximating the posterior using EM algorithm}
+	The contribution of this work is to develop algorithms to approximate the FPF gain, along with a smooth approximation of the empirical distributions.  The starting point is the specification of a parameterized family  of smooth and continuous densities, denoted  $\clP = \{ p_\alpha : \alpha\in\Re^m\}$,  and a parameterized family of continuous gain functions $\clK = \{K_\param : \param\in\Re^d\}$.
+	The algorithm consists of two steps:
+	\begin{arabnum}
+		\item Obtain $\pr\in\clP $ that most closely approximates $\pr^{(N)}$.
+		\item  Obtain an approximation within $\clK$ for the FPF gain, based on the solution to Step~1.
+	\end{arabnum}
+	The choice of $\clP$ will depend on the application.
+	One example is a finite-dimensional class of Gaussian mixture models (GMM). An $m$-component Gaussian mixture density has the following general form:
+	\begin{equation*}
+	\begin{aligned}
+	p(x)& = \sum_{i=1}^{m} w_{i} p_{i}(x) \qquad  \sum_{i=1}^{m} w_{i} &=1 ,
+	\label{gaussian_mix}
+	\end{aligned}
+	\end{equation*}
+	\noindent
+	where each $p_{i}$ is a Gaussian density with mean $\mu_{i}$ and standard deviation $\sigma_{i}$.
+	The choice of $\clK$ is also problem-specific -- examples are given in \Section{s:ex}.
+	
+	The density estimation problem in Step~1 is defined as follows: Given the set of $N$ particles, and a family $\clP $ of probability density functions,  find the probability density $p \in \clP $ that is most likely to have generated the given particles.  The
+	Expectation Maximization (EM) algorithm is one approach to obtaining the maximum a posteriori (MAP) optimal density.
+	
+	The main contribution of the paper is the application of a new algorithm called differential-TD ($\nabla$-TD) learning to address Step~2.   This algorithm is used to solve the minimization problem,
+	\begin{equation}
+	\min_{\param}\|\kFPF - K_\param\|_p^{2}
+	=
+	\min_{\param} \Expect\bigl[   | \kFPF (X) - K_\param(X) |^2 \bigr],
+	\label{e:gradTDgoal}
+	\end{equation}
+	where $X \sim p$.
+	
+	This computation involves another layer of simulation that adds very little additional complexity to the FPF. 
+	TD-learning algorithms are used to approximate value functions \cite{bertsi96a}.  In the context of average-cost optimal control,  the solution to Poisson's equation is known as the relative value function.   Given a parameterized family of approximate solutions $\{h^\param\}$,  the TD-learning algorithm aims to minimize $\| h - h^\param\|_p^{2}$ over all $\param$. In $\nabla$-TD learning, the objective is to minimize the $p$-norm error of the gradients:
+	\begin{equation}
+	\param^* = \argmin_{\param} \| h' - h{^\param}'\|_p^{2}
+	\label{e:gradTDobjective}
+	\end{equation}
+	Given the representation $\kFPF = h' $,  it is evident that the goal of $\nabla$-TD learning
+	is identical to the optimization problem \eqref{e:gradTDgoal}, in which $h$ is the solution to Poisson's equation \eqref{eq_fish} with $U=-\log(p)$.
+	
+	\subsection{Numerical issues with the gain}
+	
+	\subsubsection{Linear/nonlinear parameterization}
+	
+	\subsection{Gain function approximation for fixed $t$}.
+	\subsubsection{Finite basis - diff TD}
+	\subsubsection{RKHS- based algorithms}
+	Mention about hyperparameter selection issues
+	
+	\subsubsection{Nonlinear oscillator}
+	 \label{s:nl_oscillator}
+	\subsection{Filtering experiments}
+	\label{s:filtering_experiments}
+	The examples surveyed in this section are the following:
+	\begin{itemize}
+		\item A parameter estimation problem with linear observations and bimodal prior
+		\item A nonlinear multidimensional ship dynamics model.
+	\end{itemize}
+	\subsubsection{Parameter estimation}
+	\label{s:param_estimation}
+	\subsubsection{Ship dynamics model} 
+	\label{s:ship_dynamics}
+	
+	
+
+
+
+
+
+Two general applications are considered in this section, distinguished by the finite dimensional class of densities $\clP$.  We first consider a Gaussian mixture model for a diffusion on the real line,  and for a diffusion on the unit circle we consider a mixture of von Mises densities \cite{haspea00}.
+
+In each case it is also necessary to define a family of gain functions $\clK = \{K_\param : \param\in\Re^d\}$.  In control applications it is often possible to use the control solution for a stylized control model to inform the choice of basis  \cite{CTCN,huachemehmeysur11}.  In the filtering context here, we do not yet have many tools for basis selection.
+
+One approach is to consider an asymptotic regime.  For example, in the nonlinear oscillator considered in \cite{yanmehmey13} it was possible to estimate the gain function for low signal-to-noise ratio through a Taylor series expansion.  The components of this approximation are used to obtain the family $\clK$ in
+\Section{section_nl_oscillator}.
+
+The rate of convergence of the parameter depends on properties of the stochastic process $\bfPhi$ described by Langevin's diffusion \eqref{e:LE},  and the associated stochastic process that defines the eligibility vectors  in \eqref{eq_eligibility_vec}.  While a stationary version of this process exists in all of the examples considered here,  it will be seen that in some examples the sample paths take on large values, which contributes to high variance.
+
+These issues are most pronounced when the mixture density has a very shallow ``valley'', which is precisely the situation that leads to very large values of the true gain $\kFPF$. This is illustrated in \Fig{gain_comparison} which shows two bimodal densities and their corresponding gain functions. The two densities are very similar in shape, but, $p_{1}$ results in a much higher value of gain than $p_{2}$. High magnitudes of FPF gain affect the particles that lie in this region of the state space, leading to numerical instabilities in filtering.
+
+\begin{figure}[h]
+	\begin{center}
+		\Ebox{.85}{images/Chap4_Fig_gain_comparison}
+		\caption{FPF gain $K(x)$ for $p(x)$ with $w_{0}=0.01$ and $w_{0}=0.1$}
+		\label{gain_comparison}
+	\end{center}
+\end{figure}
+
+%\iffalse
+%\begin{figure}[h]
+%	\begin{center}
+%		\includegraphics[width=12cm]{Chap4_Fig_low_var_w0_pt01_K_900.eps}
+%		\caption{FPF gain $K(x)$ for $p(x)$ with $w_{0}=0.01$}
+%		\label{low_var}
+%	\end{center}
+%\end{figure}
+%
+%\begin{figure}[H]
+%	\begin{center}
+%		\includegraphics[width=12cm]{Chap4_Fig_low_var_w0_pt1_K_90.eps}
+%		\caption{FPF gain $K(x)$ for $p(x)$ with $w_{0}=0.1$}
+%		\label{high_var}
+%	\end{center}
+%\end{figure}
+%\fi
+
+\subsection{Gaussian mixture model}
+\label{Results}
+
+We begin with a survey of results obtained for the Gaussian mixture model (GMM).  An integer $m\ge 1$ is fixed, and a density $p\in \clP$ has the form
+\begin{equation*}
+\begin{aligned}
+p(x)& = \sum_{i=1}^{m} w_{i} p_{i}(x) \,,
+\end{aligned}
+\end{equation*}
+where each $p_{i}$ is a $\mathcal{N}(\mu_i,\sigma_i^2)$ Gaussian density, and the non-negative weights $\{w_i\}$ sum to one. Let $\mu$ and $\sigma^{2}$ denote the mean and the variance of $p$.
+%
+%\iffalse
+%\begin{figure}[h]
+%	\begin{center}
+%		\Ebox{.85}{Chap4_Fig_gain_comparison_low_var.eps}
+%		\caption{FPF gain $\kFPF$ for the given density $p$ with low variance}
+%		\label{gain_comparison_1}
+%	\end{center}
+%\end{figure}
+%
+%
+%\begin{figure}
+%	\begin{center}
+%		\Ebox{.85}{Chap4_Fig_gain_comparison_high_var.eps}
+%		\caption{FPF gain $\kFPF$ for the given density $p$ with high variance}
+%		\label{gain_comparison_2}
+%	\end{center}
+%\end{figure}
+%\fi
+
 \subsection{Parameter estimation }
 A simple example where the state $X_t \in \Re$ remains at its initial value is considered first.
 State-observation model:
@@ -609,7 +759,8 @@ where $X^j, \, j= 1 ,\cdots, 100$ represents the signal trajectory, $X^j(n\delta
 
 The FPF-RKHS-OM provides the lowest RMSE value among the four filters. The EKF performs the worst as the estimates tend to diverge from the true state trajectory in many runs.
 
-Another metric discussed in \cite{budchelee07} is the number of times each filter ``loses its track''. This is obtained by setting a maximum tolerance value for the norm of the estimation error at each instant. If at any instant, the filter estimates produce larger than this tolerance limit, it is considered as having ``lost the track''.   This tolerance limit was set to $10$ in these experiments. The EKF lost track over $93$ times in the $100$ trials, whereas FPF-RKHS-OM lost track only $4$ times.
+Another metric discussed in \cite{budchelee07} is the number of times each filter ``loses its track''. This is obtained by setting a maximum tolerance value for the norm of the estimation error at each instant. If at any instant, the filter estimates produce larger than this tolerance limit, it is considered as having ``lost the track''.   This tolerance limit was set to $10$ in these experiments. The EKF lost track over $93$ times in the $100$ trials, whereas FPF-RKHS-OM lost track only $4$ times.\
+\begin{table}
 \begin{center}
 	\begin{tabular}{ |c|c|c|c| }
 		\hline
@@ -624,6 +775,8 @@ Another metric discussed in \cite{budchelee07} is the number of times each filte
 	\end{tabular}
 	\label{table:rmse}
 \end{center}
+\end{table}
+\anand{Table not listed in list of tables}
 
 %The contribution of this work is to develop algorithms to approximate the FPF gain, along with a smooth approximation of the empirical distributions.  The starting point is the specification of a parameterized family  of smooth and continuous densities, denoted  $\clP = \{ p_\alpha : \alpha\in\Re^m\}$,  and a parameterized family of continuous gain functions $\clK = \{K_\param : \param\in\Re^d\}$.
 %The algorithm consists of two steps:
