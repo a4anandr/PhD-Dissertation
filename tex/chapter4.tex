@@ -263,7 +263,7 @@ An empirical solution to the fixed-point equation at the particle locations is o
 \begin{algorithmic}[1]
 	%\caption{Markov semigroup algorithm for gain function approximation}
 	\Require $\{x^i\}_{i=1}^N, \{c(x^i)\}_{i=1}^N, h_{prev}, \epsilon, L$.
-	\Ensure $\{\kFPF^i\}_{i=1}^N$
+	\Ensure $\{\kFPF_i\}_{i=1}^N$
 	\State Calculate $\Kern_{ij} = \exp(-\|x^i - x^j\|^2/ 4\epsilon)$ for $i,j = 1$ to $N$  \Comment{Gaussian kernel}
 	\State Calculate $\kappa_{ij} = \frac{\Kern_{ij}}{\sqrt{\sum_k \Kern_{ik}}\sqrt{\sum_k \Kern_{jk}}}$ for $i,j =1$ to $N$
 	\State Calculate $d_i = \sum_j \kappa_{ij}$ for $i=1$ to $N$
@@ -276,7 +276,7 @@ An empirical solution to the fixed-point equation at the particle locations is o
 		\EndFor
 	\State Calculate $r_i = h_i + \epsilon c_i$ for $i=1$ to $N$
 	\State Calculate $s_{ij} = \frac{1}{2\epsilon} \text{T}_{ij} (r_j - \sum_{k=1}^N \text{T}_{ik} r_k)$ for $i,j=1$ to $N$ 
-	\State Calulate $\text{K}_i  = \sum_j s_{ij} x^j$ for $i =1$ to $N$ \Comment{FPF gain function approximation}
+	\State Calulate $\kFPF_i  = \sum_j s_{ij} x^j$ for $i =1$ to $N$ \Comment{FPF gain function approximation}
 	\label{alg:coifman}
 \end{algorithmic}
 \end{algorithm}
@@ -411,7 +411,7 @@ $
 		\State Calculate $ \partial_{x_k}\Kern_{ij} = -\frac{(x_k^i - x_k^j)}{2\epsilon} \Kern_{ij}$ for all $i,j =1$ to $N$ and $k = 1$ to $d$ \Comment{Gaussian kernel derivative}
 		\State Calculate $M$ and $b$ according to Equations (give list based on the variant chosen)
 		\State Calculate $\beta^* = M^{-1}b$
-		\State Calulate $\text{K}_i  = \sum_j \beta_{ik} \partial_{x_k} \nabla_{x}Kern{ij}$ for $i =1$ to $N$ \Comment{FPF gain function approximation}
+		\State Calulate $\text{K}_i  = \sum_{j=1}^N \sum_{k=1}^d \beta^*_{jk} \partial_{x_k} \Kern_{ij}$ for $i =1$ to $N$ \Comment{FPF gain function approximation}
 		% \label{alg:rkhs}
 	\end{algorithmic}
 \end{algorithm} \anand{Needs more work}
@@ -427,7 +427,7 @@ In this section, we present a number of numerical experiments to compare the per
 In \Section{s:fpf_em}, 
 	\subsection{Approximating the posterior using EM algorithm}
 	\label{s:fpf_em}
-	The contribution of this work is to develop algorithms to approximate the FPF gain, along with a smooth approximation of the empirical distributions.  The starting point is the specification of a parameterized family  of smooth and continuous densities, denoted  $\clP = \{ p_\alpha : \alpha\in\Re^m\}$,  and a parameterized family of continuous gain functions $\clK = \{K_\param : \param\in\Re^d\}$.
+	The contribution of this work is to develop algorithms to approximate the FPF gain, along with a smooth approximation of the empirical distributions.  The starting point is the specification of a parameterized family  of smooth and continuous densities, denoted  $\clP = \{ \pr_\alpha : \alpha\in\Re^m\}$,  and a parameterized family of continuous gain functions $\clK = \{K_\param : \param\in\Re^d\}$.
 	The algorithm consists of two steps:
 	\begin{arabnum}
 		\item Obtain $\pr\in\clP $ that most closely approximates $\pr^{(N)}$.
@@ -450,6 +450,8 @@ In \Section{s:fpf_em},
 	The main contribution of the paper is the application of a new algorithm called differential-TD ($\nabla$-TD) learning to address Step~2.  
 	This computation involves another layer of simulation that adds very little additional complexity to the FPF. 
 	TD-learning algorithms are used to approximate value functions \cite{bertsi96a}.  
+	
+	Two general applications are considered in this section, distinguished by the finite dimensional class of densities $\clP$.  We first consider a Gaussian mixture model for a diffusion on the real line,  and for a diffusion on the unit circle we consider a mixture of von Mises densities \cite{haspea00}.
 	
 	\subsection{Numerical issues with the gain}
 	
@@ -480,7 +482,7 @@ In \Section{s:fpf_em},
 
 
 
-Two general applications are considered in this section, distinguished by the finite dimensional class of densities $\clP$.  We first consider a Gaussian mixture model for a diffusion on the real line,  and for a diffusion on the unit circle we consider a mixture of von Mises densities \cite{haspea00}.
+
 
 In each case it is also necessary to define a family of gain functions $\clK = \{K_\param : \param\in\Re^d\}$.  In control applications it is often possible to use the control solution for a stylized control model to inform the choice of basis  \cite{CTCN,huachemehmeysur11}.  In the filtering context here, we do not yet have many tools for basis selection.
 
