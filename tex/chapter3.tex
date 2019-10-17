@@ -7,7 +7,7 @@ In \Chapter{ch:diff_td}, the standard LSTD algorithm was reviewed and two versio
 \end{romannum}
 Hence, it is a better idea to choose a function class that adapts dynamically to suit the problem and the sample distribution. Kernel methods provide an alternative approach to basis selection. 
 
-This chapter aims to adapt the $\gradTD$ algorithm proposed in \Chapter{ch:diff_td} in a reproducing kernel Hilbert space (RKHS) setting.  The remainder of this chapter is organized as follows - In \Section{s:rkhs_basics}, a very concise introduction to kernel functions and the RKHS theory is provided. A more detailed discussion of its properties including Mercer's theorem can be found in \Appendix{a:mercers_theorem}. Gaussian kernels have found wide acceptance in machine learning and function approximation and some of the useful properties of the RKHS induced by the Gaussian kernel is discussed in \Appendix{a:gaussian_rkhs}. Function approximation problems arising in machine learning are usually cast in the form of a regularized empirical risk minimization (ERM) problem - a brief introduction is provided in \Section{s:erm}. Obtaining solutions to such problems are made possible via the classical representer theorem. The theorem is stated in \ref{s:erm_rkhs} and the proof is provided in \Appendix{a:rep_theorem}. In \Section{s:erm}, the minimum-norm problem in $L^2(\pr)$ \eqref{e:gradTD_norm_error} of approximating the gradient of the solution to Poisson's equation is reformulated as an equivalent ERM problem to apply the RKHS machinery. As the ERM formulated consists of gradient terms, a generalized  version of the representer theorem (\Theorem{theorem:rep_theorem}) is required to obtain the optimal solution.  A simplified sub-optimal solution that lies on a subspace of the original RKHS is also presented. A short review of the various existing approaches to error analysis for a generic least squares regression problem is given  in \Appendix{a:bousquet}. Error analysis where loss functions have gradient terms is in Section 3.5.
+This chapter aims to adapt the $\gradTD$ algorithm proposed in \Chapter{ch:diff_td} in a reproducing kernel Hilbert space (RKHS) setting.  The remainder of this chapter is organized as follows - In \Section{s:rkhs_basics}, a very concise introduction to kernel functions and the RKHS theory is provided. A more detailed discussion of its properties including Mercer's theorem can be found in \Appendix{a:mercers_theorem}. Gaussian kernels have found wide acceptance in machine learning and function approximation and some of the useful properties of the RKHS induced by the Gaussian kernel is discussed in \Appendix{a:gaussian_rkhs}. Function approximation problems arising in machine learning are usually cast in the form of a regularized empirical risk minimization (ERM) problem - a brief introduction is provided in \Section{s:erm}. Obtaining solutions to such problems are made possible via the classical representer theorem. The theorem is stated in \ref{s:erm_rkhs} and the proof is provided in \Appendix{a:rep_theorem}. In \Section{s:erm}, the minimum-norm problem in $L^2(\pr)$ \eqref{e:rkhs_diff_td_gradTD_norm_error} of approximating the gradient of the solution to Poisson's equation is reformulated as an equivalent ERM problem to apply the RKHS machinery. As the ERM formulated consists of gradient terms, a generalized  version of the representer theorem (\Theorem{theorem:rep_theorem}) is required to obtain the optimal solution.  A simplified sub-optimal solution that lies on a subspace of the original RKHS is also presented. A short review of the various existing approaches to error analysis for a generic least squares regression problem is given  in \Appendix{a:bousquet}. Error analysis where loss functions have gradient terms is in Section 3.5.
 \anand{yet to be done}
 
 \section{RKHS Basics}
@@ -22,12 +22,12 @@ Before defining an RKHS, a positive definite kernel needs to be defined. A funct
 Let us consider a function $f$ which is a linear combination of the form,
 \begin{equation}
 f(\cdot) = \sum_{i=1}^N \alpha_i \Kern(x^i, \cdot),
-\label{e:f_rkhs}
+\label{e:rkhs_f_rkhs}
 \end{equation}
 where $N \in \mathbb{N}, \alpha_i \in \Re, \{ x^i \in \state: 1\leq i \leq N \}$ are arbitrary. Let $\clH^0$ denote the vector space (pre-Hilbert space) spanned by all functions $f$ of this form. Evidently, the function $g$ defined as,  
 \begin{equation}
 g(\cdot) = \sum_{j=1}^M \rkhsparam_j \Kern(x^j, \cdot),
-\label{e:g_rkhs}
+\label{e:rkhs_g_rkhs}
 \end{equation}
 where each $\rkhsparam_i \in \Re$ and $\{x^j\}_1^M$ are arbitrary points, also belongs to this vector space.  An inner product of functions $f,g \in \clH^0$ is defined as,
 \begin{equation}
@@ -47,7 +47,7 @@ Owing to this property, the kernel function $\Kern$ is called the reproducing ke
 \begin{equation}
 \langle \Kern_x, \Kern_{x'} \rangle =  \Kern(x,x') = \Kern(x',x) =  \langle \Kern_{x'}, \Kern_x \rangle. 
 \end{equation}
-The space obtained by the completion of functions of the form $f$ defined in \eqref{e:f_rkhs}, that are endowed with the inner product defined in \eqref{e:rkhs_inner_product} (denoted as $\langle \cdot, \cdot \rangle_{\clH}$ here onward to distinguish from the normal dot product definition) yields a Hilbert space $\clH$, called the reproducing kernel Hilbert space (RKHS). The corresponding norm is defined as $\|f\|_\clH \eqdef \sqrt{\langle f, f \rangle_\clH}$. 
+The space obtained by the completion of functions of the form $f$ defined in \eqref{e:rkhs_f_rkhs}, that are endowed with the inner product defined in \eqref{e:rkhs_rkhs_inner_product} (denoted as $\langle \cdot, \cdot \rangle_{\clH}$ here onward to distinguish from the normal dot product definition) yields a Hilbert space $\clH$, called the reproducing kernel Hilbert space (RKHS). The corresponding norm is defined as $\|f\|_\clH \eqdef \sqrt{\langle f, f \rangle_\clH}$. 
 
 The Moore-Aronszajn theorem states that every symmetric, positive definite kernel $\Kern : \state \times \state \to \Re$ defines an RKHS $\clH$ for which $\Kern$ is the reproducing kernel. A Hilbert function space $\clH$ that has a reproducing kernel $\Kern$ is always an RKHS and conversely, every RKHS has a (unique) reproducing kernel. While all RKHS are Hilbert spaces, the converse is not true. For example, the space of square-integrable $L^2$ functions is a Hilbert space, but not an RKHS. 
 
@@ -59,12 +59,12 @@ For any function $f\in\clH$ and $\{f_n\}\subset \clH$ be a sequence with $\|f_n 
 If $\Kern$ is a continuous, symmetric and positive definite kernel satisfying, 
 \begin{equation}
 \kappa = \sup_{x \in \state} \sqrt{\Kern(x,x)} < \infty,
-\label{e:kappa}
+\label{e:rkhs_kappa}
 \end{equation}
 then, \Prop{prop:RKHS_bounded} holds. Additionally, if $K$ is continuous, then every function in $\clH$ is continuous. 
 \begin{proposition}
 \label{prop:RKHS_bounded}
-	If the kernel $\Kern$ is uniformly bounded by \eqref{e:kappa}, then any $f \in \clH$ is also bounded. 
+	If the kernel $\Kern$ is uniformly bounded by \eqref{e:rkhs_kappa}, then any $f \in \clH$ is also bounded. 
 \end{proposition}
 \begin{proof}
 	If $f \in \clH$, for all $x \in \state$,
@@ -186,48 +186,48 @@ where $\epsilon$ is the variance parameter that controls the width of the functi
 More composite kernel functions can be constructed by taking various combinations of reproducing kernels. 
 \section{Empirical Risk Minimization (ERM)}
 \label{s:erm}
-In this dissertation, kernel methods and RKHS are employed with the ultimate objective of acting as an approximating function space to be used in the $\gradTD$ learning algorithms presented in \Chapter{ch:diff_td}. As mentioned earlier, RKHS has a rich history of being used for learning functions from observed data. Such class of problems termed empirical risk minimization (ERM) have been well studied in statistical learning theory literature. In order to utilize the RKHS theory, the $L^2(\pr)$ norm-minimization problem in \eqref{e:gradTD_norm_error} needs to be fit in an ERM framework. In this section, a primer on ERM is provided, followed by the necessary transformations that lead to an ERM formulation for the $\gradTD$ learning problem.  
+In this dissertation, kernel methods and RKHS are employed with the ultimate objective of acting as an approximating function space to be used in the $\gradTD$ learning algorithms presented in \Chapter{ch:diff_td}. As mentioned earlier, RKHS has a rich history of being used for learning functions from observed data. Such class of problems termed empirical risk minimization (ERM) have been well studied in statistical learning theory literature. In order to utilize the RKHS theory, the $L^2(\pr)$ norm-minimization problem in \eqref{e:diff_td_gradTD_norm_error} needs to be fit in an ERM framework. In this section, a primer on ERM is provided, followed by the necessary transformations that lead to an ERM formulation for the $\gradTD$ learning problem.  
 
 In an ideal setting, the goal of a learning problem is to find an approximation of a function $f_\pr : \state \to Y$, when only a pair of values $\bm{z} = (x^i, y^i)_{i=1}^N$ drawn from an unknown probability measure $\pr$ on $\state \times Y$ is available. Usually, $\state$ is a compact domain and $Y = \Re$. For a least-squares regression problem, the best target function often called the regression function is the minimizer of:
 \begin{equation}
 f_\pr \eqdef \argmin_f \int_{\state \times Y} (f(x) - y) ^2 d\pr,
-\label{e:least_sq_regression}
+\label{e:rkhs_least_sq_regression}
 \end{equation}
 it takes the form:
 \begin{equation}
 f_\pr(x) = \int_Y y d\pr(y|x).
-\label{e:f_rho}
+\label{e:rkhs_f_rho}
 \end{equation}
-In practice, it is not possible to obtain $f_\pr$ due to two reasons. First, $\pr$ is unknown and only a finite number of sample points are available for estimation and therefore, it is not possible to carry out the integration \eqref{e:f_rho}. Secondly, since the approximating function space that is chosen is typically a small subspace, an exact match for $f_\pr$ may not be obtained within this space. Hence, we focus on minimizing the empirical risk on observed data:
+In practice, it is not possible to obtain $f_\pr$ due to two reasons. First, $\pr$ is unknown and only a finite number of sample points are available for estimation and therefore, it is not possible to carry out the integration \eqref{e:rkhs_f_rho}. Secondly, since the approximating function space that is chosen is typically a small subspace, an exact match for $f_\pr$ may not be obtained within this space. Hence, we focus on minimizing the empirical risk on observed data:
 \begin{equation}
 f_{\bm{z}} \eqdef \argmin_f \frac{1}{N} \sum_{i=1}^N (y^i - f(x^i))^2.
-\label{e:erm}
+\label{e:rkhs_erm}
 \end{equation}
-Assuming, $N$ is large enough and $\bm{z} \sim \pr$, \eqref{e:erm} can be thought of as approximating \eqref{e:least_sq_regression} quite well.   In a non-parametric setting, this problem is ill-posed and can have infinitely many solutions. This is resolved by adding an extra regularization term to the objective function. 
+Assuming, $N$ is large enough and $\bm{z} \sim \pr$, \eqref{e:rkhs_erm} can be thought of as approximating \eqref{e:rkhs_least_sq_regression} quite well.   In a non-parametric setting, this problem is ill-posed and can have infinitely many solutions. This is resolved by adding an extra regularization term to the objective function. 
 A common approach followed is to minimize,
 \begin{equation}
 f_{\bm{z},\reg} := \argmin_f \frac{1}{N}\sum_{i=1}^N (y^i - f(x^i))^2 + \reg \|A f \|^2_{\mathcal{L}_{\pr}^2(\state)},
-\label{e:erm_regularized}
+\label{e:rkhs_erm_regularized}
 \end{equation}
 where $A$ is an operator and $\mathcal{L}^2_{\pr}(\state)$ is the Hilbert space of square integrable functions on $\state$ with measure $\pr_\state$ on $\state$ and $\reg>0$ is the regularization parameter. 
-The key objective in an ERM problem is not just to obtain a good fit on the observed data, but to generalize well on ``unseen'' data as well. If the standard $L^2$ norm is used for regularization, \eqref{e:erm_regularized} is called the ridge regression. To obtain sparse solutions, $L^1$-regularization is used, which forms the LASSO technique. Regularization is used to prevent overfitting and achieve better generalization.   In this dissertation, we consider a Tikhonov regularization scheme \cite{tikars79} associated with Mercer kernels.
+The key objective in an ERM problem is not just to obtain a good fit on the observed data, but to generalize well on ``unseen'' data as well. If the standard $L^2$ norm is used for regularization, \eqref{e:rkhs_erm_regularized} is called the ridge regression. To obtain sparse solutions, $L^1$-regularization is used, which forms the LASSO technique. Regularization is used to prevent overfitting and achieve better generalization.   In this dissertation, we consider a Tikhonov regularization scheme \cite{tikars79} associated with Mercer kernels.
 \anand{ridge and LASSO needs citations}
 
 \subsection{ERM in an RKHS setting}
 \label{s:erm_rkhs}
-Now that the utility of regularized empirical risk minimization has been motivated, we consider a more general formulation of an ERM in an RKHS setting. A loss function $L \colon  \state\times \Re \to\Re$ is given. It is not necessary that the loss function takes the mean-squared error form in \eqref{e:erm_regularized}. Given an RKHS $\clH$, the goal is to find the function $f_\reg^*\in\clH$ that solves the infinite-dimensional regularized optimization problem:
+Now that the utility of regularized empirical risk minimization has been motivated, we consider a more general formulation of an ERM in an RKHS setting. A loss function $L \colon  \state\times \Re \to\Re$ is given. It is not necessary that the loss function takes the mean-squared error form in \eqref{e:rkhs_erm_regularized}. Given an RKHS $\clH$, the goal is to find the function $f_\reg^*\in\clH$ that solves the infinite-dimensional regularized optimization problem:
 \begin{equation}
 f_\reg^* \eqdef \argmin_{f\in\clH} \underbrace{\frac{1}{N} \sum_{i=1}^N L(y^i,  f(x^i))}_{\text{Empirical risk}}    + \underbrace{\Omega(\| f\|_{\clH})}_{\text{Regularization}}.
-\label{e:erm_rkhs}
+\label{e:rkhs_erm_rkhs}
 \end{equation}
-The objective function in \eqref{e:erm_rkhs} consists of an empirical risk term, that minimizes the error on observed data, and a regularization term that controls the properties of the model. It is important to note that the regularization term is independent of the observed data sequence $\bf{z}$. The function $\Omega : [0, \infty] \to \Re$ is strictly monotonically increasing. Often, $\Omega$ is chosen to be proportional to a quadratic function of the norm $\|\cdot\|_\clH$, such as $\reg \|f\|^2_\clH$.  The value of the regularization parameter $\reg$ controls the trade-off between the empirical error term and the smoothness of the estimated function. In other words, a larger value for $\reg$ reduces the variance of the estimates by reducing its dependency on $\bf{z}$, but at the cost of introducing bias to the model. Regularization is necessary to ensure the well-posedness of the problem and increasing $\reg$ improves the numerical stability of the algorithm. 
+The objective function in \eqref{e:rkhs_erm_rkhs} consists of an empirical risk term, that minimizes the error on observed data, and a regularization term that controls the properties of the model. It is important to note that the regularization term is independent of the observed data sequence $\bf{z}$. The function $\Omega : [0, \infty] \to \Re$ is strictly monotonically increasing. Often, $\Omega$ is chosen to be proportional to a quadratic function of the norm $\|\cdot\|_\clH$, such as $\reg \|f\|^2_\clH$.  The value of the regularization parameter $\reg$ controls the trade-off between the empirical error term and the smoothness of the estimated function. In other words, a larger value for $\reg$ reduces the variance of the estimates by reducing its dependency on $\bf{z}$, but at the cost of introducing bias to the model. Regularization is necessary to ensure the well-posedness of the problem and increasing $\reg$ improves the numerical stability of the algorithm. 
 \anand{A few words about ways to choose the best $\lambda$.}
 
-The remarkable theme in the RKHS literature is that while the optimization problem in \eqref{e:erm_rkhs} is infinite dimensional,  the optimizer lies in an identifiable finite-dimensional subspace.
+The remarkable theme in the RKHS literature is that while the optimization problem in \eqref{e:rkhs_erm_rkhs} is infinite dimensional,  the optimizer lies in an identifiable finite-dimensional subspace.
 The result is due to the classical version of the representer theorem of Kimeldorf and Wahba \cite{kimwah71}. The original form of the theorem considered the mean-squared loss $L(y^i, f(x^i)) = (y^i - f(x^i))^2$. An extension to non-quadratic loss functions was provided in \cite{coxsull90}. The classical version of the representer theorem is stated next and its proof presented in \cite{schhersmo01} is provided in \Appendix{a:rep_theorem}. 
 \begin{theorem}[Representer Theorem]
 \label{theorem:rep_theorem}
-The minimizer $f_\reg^* \in \clH$ of the regularized risk \eqref{e:erm_rkhs} for an arbitrary loss function $L(y^i, f(x^i))$ lies in the span of kernel functions centered at the sample points, $\Kern(x^i, \cdot)$,
+The minimizer $f_\reg^* \in \clH$ of the regularized risk \eqref{e:rkhs_erm_rkhs} for an arbitrary loss function $L(y^i, f(x^i))$ lies in the span of kernel functions centered at the sample points, $\Kern(x^i, \cdot)$,
 \[
 f_\reg^*(x) = \sum_{i=1}^N \rkhsparam_i \Kern(x^i, x)
 \]
@@ -253,7 +253,7 @@ f_\reg^*(x) = \sum_{i=1}^N \rkhsparam_i \Kern(x^i, x)
 %\[
 %\Omega(\|f\|_\clH) = \Omega( \|f_\parallel + f_\perp\|_\clH) =\Omega( \sqrt{\|f_\parallel\|^2_\clH + \|f_\perp\|^2_\clH})  \geq \Omega(\|f_\parallel\|_\clH)
 %\]
-%This implies that the regularization term in \eqref{e:erm_rkhs} is minimized if $f$ lies in the subspace $\clH_\parallel$.
+%This implies that the regularization term in \eqref{e:rkhs_erm_rkhs} is minimized if $f$ lies in the subspace $\clH_\parallel$.
 %Additionally, using reproducing property of the kernel $\Kern$,
 %\[
 %\begin{aligned}
@@ -290,11 +290,11 @@ with $\gamma_j \in \Re$ for all $j \leq M$.
 \section{Kernel Methods for Differential TD-Learning}
 \label{s:kernel_choices}
 
-In this Section, the goal is to construct an ERM problem in an RKHS setting, such that it closely approximates the objective function in the $\gradTD$ learning algorithm \eqref{e:gradTD_norm_error}. The loss function $L$ will be chosen so that the optimizing function approximately solves \eqref{e:gradTD_norm_error_infinite}; the infinite dimensional variant of \eqref{e:gradTD_norm_error}. 
+In this Section, the goal is to construct an ERM problem in an RKHS setting, such that it closely approximates the objective function in the $\gradTD$ learning algorithm \eqref{e:rkhs_diff_td_gradTD_norm_error}. The loss function $L$ will be chosen so that the optimizing function approximately solves \eqref{e:rkhs_diff_td_gradTD_norm_error_infinite}; the infinite dimensional variant of \eqref{e:rkhs_diff_td_gradTD_norm_error}. 
 \begin{equation}
 \| \nabla h -  \nabla g \|^2_{L^2}   \eqdef \sum_{k=1}^d    \Bigl\|  \frac{\partial}{\partial x^i_k} (h-g)  \Bigr\|^2_{L^2}
 \, .
-\label{e:gradTD_norm_error_infinite}
+\label{e:diff_td_gradTD_norm_error_infinite}
 \end{equation}
 The fact that the original objective function aims to minimize the approximation error in $L^2(\pr)$ norm helps in the construction of an equivalent ERM.
 
@@ -306,10 +306,10 @@ If the values $\{x^i\} \subset \state $  are sampled randomly and independently 
 \end{equation}
 The independence assumption is not essential; the samples $\{x^i\}$ may very well be generated by an ergodic Markov chain with $\pr$ as its invariant density. 
 
-In view of \eqref{e:gradTD_norm_error_infinite}, the ideal loss function is thus
+In view of \eqref{e:diff_td_gradTD_norm_error_infinite}, the ideal loss function is thus
 \begin{equation}
 L^*(x,g(x) ,\nabla g \,(x))  =         \| \nabla h\,(x)  -\nabla g\, (x) \|^2\,, \quad x\in\state\,.
-\label{e:IdealLoss}
+\label{e:rkhs_IdealLoss}
 \end{equation}
 The difficulty with this definition is that $L^*$ in its current form is not computable as $\nabla h$ is unknown. This is resolved by applying the special structure of the differential generator $\generate$,  stated in \Prop{prop:lang_generator_grad}:
 \begin{proposition}
@@ -333,34 +333,34 @@ L^*(x,g(x),\nabla g(x)) & = \| \nabla h(x) - \nabla g(x) \|^2 \\
 To establish the proposition, it remains to show that,
 \[
 \int \nabla h(x) \cdot \nabla g(x) \pr(x) \ud x = \int \tilc(x) g(x) \pr(x) \ud x.
-\label{e:transform}
+\label{e:rkhs_transform}
 \]
 This follows from an application of \Prop{prop:lang_generator_grad}:
 \[
 \begin{aligned}
 \langle \nabla h, \nabla g \rangle_{L^2} & \eqdef \int \nabla h(x) \cdot \nabla g(x) \pr(x) dx \\
 & = - \int  (\generate h(x)) g(x) \pr(x) dx \\
-& = \int \tilc(x) g(x) \pr(x) dx \qquad & \text{(from \eqref{e:poissons})}
+& = \int \tilc(x) g(x) \pr(x) dx \qquad & \text{(from \eqref{e:rkhs_poissons})}
 \end{aligned}
 \]
 \qed
 \Prop{prop:gradTD_erm_loss} motivates the ERM introduced in this dissertation:	
 \begin{equation}
 g^*  := \argmin_{g \in \clH} \frac{1}{N} \sum_{i=1}^N\Bigl[ \underbrace{\| \nabla g(x^i) \|^2 - 2 \tilc_N(x^i)g(x^i)}_{L^\bullet (x^i, g(x^i), \nabla g(x^i))}\Bigr] + \lambda \|g\|^2_\clH
-\label{e:erm_diff_td}
+\label{e:rkhs_erm_diff_td}
 \end{equation}
 in which the centered function $\tilc$ is also approximated:
 \[
 \tilc_N(x) = c(x) - \frac{1}{N}  \sum_{i=1}^N  c(x^i)\,,\quad x\in\state\, .
-\label{e:tilc_N}
+\label{e:rkhs_tilc_N}
 \]
-The term $\| \nabla h \|^2$ can be conveniently dropped from \eqref{e:erm_diff_td} as it does not affect the optimization problem.
+The term $\| \nabla h \|^2$ can be conveniently dropped from \eqref{e:rkhs_erm_diff_td} as it does not affect the optimization problem.
 
 \subsection{Extended representer theorem}
-It may be seen that the ERM in \eqref{e:erm_diff_td} falls in the standard form in \eqref{e:erm_rkhs} except that the loss function $L^\bullet$ depends on the gradient of the estimator $g$. Problems of this form where learning with gradients is required The classical version of the representer theorem (\Theorem{theorem:rep_theorem}) is valid under the assumption that the loss function $L$ depends only on $g$. In this dissertation, as we are interested in loss functions of the form 
+It may be seen that the ERM in \eqref{e:rkhs_erm_diff_td} falls in the standard form in \eqref{e:rkhs_erm_rkhs} except that the loss function $L^\bullet$ depends on the gradient of the estimator $g$. Problems of this form where learning with gradients is required The classical version of the representer theorem (\Theorem{theorem:rep_theorem}) is valid under the assumption that the loss function $L$ depends only on $g$. In this dissertation, as we are interested in loss functions of the form 
 \begin{equation}
 \min_{g\in\clH} \Bigl\{  \frac{1}{N} \sum_{i=1}^N L(x^i,  g(x^i), \nabla g\, (x^i))     + \lambda \| g\|^2_{\clH}  \Bigr\},
-\label{e:erm_rkhs_gradient}
+\label{e:rkhs_erm_rkhs_gradient}
 \end{equation}
 where the function $L$ includes $\nabla g$, it cannot be applied directly. The extension to include differential loss (including gradient terms) appeared in \cite{zho08}. The main motivation in this work is to extend the RKHS theory to applications that may have gradient data or unlabeled data available for improving learning ability. Two types of problems are presented - one in which the loss function includes a term with gradients of the estimator function evaluated at the unlabeled points, called semi-supervised learning and a second where, gradient values at sample points are available and the algorithm is required to learn the function values and the gradients simultaneously, called the Hermite learning algorithm. Potential applications discussed are in image processing, where gradient fitting is used to preserve edges and discontinuities and avoiding staircasing effects \cite{didsetste09}. 
  
@@ -368,11 +368,11 @@ Similar to the standard representer theorem, that guarantees a finite dimensiona
 \begin{theorem}[Extended Representer Theorem]
 	\label{theorem:ext_rep_theorem}
 	Suppose that $L(x, g(x),\nabla g)$ is a convex function on $\Re^{d+1}$ for each $x\in\state$.
-	Then the  optimizer $g^*$ of \eqref{e:erm_rkhs_gradient} over $g\in\clH$ exists, is unique, and has the following representation: \anand{change $x^i_k$ to $x^k$}
+	Then the  optimizer $g^*$ of \eqref{e:rkhs_erm_rkhs_gradient} over $g\in\clH$ exists, is unique, and has the following representation: \anand{change $x^i_k$ to $x^k$}
 	\begin{equation}
 	g^*(x) = \sum_{i=1}^N  \Bigl[
 	\rkhsparam_i^{0*}  K(x^i,x)   +  \sum_{k =1}^d  \rkhsparam_i^{k*} \frac{\partial K}{\partial x^i_k} (x^i, x) \Bigr],
-	\label{e:ext_rep_theorem}
+	\label{e:rkhs_ext_rep_theorem}
 	\end{equation}
 	where $\{\rkhsparam_i^{k*} \colon i=1,\cdots,N,\, k = 0,\cdots,d\}$ are real numbers.
 	\qed
@@ -410,9 +410,9 @@ Let us denote by $\clH_\parallel$, the linear subspace of $\clH$ made up of all 
 	The $\clH$-norm can be written as,
 	\begin{equation}
 	\|g\|^2_\clH = \|g_\parallel + g_\perp\|^2_\clH = \|g_\parallel\|^2_\clH + \|g_\perp\|^2_\clH \geq \|g_\parallel\|^2
-	\label{e:g_reg}
+	\label{e:rkhs_g_reg}
 	\end{equation}
-	This again implies that the regularization term in \eqref{e:erm_rkhs_gradient} is minimized if $g$ lies in the subspace $\clH_\parallel$. Furthermore, using the reproducing property of the kernel $K$,
+	This again implies that the regularization term in \eqref{e:rkhs_erm_rkhs_gradient} is minimized if $g$ lies in the subspace $\clH_\parallel$. Furthermore, using the reproducing property of the kernel $K$,
 	\begin{equation}
 	\begin{aligned}
 	g(x^i) & =  \langle g \, , K(x^i,.) \rangle_\clH\\
@@ -420,7 +420,7 @@ Let us denote by $\clH_\parallel$, the linear subspace of $\clH$ made up of all 
 	&  = \langle g_\parallel\, , K(x^i,.) \rangle_\clH \\
 	&  = g_\parallel(x^i),
 	\end{aligned}
-	\label{e:g_parallel}
+	\label{e:rkhs_g_parallel}
 	\end{equation}
 	and partial derivative reproducing property, we have for all $k = 1, \cdots, d$,
 	\begin{equation}
@@ -430,13 +430,13 @@ Let us denote by $\clH_\parallel$, the linear subspace of $\clH$ made up of all 
 	&  = \langle g_\parallel\, , \frac{\partial K}{\partial x^i_k} (x^i,.) \rangle_\clH \\
 	&  = \frac{\partial g_\parallel(x^i) }{\partial x^i_k}.
 	\end{aligned}
-	\label{e:der_g_parallel}
+	\label{e:rkhs_der_g_parallel}
 	\end{equation}
-	From \cref{e:g_parallel,e:der_g_parallel}, it is clear that the empirical error term depends only on the component $g_\parallel$,
+	From \cref{e:rkhs_g_parallel,e:rkhs_der_g_parallel}, it is clear that the empirical error term depends only on the component $g_\parallel$,
 	\[
 	L(x^i, g(x^i),\nabla g(x^i)) = L(x^i, g_\parallel(x^i),\nabla g_\parallel(x^i)),
 	\]
-	and from \eqref{e:g_reg}, $g_\parallel$ minimizes the regularization term. Hence, the regularized objective function is minimized if $g^*$ lies within $\clH_\parallel$ and takes the form,
+	and from \eqref{e:rkhs_g_reg}, $g_\parallel$ minimizes the regularization term. Hence, the regularized objective function is minimized if $g^*$ lies within $\clH_\parallel$ and takes the form,
 	\[
 	g^*(y) = \sum_{i=1}^N  \Bigl[ \rkhsparam_i^{0*}  K(x^i, y)   +  \sum_{k =1}^d  \rkhsparam_i^{k*} \frac{\partial}{\partial x^i_k}  K(x^i, y) \Bigr]
 	\]
@@ -444,16 +444,16 @@ Let us denote by $\clH_\parallel$, the linear subspace of $\clH$ made up of all 
 
 \subsection{Optimal solution in one dimensional case}
 \label{sec:one_dimension}
-We first provide a full description of the solution to \eqref{e:erm_diff_td} for the one-dimensional model in this section. The optimizer is obtained as the solution to a system of linear equations, extensions to higher dimensions is straight-forward and provided towards the end of the section. 
-The regularized ERM problem \eqref{e:erm_diff_td} in one-dimension reduces to the following:
+We first provide a full description of the solution to \eqref{e:rkhs_erm_diff_td} for the one-dimensional model in this section. The optimizer is obtained as the solution to a system of linear equations, extensions to higher dimensions is straight-forward and provided towards the end of the section. 
+The regularized ERM problem \eqref{e:rkhs_erm_diff_td} in one-dimension reduces to the following:
 \begin{equation}
 g^* := \argmin_{g\in\clH} \frac{1}{N} \sum_{i=1}^N \Bigl\{ (g'(x^i))^2 - 2 \tilc_N(x^i) g(x^i) \Bigr\} + \lambda \|g\|^2_\clH,
-\label{e:1dloss}
+\label{e:rkhs_1dloss}
 \end{equation}
 where $g' = d g / d x$. Using the extended form of the Representer Theorem (\Theorem{theorem:ext_rep_theorem}), the optimizer $g^*$ has the following form:
 \begin{equation}
 g_\rkhsparam(y)= \sum_{i=1}^N \Bigl[\rkhsparam_i^{0} K(x^i,y) + \rkhsparam_i^{1} \frac{\partial K}{\partial x}(x^i,y)\Bigr], \qquad y \in \state
-\label{e:g_star}
+\label{e:rkhs_g_star}
 \end{equation}
 \Theorem{theorem:ext_rep_theorem}  states that the solution to  the infinite dimensional optimization problem reduces to a quadratic program over $\Re^{2N}$ when there are $N$ samples. A formula for the optimizer  $\rkhsparam^* \in \Re^{2N}$ is obtained as follows.
 %\[
@@ -461,7 +461,7 @@ g_\rkhsparam(y)= \sum_{i=1}^N \Bigl[\rkhsparam_i^{0} K(x^i,y) + \rkhsparam_i^{1}
 % \rkhsparam^* & = \argmin_{\rkhsparam \in \Re^{2N}} &\frac{1}{N}  \sum_{j=1}^N \left( \sum_{i=1}^N \Bigl[ \rkhsparam_i^0 \frac{\partial K}{\partial y}(x^i,x^j)  +  \rkhsparam_i^1 \frac{\partial^2 K}{\partial x \partial y}(x^i,x^j)\Bigr] \right)^2 -	\frac{1}{N} \sum_{j=1}^N 2 \tilc(x^j) \left(\sum_{i=1}^N \Bigl[\rkhsparam_i^0 K(x^i,x^j) + \rkhsparam_i^1 \frac{\partial K}{\partial x}(x^i,x^j)\Bigr] \right)  + \\
 % &  & \lambda \sum_{j=1}^N \sum_{i=1}^N \Bigl[ \rkhsparam_i^0 \rkhsparam_j^0 K(x^i,x^j) \, + \, \rkhsparam_i^0 \rkhsparam_j^1 \frac{\partial K}{ \partial x} (x^j,x^i) + \rkhsparam_i^1 \rkhsparam_j^0 \frac{\partial K}{\partial x} (x^i,x^j) \, + \, \rkhsparam_i^1 \rkhsparam_j^1 \frac{\partial^2 K}{\partial x \partial y}(x^i, x^j) \Bigr] \\
 % \end{aligned}
-% \label{e:beta}
+% \label{e:rkhs_beta}
 % \]
 Introduce vectorized notation:
 \[
@@ -485,7 +485,7 @@ Here, $\frac{\partial }{\partial x}$ and $\frac{\partial}{\partial y}$ refer to 
 	The optimal parameter vector $\rkhsparam^*$ is,
 	\begin{equation}
 	\rkhsparam^* = M^{-1} b
-	\label{e:beta_2N}
+	\label{e:rkhs_beta_2N}
 	\end{equation}
 	\begin{equation*}
 	\begin{aligned}
@@ -501,7 +501,7 @@ Here, $\frac{\partial }{\partial x}$ and $\frac{\partial}{\partial y}$ refer to 
 	\right] \\
 	b & :=  \frac{1}{N} \left[ \begin{array}{c} M_{00} \\ \hline M_{10} \end{array}\right] \boldsymbol{\zeta}
 	\end{aligned}
-	\label{e:beta_optimal}
+	\label{e:rkhs_beta_optimal}
 	\end{equation*}
 	\qed
 \end{proposition}
@@ -529,33 +529,33 @@ M_{d0} & \hdots & M_{dd}
 \right] \\
 b & :=  \frac{1}{N} \left[ \begin{array}{c} M_{00} \\ \vdots \\ M_{d0} \end{array}\right] \boldsymbol{\zeta}
 \end{aligned}
-\label{e:beta_optimal}
+\label{e:rkhs_beta_optimal}
 \end{equation*}
-Each $M_{mn} \in \Re^{N \times N}$ and therefore $M$ is a $(d+1) N \times (d+1) N$ matrix and $b$ is a $(d+1) N$ vector. The optimal parameter vector $\rkhsparam^* \eqdef [ (\rkhsparam^0_i)_{i=1}^N, (\rkhsparam^1_i)_{i=1}^N, \hdots, (\rkhsparam^d_i)_{i=1}^N] \in \Re^{(d+1) N}$ is in the same form as \eqref{e:beta_2N}. Although, $\rkhsparam^*$ is easily computable, the solution scales poorly with dimensions. 
+Each $M_{mn} \in \Re^{N \times N}$ and therefore $M$ is a $(d+1) N \times (d+1) N$ matrix and $b$ is a $(d+1) N$ vector. The optimal parameter vector $\rkhsparam^* \eqdef [ (\rkhsparam^0_i)_{i=1}^N, (\rkhsparam^1_i)_{i=1}^N, \hdots, (\rkhsparam^d_i)_{i=1}^N] \in \Re^{(d+1) N}$ is in the same form as \eqref{e:rkhs_beta_2N}. Although, $\rkhsparam^*$ is easily computable, the solution scales poorly with dimensions. 
 Moreover, there are more parameters ($(d+1)N$ than there are sample points ($N$), which is usually not preferred in machine learning. This could potentially lead to overfitting and other numerical issues.   
 Ideally, we prefer an algorithm that scales well with dimensions. This leads to the following two extensions:
 \begin{itemize}
-	\item A reduced complexity solution \eqref{e:g_circ}.
-	\item A differential regularizer \eqref{e:1dloss_diff}.
+	\item A reduced complexity solution \eqref{e:rkhs_g_circ}.
+	\item A differential regularizer \eqref{e:rkhs_1dloss_diff}.
 \end{itemize}
 \subsection{Reduced complexity solution}
 \Theorem{theorem:ext_rep_theorem} states that the optimizer of the ERM with gradient terms in the loss function lies in a subspace of the RKHS $\clH$ spanned by the kernel functions ($\Kern_{x^i}$) and its partial derivatives ($\{\partial_k K_{x^i}\}_{k=1}^d$) centered at the sample points. The main source of complexity is the presence of the $d \times N$ kernel partial derivative terms of the solution . To obtain a reduced complexity solution, $g$ is restricted to a subspace of the following form:
 \begin{equation}
 g(y)  := \sum_{i=1}^N \rkhsparam_i K(x^i,y).
-\label{e:g_circ}
+\label{e:rkhs_g_circ}
 \end{equation}
 \begin{proposition}
 	\label{t:bcirc}
-	The parameter vector $\rkhsparam^\circ \in \Re^N$ that minimizes \eqref{e:1dloss}  over all functions $g$ of the form \eqref{e:g_circ} is given by,
+	The parameter vector $\rkhsparam^\circ \in \Re^N$ that minimizes \eqref{e:rkhs_1dloss}  over all functions $g$ of the form \eqref{e:rkhs_g_circ} is given by,
 	\begin{equation}
 	\rkhsparam^\circ  := M^{\circ -1} b^\circ   \,,
-	\label{e:beta_N}
+	\label{e:rkhs_beta_N}
 	\end{equation}
 	where $ M^\circ := N^{-1} M_{01} M_{10} + \lambda M_{00}$ and $ b^\circ := N^{-1} M_{00} \, \boldsymbol{\zeta} $.
 	\qed
 \end{proposition}
-Solutions of the form \eqref{e:g_circ} are the optimal solution given by the standard representer theorem if the loss function did not have gradient terms. 
-Although, \eqref{e:beta_N} is clearly a sub-optimal solution to \eqref{e:1dloss}, $\rkhsparam^\circ$  is computationally simpler to obtain than $\rkhsparam^*$ as there are only $N$ parameters to estimate. In a surprising observation, it was found that their performance is nearly the same in numerical examples using Gaussian kernels for $d \leq 5$. More details are contained in \Section{s:numerics}.
+Solutions of the form \eqref{e:rkhs_g_circ} are the optimal solution given by the standard representer theorem if the loss function did not have gradient terms. 
+Although, \eqref{e:rkhs_beta_N} is clearly a sub-optimal solution to \eqref{e:rkhs_1dloss}, $\rkhsparam^\circ$  is computationally simpler to obtain than $\rkhsparam^*$ as there are only $N$ parameters to estimate. In a surprising observation, it was found that their performance is nearly the same in numerical examples using Gaussian kernels for $d \leq 5$. More details are contained in \Section{s:numerics}.
 
 \subsection{Differential regularizer formulation}
 \label{s:diffReg} 
@@ -564,25 +564,25 @@ Although, \eqref{e:beta_N} is clearly a sub-optimal solution to \eqref{e:1dloss}
 An alternate approach is to add a regularizing term that penalizes the $\clH$-norm of the gradient $\nabla g$ rather than $g$ itself. The modified objective for the one-dimensional model becomes,
 \begin{equation}
 \tilg \eqdef \argmin_{g\in\clH} \frac{1}{N} \sum_{i}^N \Bigl\{ (g'(x^i))^2 - 2 \tilc_N(x^i) g(x^i)  \Bigr\} + \lambda \|g'\|_\clH^2
-\label{e:1dloss_diff}
+\label{e:rkhs_1dloss_diff}
 \end{equation}
 This suits our objective better as $h'$ is the function for which we seek an approximation. Bhujwalla et al. in \cite{bhujlaugil} have argued that a differential regularizer term adds more flexibility to the hyperparameter selection for the kernel function without compromising the smoothness of the approximation.
 
-Unfortunately the representer theorem is not easily adapted to obtain a finite dimensional solution to  the optimization problem \eqref{e:1dloss_diff},  even in the differential generalization of  \cite{zho08}. The method proposed in \cite{bhujlaugil} is an ``extended representer'' through the addition of an arbitrary number of kernel functions centered at newly introduced samples.
+Unfortunately the representer theorem is not easily adapted to obtain a finite dimensional solution to  the optimization problem \eqref{e:rkhs_1dloss_diff},  even in the differential generalization of  \cite{zho08}. The method proposed in \cite{bhujlaugil} is an ``extended representer'' through the addition of an arbitrary number of kernel functions centered at newly introduced samples.
 
-In our case, to obtain a solution we return to the original loss function \eqref{e:IdealLoss}, which in this one dimensional setting becomes $L^*(x,g,g') = [h'(x) - g'(x)]^2$.    The associated ERM is then
+In our case, to obtain a solution we return to the original loss function \eqref{e:rkhs_IdealLoss}, which in this one dimensional setting becomes $L^*(x,g,g') = [h'(x) - g'(x)]^2$.    The associated ERM is then
 \begin{equation}
 g^* := \argmin_{g\in\clH} \frac{1}{N} \sum_{i=1}^N [h'(x^i) - g'(x^i)]^2 + \lambda \|g'\|^2_\clH \, .
-\label{e:IdealLossERM}
+\label{e:rkhs_IdealLossERM}
 \end{equation}
 Since this does not depend upon $g$, we can apply the classical representer theorem to conclude that there are scalars $\{\beta^*_i\}$ such that the optimal solution has the form  ${g^*}' = g_{\beta^*}$,  where
 \[
 {g^*}'  = \sum_{i=1}^N  \beta_i^* K(x^i,y) \,,  \qquad y \in \state \, .
 \]
-We cannot use the definition \eqref{e:IdealLossERM} to compute $\beta^*$ since $h$ is not known.   However,  following the Law of Large Numbers approximation arguments,   we can obtain the value of $\beta$  by substituting $g_\beta$ of this form into the right hand side  of this variant of \eqref{e:1dloss}: \notes{Law of Large Numbers needs capitalization?}
+We cannot use the definition \eqref{e:rkhs_IdealLossERM} to compute $\beta^*$ since $h$ is not known.   However,  following the Law of Large Numbers approximation arguments,   we can obtain the value of $\beta$  by substituting $g_\beta$ of this form into the right hand side  of this variant of \eqref{e:rkhs_1dloss}: \notes{Law of Large Numbers needs capitalization?}
 \begin{equation*}
 g^* := \argmin_{g\in\clH} \frac{1}{N} \sum_{i=1}^N \Bigl\{ (g'(x^i))^2 - 2 \tilc_N(x^i) g(x^i) \Bigr\} + \lambda \|g'\|^2_\clH,
-\label{e:1dlossDiff}
+\label{e:rkhs_1dlossDiff}
 \end{equation*}
 and then solving the quadratic optimization problem to obtain $\beta^*$.
 
@@ -599,7 +599,7 @@ It is not clear if the optimal solution has this form for dimension greater than
 
 \section{Algorithm Design and Error Analysis}
 \label{s:error_analysis}
-After choosing an appropriate loss function \eqref{e:erm_diff_td} to suit our objective, the next choice in the algorithm is that of a suitable kernel function $\Kern$. In the case of $\gradTD$ learning, desirable properties of the RKHS used as the approximating function space will help us make an informed choice.   More discussion on choosing the kernel in the context of $\gradTD$ learning is reserved for \Section{s:kernel}. An equally important step in the algorithm design is the choice of kernel hyperparameters and the regularization parameter $\reg$. The importance of a good choice of $\reg$ is illustrated with examples in \cite{wah90}. Methods such as ordinary cross-validation and generalized cross-validation are suggested. As mentioned before, a large value of $\reg$ introduces bias and a small value of $\reg$ contributes to the variance of the error. A general criteria chosen to obtain the optimal $\reg^*$ is to minimize the sum of the bias and the variance terms. Also, it may be seen that a good choice of $\reg$  depends on the number of samples $N$. $\reg(N)$ is chosen to be a decaying function of $N$ such as $\propto \frac{1}{N}$ or $\frac{1}{\sqrt{N}}$. 
+After choosing an appropriate loss function \eqref{e:rkhs_erm_diff_td} to suit our objective, the next choice in the algorithm is that of a suitable kernel function $\Kern$. In the case of $\gradTD$ learning, desirable properties of the RKHS used as the approximating function space will help us make an informed choice.   More discussion on choosing the kernel in the context of $\gradTD$ learning is reserved for \Section{s:kernel}. An equally important step in the algorithm design is the choice of kernel hyperparameters and the regularization parameter $\reg$. The importance of a good choice of $\reg$ is illustrated with examples in \cite{wah90}. Methods such as ordinary cross-validation and generalized cross-validation are suggested. As mentioned before, a large value of $\reg$ introduces bias and a small value of $\reg$ contributes to the variance of the error. A general criteria chosen to obtain the optimal $\reg^*$ is to minimize the sum of the bias and the variance terms. Also, it may be seen that a good choice of $\reg$  depends on the number of samples $N$. $\reg(N)$ is chosen to be a decaying function of $N$ such as $\propto \frac{1}{N}$ or $\frac{1}{\sqrt{N}}$. 
 
 
 

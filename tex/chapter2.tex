@@ -20,13 +20,13 @@ In this section, we introduce the Langevin diffusion with only the requisite amo
 The Langevin diffusion may be regarded as  a $d$-dimensional gradient flow perturbed with ``noise'',  described by  the SDE,
 \begin{equation}
 \ud \markovstate_t = \underbrace{- \nabla \pot(\markovstate_t) \, \ud t}_{\text{drift}}+  \underbrace{\sqrt{2} \, \ud W_t}_{\text{diffusion}},
-\label{e:langevin_cts}
+\label{e:diff_td_langevin_cts}
 \end{equation}
 where $\bfmW=\{W_t : t\ge 0\}$ is a standard Brownian motion on $\Re^d$. The potential function $U:\state \to \Re$ is continuously differentiable. 
-Under suitable regularity conditions, this diffusion is reversible and has a unique invariant density $\pr=e^{-\pot+\Lambda}$, where $\Lambda$ is a normalizing constant so that $\pr$ integrates to unity \cite{bha82}. The SDE in \eqref{e:langevin_cts} can be thought of as composed of a deterministic drift term and a stochastic diffusion term. The intuition is that the drift term moves the process along the direction in which the density $\pr$ increases. In this sense, it is a biased random walk. In practice, as simulating path solutions to this SDE is difficult, discretized versions of the equation based on Euler-Mauryama scheme are used \eqref{e:langevin_discrete}:
+Under suitable regularity conditions, this diffusion is reversible and has a unique invariant density $\pr=e^{-\pot+\Lambda}$, where $\Lambda$ is a normalizing constant so that $\pr$ integrates to unity \cite{bha82}. The SDE in \eqref{e:diff_td_langevin_cts} can be thought of as composed of a deterministic drift term and a stochastic diffusion term. The intuition is that the drift term moves the process along the direction in which the density $\pr$ increases. In this sense, it is a biased random walk. In practice, as simulating path solutions to this SDE is difficult, discretized versions of the equation based on Euler-Mauryama scheme are used \eqref{e:diff_td_langevin_discrete}:
 \begin{equation}
 \markovstate_n = \markovstate_{n-1} - \nabla U(\markovstate_{n-1}) \mcmcstep_{n} + \sqrt{2  \mcmcstep_{n-1}} W_{n-1} ,
-\label{e:langevin_discrete}
+\label{e:diff_td_langevin_discrete}
 \end{equation}
 where $\{\mcmcstep_n\}_{n\geq 1}$ is a sequence of step sizes and $\{W_n\}_{n\geq 1}$ is a sequence of i.i.d. standard Gaussian random variables.  In this dissertation, only implementations using a constant step size parameter $\mcmcstep_{n} \equiv \mcmcstep$ are considered. 
  
@@ -38,13 +38,13 @@ The Langevin diffusion is associated with a differential generator $\generate$ (
 \begin{aligned}
 \generate f &:= \lim_{t \to 0} \frac{\Expect [ f(\markovstate_t) - f(x) | \markovstate_0 = x]}{t} \\
 & = -\nabla \pot \cdot \nabla f + \Delta f,\qquad f\in C^2,
-\label{e:langevin_generator}
+\label{e:diff_td_langevin_generator}
 \end{aligned}
 \end{equation}
 where $\nabla$ denotes the gradient and $\Delta$ is the Laplacian. The differential generator can be thought of as the derivative operator in an expected sense. Under conditions on $U$, this SDE defines a strong Markov semigroup $\{P_t\}_{t \geq 0}$. The generator $\generate$ can be written in terms of the semigroup as,
 \begin{equation}
 \generate = \lim_{t \to 0} \frac{P_t - I}{t}.
-\label{e:lang_generate_semigroup}
+\label{e:diff_td_langevin_semigroup}
 \end{equation}
 
 \subsection{Poisson's Equation}
@@ -55,7 +55,7 @@ Let $c \colon \state \to \Re$ be a function of interest, and
 A function $h\in C^2$ is said to be the solution to Poisson's equation with forcing function $c$ if it satisfies,
 \begin{equation}
 \generate h := - \tilc, \qquad  \tilc = c - \eta.
-\label{e:poissons}
+\label{e:diff_td_poissons}
 \end{equation}
 Additionally, $h$ can also be expressed in the following integral form:
 \begin{equation}
@@ -69,21 +69,21 @@ The existence of a solution $h$ in a weak sense holds under very weak assumption
 Analogous to $h$, a discounted-cost value function $h^\discount$ is defined as,
 \begin{equation}
 h^\discount(x) := \int_0^\infty \exp(-\discount t )\Expect_x[c(\markovstate_t)] \ud t, 
-\label{e:discount_value_fn}
+\label{e:diff_td_discount_value_fn}
 \end{equation}
 with a discount rate $\discount  >0$ and $c(x)$ is the one-step cost function at the state $x$. The discounted-cost value function is often more popular in applications where the future costs incurred are assigned lower weights than the immediate costs. It may be noted that as the value of $\discount \to 0$, it closely approximates an average-cost problem. 
 
 \subsection{Relevance to our Applications} 
-The solution $h$ of Poisson's equation associated to the Langevin diffusion \eqref{e:poissons} is crucial in each of the applications we consider in this dissertation. In the feedback particle filter (FPF), the innovations gain function $\kFPF$ at each $t$ is obtained as  the gradient of $h$ \cite{yanmehmey13}:
+The solution $h$ of Poisson's equation associated to the Langevin diffusion \eqref{e:diff_td_poissons} is crucial in each of the applications we consider in this dissertation. In the feedback particle filter (FPF), the innovations gain function $\kFPF$ at each $t$ is obtained as  the gradient of $h$ \cite{yanmehmey13}:
 \begin{equation}
 \kFPF (x) = \nabla h(x)\, ,  \quad x\in\state\, .
-\label{e:fpfgain}
+\label{e:diff_td_fpfgain}
 \end{equation}
 A detailed analysis of the Poisson's equation appearing in the FPF is performed in \cite{laumehmeyrag15}. The FPF is described in detail in Chapter 4. %\Chapter{ch:filtering}.
 
 In MCMC algorithms, as mentioned in \Chapter{ch:intro}, the asymptotic variance is a measure of convergence. In this context, $\pr$ is the target density, and $c$ is the function whose expectation needs to be computed. The expected value is approximated using the empirical mean $\eta_N$:
 \begin{equation} \eta_N := \frac{1}{N} \sum_{n=0}^{N-1} c\,(\markovstate_n),\end{equation}
-where $\markovstate_n \sim \pr$, is obtained by sampling from an ergodic Markov chain with $\pr$ as its invariant density. One such Markov chain is the discretization in \eqref{e:langevin_discrete}, also known as the unadjusted Langevin algorithm (ULA) or Langevin Monte Carlo (LMC). Under general conditions, the mean estimates will obey a Central Limit Theorem (CLT) of the form,
+where $\markovstate_n \sim \pr$, is obtained by sampling from an ergodic Markov chain with $\pr$ as its invariant density. One such Markov chain is the discretization in \eqref{e:diff_td_langevin_discrete}, also known as the unadjusted Langevin algorithm (ULA) or Langevin Monte Carlo (LMC). Under general conditions, the mean estimates will obey a Central Limit Theorem (CLT) of the form,
 \begin{equation}
 \sqrt{N} \Bigl( \eta_N - \eta \Bigr) \overset{d}{\to} \normal(0,\asymvar ^2),
 \end{equation}
@@ -94,24 +94,24 @@ Computation of $h$ is typically intractable, especially in higher dimensions and
 \section{Least Squares Temporal Difference (LSTD) Learning} 
 \label{s:lstd}
 \subsection{LSTD for discounted cost value function}
-In this section, the least squares temporal difference (LSTD) learning algorithm to approximate the discounted-cost value function \eqref{e:discount_value_fn} of a continuous-time diffusion process is presented.  Theory for TD learning in the discounted cost setting is largely complete, however theory and algorithms for the average cost case is more fragmented. The LSTD algorithm was first proposed for a finite-state-action space Markov decision process (MDP) in the context of stochastic optimal control  by Bradtke et al. in \cite{brabar96}.  It is noted in \cite{brabar96, boy02} that the LSTD algorithm, although more computationally expensive than the conventional TD learning algorithm of Sutton \cite{sut88}, are statistically more efficient and also avoids the choice of a tunable step-size parameter. 
+In this section, the least squares temporal difference (LSTD) learning algorithm to approximate the discounted-cost value function \eqref{e:diff_td_discount_value_fn} of a continuous-time diffusion process is presented.  Theory for TD learning in the discounted cost setting is largely complete, however theory and algorithms for the average cost case is more fragmented. The LSTD algorithm was first proposed for a finite-state-action space Markov decision process (MDP) in the context of stochastic optimal control  by Bradtke et al. in \cite{brabar96}.  It is noted in \cite{brabar96, boy02} that the LSTD algorithm, although more computationally expensive than the conventional TD learning algorithm of Sutton \cite{sut88}, are statistically more efficient and also avoids the choice of a tunable step-size parameter. 
 
 The derivation of the algorithm here closely follows the one in Section 11.5.2 in \cite{ctcn}. The key difference is that the book section discusses the discrete-time case.  Consider a one-dimensional continuous-time diffusion on $\Re$:
 \begin{equation}
 \ud \markovstate_t = a(\markovstate_t) \ud t + \sigma(\markovstate_t) \ud B_t,
-\label{e:cts_diffusion}
+\label{e:diff_td_cts_diffusion}
 \end{equation}
 where $\bfmB$ is standard Brownian motion and $a : \Re \to \Re$ is a Lipschitz-continuous function. The differential generator $\generate$ is defined for functions $f:\Re \to \Re$ as: 
 \begin{equation}
 \generate f = a f' + \frac{\sigma^2}{2} f'', \qquad f \in C^2.
-\label{e:diffusion_generator}
+\label{e:diff_td_diffusion_generator}
 \end{equation}
-It may be noted that the Langevin diffusion \eqref{e:langevin_cts} is a special case of the diffusion \eqref{e:cts_diffusion} with $a(x) = -\grad U(x)$ and $\sigma(x) \equiv \sqrt{2}$, and the associated differential generator is defined in \eqref{e:langevin_generator}. 
+It may be noted that the Langevin diffusion \eqref{e:diff_td_langevin_cts} is a special case of the diffusion \eqref{e:diff_td_cts_diffusion} with $a(x) = -\grad U(x)$ and $\sigma(x) \equiv \sqrt{2}$, and the associated differential generator is defined in \eqref{e:diff_td_langevin_generator}. 
 
 Consider a parameterized family of approximations $\{h^\param : \param \in \Re^\ell\}$. In the case of a linear parameterization, where we have $\ell$ functions on $\state$ as the basis, denoted $\{\basis_i : 0 \leq i \leq \ell\}$, the parameterized family $\{h^\param\}$ becomes,
 \begin{equation}
 h^\param(x) := \sum_{i=1}^\ell \param_i \basis_i(x) = \param^\transpose \basis(x), \qquad x \in \state
-\label{e:linear_param}
+\label{e:diff_td_linear_param}
 \end{equation}
 The goal in LSTD learning algorithm is to minimize the approximation error in $L^2(\pr)$ norm:
 \begin{equation}
@@ -119,42 +119,42 @@ The goal in LSTD learning algorithm is to minimize the approximation error in $L
 \error(\param) &:=  \| h^\discount - h^\param \|^2_{L^2} \\
 & = \int_\state (h^\discount(x) - h^\param(x))^2 \pr(x) \ud x \\
 & = \Expect_{\markovstate \sim \pr} [|h^\discount(\markovstate) - h^\param(\markovstate)|^2].
-\label{e:h_norm_error}
+\label{e:diff_td_h_norm_error}
 \end{aligned}
 \end{equation}
 Among the conventional TD algorithms, only TD($1$) has an interpretation as a norm minimization problem. It is evident from the definition of $\error(\param)$ that it penalizes the approximation error more strongly for states with larger invariant probability $\pr(x)$. As noted in \cite{ctcn}, these are the states that are visited more often and hence, a better approximation of $h^\discount$ is desired at these points on $\state$. A more important benefit of using the $L^2(\pr)$ norm is that it allows the construction of an algorithm using Monte Carlo methods. 
 
-The necessary conditions for optimality can be obtained by taking the gradient of \eqref{e:h_norm_error} with respect to $\param$ and equating it to zero, 
+The necessary conditions for optimality can be obtained by taking the gradient of \eqref{e:diff_td_h_norm_error} with respect to $\param$ and equating it to zero, 
 \begin{equation}
 \begin{aligned}
 0 &= - \nabla_\param \error(\param)\\
 & = 2 \|(h^\discount - h^\param) \nabla_\param h^\param \|_{L^2} \\
 & = 2 \Expect_{\markovstate \sim \pr} [(h^\discount(\markovstate) - h^\param(\markovstate)) \nabla_\param h^\param(\markovstate)]
 \end{aligned}
-\label{e:first_order_condition}
+\label{e:diff_td_first_order_condition}
 \end{equation} 
 	\anand{Need to verify if the exchange of derivative and expectation is valid for a nonlinear parameterization}
-In general, a solution to \eqref{e:first_order_condition} can be obtained using recursive updates of the parameter $\param$ by stochastic approximation techniques. However, for the linear parameterization \eqref{e:linear_param}, the optimal $\param^*$ admits a closed form expression:
+In general, a solution to \eqref{e:diff_td_first_order_condition} can be obtained using recursive updates of the parameter $\param$ by stochastic approximation techniques. However, for the linear parameterization \eqref{e:diff_td_linear_param}, the optimal $\param^*$ admits a closed form expression:
 \begin{equation}
 \param^* := M^{-1} b,
-\label{e:param_opt_lstd}
+\label{e:diff_td_param_opt_lstd}
 \end{equation}
 where $M$ and $b$ are defined as,
 \begin{equation}
 M: = \Expect_{\markovstate \sim \pr} [\basis(\markovstate) \basis(\markovstate)^\transpose], \qquad b:= \Expect_{\markovstate \sim \pr} [h^\discount(\markovstate) \basis(\markovstate)].
-\label{e:lstd_M_b}
+\label{e:diff_td_lstd_M_b}
 \end{equation}
 The expression for $b$ is not computable as it involves the unknown function $h^\discount$ that we are trying to approximate. The challenge now is to find an alternate observable representation for $b$. 
 
-A resolution is obtained using the definition of $h^\discount$ \eqref{e:discount_value_fn} and the generalized resolvent kernel of \cite{nev72,meytwe93e,devkonmey17a}: For a measurable function $G\colon\Re\to\Re$, and measurable functions $f$ in some domain, the resolvent kernel $R_G$ is an operator defined as,
+A resolution is obtained using the definition of $h^\discount$ \eqref{e:diff_td_discount_value_fn} and the generalized resolvent kernel of \cite{nev72,meytwe93e,devkonmey17a}: For a measurable function $G\colon\Re\to\Re$, and measurable functions $f$ in some domain, the resolvent kernel $R_G$ is an operator defined as,
 \begin{equation}
 R_G f\, (x) := \int_0^\infty \Expect_x\Bigl[ \exp\Bigl(-\int_0^t G(\markovstate_s)\, \rmd s \Bigr) f(\markovstate_t)\Bigr] \ud t.
-\label{e:resolvent_neveu}
+\label{e:diff_td_resolvent_neveu}
 \end{equation}
 In  \cite{nev72,meytwe93e} it is assumed that $G>0$ everywhere. These conditions are relaxed in \cite{konmey03a,devkonmey17a}. An adjoint operator $R^\dagger_G$ is defined such that the following holds:
 \begin{equation}
 \langle R_G f,\, g \rangle_{L^2} = \langle f ,\, R^\dagger_G g \rangle_{L^2}, 
-\label{e:RG_adjoint}
+\label{e:diff_td_resolvent_adjoint}
 \end{equation}
 where $f$ and $g$ are in $L^2(\pr)$. 
 %In these papers, it is shown that $R_G$ is a right inverse of $[I_G -\clD]$ on some domain, i.e.,
@@ -163,18 +163,18 @@ where $f$ and $g$ are in $L^2(\pr)$.
 %\end{equation*}
 %where the operator $I_G$ represents multiplication by the function $G$. 
 
-The discounted-cost value function $h^\discount$ in \eqref{e:discount_value_fn} can now be represented in terms of $R_G$ \eqref{e:resolvent_neveu} with $G \equiv \discount$ as,
+The discounted-cost value function $h^\discount$ in \eqref{e:diff_td_discount_value_fn} can now be represented in terms of $R_G$ \eqref{e:diff_td_resolvent_neveu} with $G \equiv \discount$ as,
 \begin{equation}
 h^\discount = R_\discount c.
-\label{e:lstd_hgamma_resolvent}
+\label{e:diff_td_lstd_hgamma_resolvent}
 \end{equation}
 If the value function $h^\discount$ is $C^2$, then it solves the discounted-cost optimality equation,
 \begin{equation}
 \discount h^\discount - \generate h^\discount =  c.
-\label{e:dcoe}
+\label{e:diff_td_dcoe}
 \end{equation}
 This is analogous to the Poisson's equation that arises in the average-cost case. 
-Using \eqref{e:lstd_hgamma_resolvent} and \eqref{e:dcoe}, resolvent kernel $R_\discount$ can be shown to satisfy the following inverse formula:
+Using \eqref{e:diff_td_lstd_hgamma_resolvent} and \eqref{e:diff_td_dcoe}, resolvent kernel $R_\discount$ can be shown to satisfy the following inverse formula:
 \begin{equation}
 R_\discount c = ( I_\discount - \generate)^{-1} c,
 \end{equation}
@@ -184,16 +184,16 @@ where $I_\discount$ refers to multiplication by $\discount$. The inverse $(I_\di
 %\begin{aligned}
 %h^\discount (x) \basis(x) &=  \Bigl(\int_0^\infty \exp(-\discount t )\Expect_x[c(\markovstate_t)] \ud t \Bigr) \basis(x) \\
 %&= \int_0^\infty \exp(-\discount t) \Expect_x[c(\markovstate_t) \basis(\markovstate_t)] \ud t
-%\label{e:discount_hpsi}
+%\label{e:diff_td_discount_hpsi}
 %\end{aligned}
 % \end{equation}
-The following transformation can be applied to $b$, using \eqref{e:lstd_hgamma_resolvent} followed by an adjoint trick,
+The following transformation can be applied to $b$, using \eqref{e:diff_td_lstd_hgamma_resolvent} followed by an adjoint trick,
 \begin{equation}
 \begin{aligned}
 b = \Expect_{\markovstate \sim \pr} [h^\discount(\markovstate) \basis(\markovstate) ] &= \langle h^\discount, \, \basis \rangle_{L^2}\\
 & = \langle R_\discount c, \,\basis \rangle_{L^2} \\
 & = \langle c,\, R^\dagger_\discount \basis \rangle_{L^2},
-\label{e:lstd_b_R_adjoint}
+\label{e:diff_td_lstd_b_R_adjoint}
 \end{aligned}
 \end{equation}
 where $R^\dagger_\discount$ denotes the adjoint of $R_\discount$. Now, all that remains is to obtain an expression for the adjoint operator $R^\dagger_\discount$ in terms of observable quantities. This is achieved by the application of \Lemma{lemma:R_adjoint}.
@@ -204,7 +204,7 @@ Let $\bfPhi=\{\markovstate_t : t\in\Re\}$ denote a stationary version of a conti
 For measurable functions $f,g$ with at most exponential growths we have,
 \begin{equation}
 \langle R_\discount f, \, g \rangle_{L^2}   =  \langle f, \, R_\discount^\dagger g \rangle_{L^2} =  \Expect_{\markovstate \sim \pr} [ f(\markovstate_t)	\eligibvector_g(t)   ]\,, \quad t\in\Re,
-\label{e:LSTD_adjoint}
+\label{e:diff_td_lstd_adjoint}
 \end{equation}
 wherein $\bfvarphi_g$ is the stationary process:
 \begin{equation}
@@ -212,7 +212,7 @@ wherein $\bfvarphi_g$ is the stationary process:
 %=
 %\int_{-\infty}^t  \exp(-\discount (t-r)) g(\markovstate_r)   \,  \ud r
 \eligibvector_g(r) \eqdef \int_0^\infty \exp(-\discount (t -r)) g(\markovstate_{r-t}) \ud t,
-\label{e:LSTD_eligib_integral}
+\label{e:diff_td_lstd_eligib_integral}
 \end{equation}
 Consequently, 
 \begin{equation}
@@ -235,10 +235,10 @@ The proof is obtained by rewriting $b$ in its integral form as,
 & = \int_0^\infty \exp(-\discount t) \Expect_{\markovstate \sim \pr}[f(\markovstate_0) g(\markovstate_{-t})] \ud t \qquad \text{(Applying the stationarity property of $\markovstate$)}\\
 & = \Expect_{\markovstate \sim \pr}\Bigl[f(\markovstate_0) \underbrace{\int_0^\infty \exp(-\discount t) g(\markovstate_{-t})\ud t}_{\eligibvector_g(0)}\Bigr]  \qquad \text{(Applying Fubini's theorem and absolute integrability)}\\
 & = \langle f, R^\dagger_\discount g\rangle_{L^2}.
-\label{e:lstd_resolution}
+\label{e:diff_td_lstd_resolution}
 \end{aligned}
 \end{equation}
-It can be seen from \eqref{e:lstd_resolution} that the adjoint $R^\dagger_\discount$ operating on a function $g$ in $L^2(\pr)$ takes the form:
+It can be seen from \eqref{e:diff_td_lstd_resolution} that the adjoint $R^\dagger_\discount$ operating on a function $g$ in $L^2(\pr)$ takes the form:
 \begin{equation}
 R^\dagger_\discount g(x) \eqdef \int_0^\infty \exp(-\discount t ) \Expect_x[g(\markovstate_{-t})] \ud t %\qquad \text{\anand{Needs verification}}
 \end{equation}
@@ -247,68 +247,68 @@ Thus, the adjoint $R^\dagger_\discount$ can be interpreted as the resolvent for 
 If we denote $\eligibvector_\basis$ as,
 \begin{equation}
 \eligibvector_\basis(r) \eqdef \int_0^\infty \exp(-\discount (t -r)) \basis(\markovstate_{r-t}) \ud t,
-\label{e:lstd_eligib}
+\label{e:diff_td_lstd_eligib}
 \end{equation}
-$b$ in \eqref{e:lstd_b_R_adjoint} can be written as,
+$b$ in \eqref{e:diff_td_lstd_b_R_adjoint} can be written as,
 \begin{equation}
 b = \Expect[c(\markovstate_0) \eligibvector_\basis(0)].
-\label{e:lstd_b}
+\label{e:diff_td_lstd_b}
 \end{equation}
 % \ section{Galerkin approximation}
 The function $\eligibvector_\basis$ is called the eligibility vector in TD learning. A slightly more general proof using the generalized resolvent kernel $R_G$ appears in the derivation of $\gradTD$ learning in \Section{s:diff_td_learning}.
 
-This representation for $b$ \eqref{e:lstd_b}, combined with the representation for $M$ in \eqref{e:lstd_M_b} lends itself to application of Monte Carlo methods in their computation. Monte carlo approximations to $M$ and $b$ can be obtained using the following integral forms:
+This representation for $b$ \eqref{e:diff_td_lstd_b}, combined with the representation for $M$ in \eqref{e:diff_td_lstd_M_b} lends itself to application of Monte Carlo methods in their computation. Monte carlo approximations to $M$ and $b$ can be obtained using the following integral forms:
 \begin{subequations}
 \begin{align}
 M &\approx \frac{1}{T} \int_0^T  \basis(\markovstate_t) \basis^\transpose(\markovstate_t) \ud t
-\label{e:lstd_M_T}
+\label{e:diff_td_lstd_M_T}
 \\
 b & \approx  \frac{1}{T} \int_0^T c(\markovstate_t) \eligibvector_\basis(t) \ud t
-\label{e:lstd_b_T}
+\label{e:diff_td_lstd_b_T}
 \end{align}
 \end{subequations}
 A recursive formulation of the algorithm can be provided in terms of the three ODEs:
 \begin{subequations}
 \begin{align}
 \ddt \eligibvector_\basis (t) &= - \discount\, \eligibvector_\basis(t) + \basis (\markovstate_t) 
-\label{e:lstd_ode_eligib} \\
+\label{e:diff_td_lstd_ode_eligib} \\
 \ddt b(t) &=  c(\markovstate_t)\eligibvector_\basis(t)
- \label{e:lstd_ode_b}\\
+ \label{e:diff_td_lstd_ode_b}\\
 \ddt M(t) &= \basis(\markovstate_t) \basis^\transpose(\markovstate_t) 
-\label{e:lstd_ode_M} \\
+\label{e:diff_td_lstd_ode_M} \\
 \param(t) &\eqdef  M(t)^{-1} b(t)
-\label{e:lstd_theta_T}
+\label{e:diff_td_lstd_theta_T}
 \end{align}
 \end{subequations}
 
-\Cref{e:lstd_ode_eligib,e:lstd_ode_b,e:lstd_ode_M,e:lstd_theta_T} summarize the LSTD algorithm. The system of ODEs is initialized with $\eligibvector_\basis(0), b(0) \in \Re^\ell,$ and a positive definite $\ell \times \ell$ matrix $M(0)$. The computational complexity of $O(\ell^3)$ arising due to matrix inversion operation in \eqref{e:lstd_theta_T} can be reduced by applying the matrix inversion lemma, as pointed out in \cite{ctcn}. 
+\Cref{e:diff_td_lstd_ode_eligib,e:diff_td_lstd_ode_b,e:diff_td_lstd_ode_M,e:diff_td_lstd_theta_T} summarize the LSTD algorithm. The system of ODEs is initialized with $\eligibvector_\basis(0), b(0) \in \Re^\ell,$ and a positive definite $\ell \times \ell$ matrix $M(0)$. The computational complexity of $O(\ell^3)$ arising due to matrix inversion operation in \eqref{e:diff_td_lstd_theta_T} can be reduced by applying the matrix inversion lemma, as pointed out in \cite{ctcn}. 
 
-The ODE in \eqref{e:lstd_ode_eligib} that governs the evolution of the eligibility vector $\eligibvector_\basis(t)$ is equivalent to the one that appears in TD($\lambda$) algorithm \cite{sut88}, with the exponential ``forgetting factor'' $\lambda = 1$. Convergence of the parameter estimates $\param(t)$ to $\param^*$ in the limit as $t$ goes to $\infty$ has been shown by the application of law of large numbers. % exponential weighting with recency. 
+The ODE in \eqref{e:diff_td_lstd_ode_eligib} that governs the evolution of the eligibility vector $\eligibvector_\basis(t)$ is equivalent to the one that appears in TD($\lambda$) algorithm \cite{sut88}, with the exponential ``forgetting factor'' $\lambda = 1$. Convergence of the parameter estimates $\param(t)$ to $\param^*$ in the limit as $t$ goes to $\infty$ has been shown by the application of law of large numbers. % exponential weighting with recency. 
 
 A linear parameterization for $h^\param$ is not essential for the LSTD algorithm. For a nonlinear parameterization,  LSTD can be implemented as a stochastic approximation recursion. A discussion of nonlinear parameterization is skipped here and reserved for \Section{s:diff_td_learning} while discussing the differential TD learning algorithm. 
 
 \subsection{LSTD for Poisson's equation}
 \label{s:lstd_avg_cost}
-The LSTD algorithm was presented in the context of approximating the discounted-cost value function in \Section{s:lstd}. To approximate the average-cost value function $h$ \eqref{e:poissons}, the common practice is to use a discounted formulation as a proxy. The discount rate $\discount$ is usually set very close to zero with the intention of mimicking the average cost problem. However, it is known the variance of the algorithm diverges as $\discount \to 0$.  In the paper by Tsitsikilis et al. \cite{tsivan99b}, a variant of the TD($\lambda$) learning algorithm for the average-cost case is presented for the case of finite state space Markov chains. It is mentioned in the conclusions that extensions to a general state space is easily possible, but it only considers the case where the exponential weighting factor $\lambda <1$. Only when $\lambda =1$, the algorithm can be interpreted as minimizing the $L^2(\pr)$ norm of the approximation error $\error$ \eqref{e:h_norm_error}. 
+The LSTD algorithm was presented in the context of approximating the discounted-cost value function in \Section{s:lstd}. To approximate the average-cost value function $h$ \eqref{e:diff_td_poissons}, the common practice is to use a discounted formulation as a proxy. The discount rate $\discount$ is usually set very close to zero with the intention of mimicking the average cost problem. However, it is known the variance of the algorithm diverges as $\discount \to 0$.  In the paper by Tsitsikilis et al. \cite{tsivan99b}, a variant of the TD($\lambda$) learning algorithm for the average-cost case is presented for the case of finite state space Markov chains. It is mentioned in the conclusions that extensions to a general state space is easily possible, but it only considers the case where the exponential weighting factor $\lambda <1$. Only when $\lambda =1$, the algorithm can be interpreted as minimizing the $L^2(\pr)$ norm of the approximation error $\error$ \eqref{e:diff_td_h_norm_error}. 
 
 The LSTD algorithm for the average cost case, that involves the Poisson's equation is also discussed in Section 11.5.4 of \cite{ctcn}. However, this algorithm yields asymptotically unbiased estimators only with the underlying assumption of the existence of a regenerating state. In informal terms, a regenerating state of a Markov chain is one that is visited infinitely often and when visited, the chain can be thought of as forgetting the past, i.e. once the regenerating state is reached, the future transitions of the chain are statistically independent from its past and hence, its entire history may be discarded. This requirement impedes the applicability of the algorithm, if the dimension of the state space is greater than one. This motivates the development of algorithms that can overcome these shortcomings in Sections \ref{s:diff_td_langevin} and \ref{s:diff_td_learning}.  
 
 \section{Differential TD ($\gradTD$) Learning}
-In this Section, we describe the differential LSTD ($\gradTD$) learning algorithm, which tries to approximate the gradient of the solution to Poisson's equation \eqref{e:poissons} directly. The development of this algorithm is motivated by two factors - i) the shortcomings of the LSTD algorithm for dimensions $>1$, and ii) applications that only require the gradient of the solution like the FPF. In conventional applications, where we are interested in $h$ instead of $\nabla h$, in addition to obtaining the optimal parameter values, we also need to add an optimal constant term. Keeping the same notation in the previous section, the goal of the $\gradTD$ learning algorithm is:
+In this Section, we describe the differential LSTD ($\gradTD$) learning algorithm, which tries to approximate the gradient of the solution to Poisson's equation \eqref{e:diff_td_poissons} directly. The development of this algorithm is motivated by two factors - i) the shortcomings of the LSTD algorithm for dimensions $>1$, and ii) applications that only require the gradient of the solution like the FPF. In conventional applications, where we are interested in $h$ instead of $\nabla h$, in addition to obtaining the optimal parameter values, we also need to add an optimal constant term. Keeping the same notation in the previous section, the goal of the $\gradTD$ learning algorithm is:
 \begin{equation}
 \param^* = \argmin_\param \| \grad h -\grad h^\param\|^2_{L^2}.
-\label{e:gradTD_norm_error}
+\label{e:diff_td_gradTD_norm_error}
 \end{equation}
 
 \subsection{$\gradTD$ learning for Langevin diffusion}
 \label{s:diff_td_langevin}
-In this Section, we first focus on the special case of the Langevin diffusion \eqref{e:langevin_cts}. A more generic version of $\gradTD$ learning that is applicable to any continuous-time diffiusion process is described in \Section{s:diff_td_learning}. For the Langevin diffusion, a property of its differential generator \eqref{e:langevin_generator},  described in \Prop{prop:lang_generator_grad} allows the construction of a simple algorithm. The advantages of this simpler resolution will be more evident after the general version is presented in \Section{s:diff_td_learning}. \Prop{prop:lang_generator_grad} is a corollary to the following result from \cite{hwanorwu15,yanlaumehmey16} and can be proved by a simple application of the integration by parts formula:
+In this Section, we first focus on the special case of the Langevin diffusion \eqref{e:diff_td_langevin_cts}. A more generic version of $\gradTD$ learning that is applicable to any continuous-time diffiusion process is described in \Section{s:diff_td_learning}. For the Langevin diffusion, a property of its differential generator \eqref{e:diff_td_langevin_generator},  described in \Prop{prop:lang_generator_grad} allows the construction of a simple algorithm. The advantages of this simpler resolution will be more evident after the general version is presented in \Section{s:diff_td_learning}. \Prop{prop:lang_generator_grad} is a corollary to the following result from \cite{hwanorwu15,yanlaumehmey16} and can be proved by a simple application of the integration by parts formula:
 \begin{proposition}
 	\label{prop:lang_generator_grad}
-	For a Langevin diffusion with differential generator $\generate$ \eqref{e:langevin_generator}, suppose that $f,g\colon\Re^d \to\Re$ are in $C^2  \cap L^2$, and that their first and second partial derivatives also lie in $L^2$. Then,
+	For a Langevin diffusion with differential generator $\generate$ \eqref{e:diff_td_langevin_generator}, suppose that $f,g\colon\Re^d \to\Re$ are in $C^2  \cap L^2$, and that their first and second partial derivatives also lie in $L^2$. Then,
 	\begin{equation}
 	\langle \nabla f, \nabla g \rangle_{L^2} = \sum_{k=1}^d \Big \langle \frac{\partial f}{\partial x_k},  \frac{\partial g} {\partial x_k}\Big \rangle_{L^2}  = - \langle  f, \generate g\rangle_{L^2} = - \langle \generate f , g \rangle_{L^2}.
-	\label{e:gradDual}
+	\label{e:diff_td_gradDual}
 	\end{equation}
 	\qed
 \end{proposition} 
@@ -349,39 +349,39 @@ In this Section, we first focus on the special case of the Langevin diffusion \e
 \end{proof}
 The equality on the right side is a result of the self-adjoint property of the Langevin generator $\generate$. This can also be proved using the reversibility property of the diffusion.
 \subsection{Linear parameterization}
-If we assume a linear parameterization of the form in \eqref{e:linear_param} with $\param \in \Re^\ell$ as the parameters and $\{\basis_i \in C^2: 1\leq i \leq \ell \}$ as the basis functions, the optimization problem described by \eqref{e:gradTD_norm_error} becomes a quadratic form \eqref{e:gradTD_norm_quadratic}. Then an adjoint argument provided by \Prop{prop:lang_generator_grad} leads to a representation that can be applied for computation.  
+If we assume a linear parameterization of the form in \eqref{e:diff_td_linear_param} with $\param \in \Re^\ell$ as the parameters and $\{\basis_i \in C^2: 1\leq i \leq \ell \}$ as the basis functions, the optimization problem described by \eqref{e:diff_td_gradTD_norm_error} becomes a quadratic form \eqref{e:diff_td_gradTD_norm_quadratic}. Then an adjoint argument provided by \Prop{prop:lang_generator_grad} leads to a representation that can be applied for computation.  
 \begin{lemma}
 	\label{lemma:gradTD}
-	The norm appearing in \eqref{e:gradTD_norm_error} is a quadratic form,
+	The norm appearing in \eqref{e:diff_td_gradTD_norm_error} is a quadratic form,
 	\begin{equation}
 	\|\nabla h - \nabla h^\param\|^2_{L^2} = \param^\transpose M \param - 2b^\transpose\param + k ,
-	\label{e:gradTD_norm_quadratic}
+	\label{e:diff_td_gradTD_norm_quadratic}
 	\end{equation}
 	in which for each $1\le i, j\le \ell$,
 	\begin{equation}
 	M_{i,j} = \langle \gradbasis_i, \gradbasis_j \rangle_{L^2}, \quad b_i = \langle \tilc, \basis_i \rangle_{L^2},
-	\label{e:gradTD_M_b}
+	\label{e:diff_td_gradTD_M_b}
 	\end{equation}
-	and $k = \| \nabla h \|^2_{L^2}$.  Consequently, the optimizer \eqref{e:gradTD_norm_error}
+	and $k = \| \nabla h \|^2_{L^2}$.  Consequently, the optimizer \eqref{e:diff_td_gradTD_norm_error}
 	is any solution to
 	\begin{equation}
 	M \param^* = b.
-	\label{e:gradTD_theta}
+	\label{e:diff_td_gradTD_theta}
 	\end{equation}
 	\qed
 \end{lemma}
 
-We assume henceforth  that the basis is linearly independent in $L^2(\pr)$, so that $M$ is invertible, and hence $\param^* = M^{-1}b$. Using \Prop{prop:lang_generator_grad} and Poisson's equation \eqref{e:poissons}, $b_i$ in \eqref{e:gradTD_M_b} has an alternate representation in terms of known functions:
+We assume henceforth  that the basis is linearly independent in $L^2(\pr)$, so that $M$ is invertible, and hence $\param^* = M^{-1}b$. Using \Prop{prop:lang_generator_grad} and Poisson's equation \eqref{e:diff_td_poissons}, $b_i$ in \eqref{e:diff_td_gradTD_M_b} has an alternate representation in terms of known functions:
 \begin{equation}
 \begin{aligned}
 b_i & = \langle \nabla h, \nabla \basis_i \rangle_{L^2} \\ 
 & = - \langle \generate h, \basis_i \rangle_{L^2} \\ 
 & =\langle \tilc, \basis_i \rangle_{L^2}.
-\label{e:b_alt}
+\label{e:diff_td_gradTD_b_alt}
 \end{aligned}
 \end{equation}
 
-The expressions for $M$ and $b$ in \eqref{e:gradTD_M_b}, permit the construction of Monte Carlo based approximations to implement the $\gradTD$ algorithm. The centered function $\tilc$ can be approximated using its empirical equivalent $\tilc_T$ defined as,
+The expressions for $M$ and $b$ in \eqref{e:diff_td_gradTD_M_b}, permit the construction of Monte Carlo based approximations to implement the $\gradTD$ algorithm. The centered function $\tilc$ can be approximated using its empirical equivalent $\tilc_T$ defined as,
 \begin{equation}
 \tilc_T(x) \eqdef c(x) - \frac{1}{T} \int_0^T c(\markovstate_t) dt,
 \end{equation}
@@ -389,7 +389,7 @@ where $\markovstate_t$ is distributed according to the density $\pr$. The matrix
 \begin{align}
 M &\approx M_T \eqdef \frac{1}{T}\int_0^T\bigl(\gradbasis (\markovstate_t)\bigr)\bigl(\gradbasis (\markovstate_t)\bigr)^{\transpose}\, dt, \\
 b &\approx b_T \eqdef \frac{1}{T} \int_0^T \tilc_T(\markovstate_t) \basis(\markovstate_t) dt,
-\label{e:gradTD_M_b_int}
+\label{e:diff_td_gradTD_M_b_int}
 \end{align}
 and $\param_T = M_T^{-1} b_T$. 
 It is interesting to note that the eligibility vector term $\eligibvector_t$ is absent in the $\gradTD$ algorithm for the Langevin diffusion. We shall discuss the benefits and limitations of this algorithm after presenting the more generic version in \Section{s:diff_td_learning}. 
@@ -402,7 +402,7 @@ The ideas involved in the derivation are similar to those in the LSTD algorithm.
 %\Section{s:fpf_gain}.  
 
 The presentation of the algorithm here is restricted to the scalar case, where $\state = \Re$. However, it is expected that the algorithm can be extended to higher dimensions. \anand{not sure if this is true}
-Consider a general continuous-time diffusion process defined in \eqref{e:cts_diffusion} with the definition for its associated differential generator $\generate$ in \eqref{e:diffusion_generator}. Denote by $h$ the solution to Poisson's equation \eqref{e:poissons} with forcing function $c \in C^1$.  Differentiating each side of \eqref{e:poissons} with respect to $x$, we obtain
+Consider a general continuous-time diffusion process defined in \eqref{e:diff_td_cts_diffusion} with the definition for its associated differential generator $\generate$ in \eqref{e:diff_td_diffusion_generator}. Denote by $h$ the solution to Poisson's equation \eqref{e:diff_td_poissons} with forcing function $c \in C^1$.  Differentiating each side of \eqref{e:diff_td_poissons} with respect to $x$, we obtain
 \begin{equation}
 \begin{aligned}
 \frac{d}{dx} (\generate h) & = a'h' + ah'' + \frac{\sigma^2}{2} h''' \\
@@ -417,12 +417,12 @@ It is required that $c'$ has at most exponential growth \cite{devkonmey17b}. We 
 \begin{equation}
 \sup_x  \frac{ \log(1+|f(x)|)}{1+|x|}  <\infty
 \end{equation}
-Additionally, if $a$ satisfies regularity assumptions in \Prop{prop:regularity_U}, the derivative $h'$ has the following representation in terms of the resolvent kernel $R_G$ \eqref{e:resolvent_neveu} with $G \equiv -a'$. 
+Additionally, if $a$ satisfies regularity assumptions in \Prop{prop:regularity_U}, the derivative $h'$ has the following representation in terms of the resolvent kernel $R_G$ \eqref{e:diff_td_resolvent_neveu} with $G \equiv -a'$. 
 \begin{equation}
 h' = R_{-a'} c'
-\label{e:gradTD_h'_resolvent}
+\label{e:diff_td_gradTD_h'_resolvent}
 \end{equation}
-Notice that the resolvent representation is obtained here for $h'$ as opposed to $h$ in \eqref{e:lstd_hgamma_resolvent}. The remainder of this derivation proceeds by taking $a' = -U''$, which is true for the special case of Langevin diffusion. However, nowhere is it required that $a'$ takes this form. The regularity conditions on $U$ are described in \Prop{prop:regularity_U}.
+Notice that the resolvent representation is obtained here for $h'$ as opposed to $h$ in \eqref{e:diff_td_lstd_hgamma_resolvent}. The remainder of this derivation proceeds by taking $a' = -U''$, which is true for the special case of Langevin diffusion. However, nowhere is it required that $a'$ takes this form. The regularity conditions on $U$ are described in \Prop{prop:regularity_U}.
 \begin{proposition}
 	\label{prop:regularity_U}
 	Suppose that $U\colon\Re\to\Re$ satisfies the following assumptions:
@@ -441,21 +441,21 @@ Notice that the resolvent representation is obtained here for $h'$ as opposed to
 	\qed
 \end{proposition}
 
-Now, the derivation of the algorithm follows the same steps involved in the derivation of LSTD in \Section{s:lstd}. An adjoint $R^\dagger_{U''}$ is required that satisfies \eqref{e:RG_adjoint}. Lemma \ref{lemma:RU_adjoint} provides the expression for the adjoint $R^\dagger_{U''}$.  
+Now, the derivation of the algorithm follows the same steps involved in the derivation of LSTD in \Section{s:lstd}. An adjoint $R^\dagger_{U''}$ is required that satisfies \eqref{e:diff_td_RG_adjoint}. Lemma \ref{lemma:RU_adjoint} provides the expression for the adjoint $R^\dagger_{U''}$.  
 \begin{lemma}
 	\label{lemma:RU_adjoint}
 	Let $\bfPhi=\{\markovstate_t : t\in\Re\}$ denote a stationary version of the Langevin diffusion.
 	For measurable functions $f,g$ with at most exponential growths we have,
 	\begin{equation}
 	\langle g, R_{U''} f \rangle_{L^2}   = \Expect [ f(\markovstate_t)	\eligibvector_g(t)   ]\,, \quad t\in\Re,
-	\label{e:gradTD_RU_adjoint}
+	\label{e:diff_td_gradTD_resolvent_U_adjoint}
 	\end{equation}
 	wherein $\bfvarphi_g$ is the stationary process:
 	\begin{equation}
 	\eligibvector_g(t)
 	=
 	\int_{-\infty}^t  \exp\Bigl(-\int_r^t {U''}(\markovstate_s)\, \rmd s  \Bigr) g(\markovstate_r)   \,  \rmd r
-	\label{e:gradTD_eligib_integral}
+	\label{e:diff_td_gradTD_eligib_integral}
 	\end{equation}
 	Consequently, 
 	\begin{equation}
@@ -468,7 +468,7 @@ Now, the derivation of the algorithm follows the same steps involved in the deri
 	\begin{equation}
 	\clU_r^t \eqdef \int_{r}^{t} U''(\markovstate_s) \rmd s.
 	\end{equation}
-	Based on this definition,  and using \eqref{e:resolvent_neveu},  
+	Based on this definition,  and using \eqref{e:diff_td_resolvent_neveu},  
 	\begin{equation*}
 	\begin{aligned}
 	\langle &g, R_{U''}   f \rangle_{L^2}
@@ -490,7 +490,7 @@ Now, the derivation of the algorithm follows the same steps involved in the deri
 	\langle g, R_{U''} f \rangle_{L^2} =
 	\int_{-\infty}^t \Expect\Bigl[ f(\markovstate_t) \exp\bigl(- \clU_r^t \bigr) g(\markovstate_r))\Bigr] \rmd r.
 	\end{equation}
-	The proof of \eqref{e:gradTD_RU_adjoint}
+	The proof of \eqref{e:diff_td_gradTD_resolvent_U_adjoint}
 	is complete via a second application of Fubini's theorem.
 \end{proof}
 
@@ -501,35 +501,35 @@ The $\gradTD$ learning algorithm provides an unbiased and asymptotically consist
 %	\begin{eqnarray}
 %	&\ddt
 %	\eligibvector(t) & =  -U''(\markovstate_t)   \eligibvector(t) + \gradbasis(\markovstate_t)
-%	\label{e:gradTD_eligib}
+%	\label{e:diff_td_gradTD_eligib}
 %	\\
 %	&\ddt
 %	b(t) & =  \eligibvector(t)   c'(\markovstate_t)
-%	\label{e:gradTD_b}
+%	\label{e:diff_td_gradTD_b}
 %	\\
 %	&\ddt M(t) & =   \gradbasis(\markovstate_t)   {\gradbasis}^\transpose(\markovstate_t)
-%	\label{e:gradTD_M}
+%	\label{e:diff_td_gradTD_M}
 %	\end{eqnarray}
 %\end{subequations}
 \begin{subequations}
 	\begin{eqnarray}
 	&\ddt
 	\eligibvector(t) & =  -U''(\markovstate_t)   \eligibvector(t) + \basis'(\markovstate_t)
-	\label{e:gradTD_eligib}
+	\label{e:diff_td_gradTD_eligib}
 	\\
 	&\ddt
 	b(t) & =  \eligibvector(t)   c'(\markovstate_t)
-	\label{e:gradTD_b}
+	\label{e:diff_td_gradTD_b}
 	\\
 	&\ddt M(t) & =   \basis'(\markovstate_t)   {\basis'}^\transpose(\markovstate_t)
-	\label{e:gradTD_M}
+	\label{e:diff_td_gradTD_M}
 	\end{eqnarray}
 \end{subequations}
-The vector $\eligibvector(t)$ is analogous to the eligibility vector in TD learning \cite{bertsi96a,ctcn}. Existence of a steady state solution to \eqref{e:gradTD_eligib} of the form in \eqref{e:gradTD_eligib_integral} is guaranteed under a Lyapunov drift condition in \cite{devkonmey17b}.
+The vector $\eligibvector(t)$ is analogous to the eligibility vector in TD learning \cite{bertsi96a,ctcn}. Existence of a steady state solution to \eqref{e:diff_td_gradTD_eligib} of the form in \eqref{e:diff_td_gradTD_eligib_integral} is guaranteed under a Lyapunov drift condition in \cite{devkonmey17b}.
 The estimates of $\param^*$ are generated via $\param(t) = M(t)^{-1} b(t)$.   The ODE is initialized with $\eligibvector(0), b(0)\in \Re^\ell$,  and $M(0)>0$ a $\ell \times  \ell$ matrix.
 
 \subsection{Nonlinear parameterization}
-Consider a more general case of nonlinear parameterization with an $\ell$- dimensional function class $\clH \eqdef \{h^\param : \param \in \Re^\ell\}$. In this case, the optimization problem \eqref{e:gradTD_norm_error} may not be convex. Let $\basis_\param$ denote the gradient of $h^\param$ with respect to $\param$, i.e. $\grad_\param h^\param = \basis_\param$. For a nonlinear parameterization, following the first order optimality conditions for an optimizer $\param^{*}$ of \eqref{e:gradTD_norm_error}, we have,
+Consider a more general case of nonlinear parameterization with an $\ell$- dimensional function class $\clH \eqdef \{h^\param : \param \in \Re^\ell\}$. In this case, the optimization problem \eqref{e:diff_td_gradTD_norm_error} may not be convex. Let $\basis_\param$ denote the gradient of $h^\param$ with respect to $\param$, i.e. $\grad_\param h^\param = \basis_\param$. For a nonlinear parameterization, following the first order optimality conditions for an optimizer $\param^{*}$ of \eqref{e:diff_td_gradTD_norm_error}, we have,
 
 %\begin{eqnarray*}
 %	0 & = &2 \Expect \bigl[\bigl(\grad h(\markovstate) - \grad h^\param (\markovstate)\bigr) \gradbasis_\param (\markovstate)\bigr]\\
@@ -543,7 +543,7 @@ Consider a more general case of nonlinear parameterization with an $\ell$- dimen
 \begin{aligned}
 	0 & = & \Expect \bigl[\bigl(h'(\markovstate) - h'_{\param^*} (\markovstate)\bigr) \basis'_{\param^*} (\markovstate)\bigr]\\
 	& = &  \Expect \bigl[ h'(\markovstate)\basis'_{\param^*} (\markovstate) \bigr] - \Expect \bigl[ h'_{\param^*} (\markovstate)\basis'_{\param^*} (\markovstate) \bigr]
-\label{e:gradTD_nl}
+\label{e:diff_td_gradTD_nl}
 \end{aligned}
 \end{equation}
 
@@ -551,12 +551,12 @@ Using \Lemma{lemma:RU_adjoint}, we can write an alternate representation for $\E
 \begin{eqnarray*}
 	\Expect\bigl[h'(\markovstate)\basis'_\param (\markovstate)\bigr]=\langle R_{U''}c',\basis'_\param\rangle_{L^2} =\langle c', R_{U''}^\dagger \basis'_\param\rangle_{L^2}
 \end{eqnarray*}
-Obtaining solutions to equations of the form \eqref{e:gradTD_nl} fall within the framework of stochastic approximation techniques. Recursive estimates for the optimizer $\param^*$ can be obtained by using a gradient descent like stochastic approximation algorithm: %\anand{what is the purpose of $M_t^{-1}$ here?}
+Obtaining solutions to equations of the form \eqref{e:diff_td_gradTD_nl} fall within the framework of stochastic approximation techniques. Recursive estimates for the optimizer $\param^*$ can be obtained by using a gradient descent like stochastic approximation algorithm: %\anand{what is the purpose of $M_t^{-1}$ here?}
 \begin{equation}
 \begin{aligned} 
 d_t & =\eligibvector_{\param_t}(t)  c'(\markovstate_t)- h'_{\param_{t}}(\markovstate_t)\basis'_{\param_{t}}(\markovstate_t), \\
 \param_t &=\param_{t-1} + \sagain_t M_{t}^{-1} d_t. 
-\label{e:gradTD_theta_sa}
+\label{e:diff_td_gradTD_theta_sa}
 \end{aligned}
 \end{equation}
 Here, $\{\sagain_t\}$ is a positive gain sequence, subject to the conditions, 
