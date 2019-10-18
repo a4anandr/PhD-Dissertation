@@ -459,7 +459,7 @@ where $F_i = \int_{-\infty}^{x} \pr_i(x) \ud x$ is the Gaussian CDF. The second 
 
 \begin{figure}[h]
 \begin{center}
-	\Ebox{.85}{images/Chap4_Fig_gain_comparison}
+\includegraphics[width = 4in]{images/Chap4_Fig_gain_comparison}
 	\caption{True FPF gains $\kFPF_1$ for $\pr_1$ with $w_{0}=0.01$ and $\kFPF_2$ for $\pr_2$ with $w_{0}=0.1$.}
 	\label{fig:fpf_gain_num_issues}
 \end{center}
@@ -485,18 +485,15 @@ It is reasonable to search for a basis that offers flexibility where the density
 \item A Fourier basis composed of sines and cosines of harmonic frequencies, $\basis_n(x) = \sin(n x), \basis_{n+1}(x) = \cos(n x)$ for $1 \leq n \leq \ell/2$.
 \item Polynomials weighted by the component densities $\pr_i$. 
 \[
-\basis_n(x) \eqdef x^n \pr_1(x) \qquad 
+\basis_n(x) \eqdef x^n \pr_1(x), \qquad 
 \basis_{n+1}(x) \eqdef x^n \pr_2(x),
 \] 
 for $1 \leq n \leq \ell/2$. 
 \end{romannum}
-It is not difficult to show that the true gain is nearly constant for large $x$, with $\lim_{|x|\to\infty} \kFPF(x) = \Kkal$. The limit corresponds to the Kalman-like gain $\Kkal$ obtained for the model in which $\pr$ is replaced by $\pr_i$  (the Gaussian density with the highest variance). The function $\basis_n(x) = x$ is added to the basis, such that $\nabla \basis(x)\equiv 1$ is available to account for this constant asymptotic gain value. The class $\clK$ is defined using this basis:
+It is not difficult to show that the true gain is nearly constant for large $x$, with $\lim_{|x|\to\infty} \kFPF(x) = \Kkal$. The limit corresponds to the Kalman-like gain $\Kkal$ obtained for the model in which $\pr$ is replaced by $\pr_i$  (the Gaussian density with the highest variance). The function $\basis_n(x) = x$ is added to the basis (for cases ii and iii, it is already included in i), such that $\nabla \basis(x)\equiv 1$ is present to account for this constant asymptotic gain value. The class $\clK$ is defined using this basis:
 \begin{equation*}
 K_\param = \param^{\transpose}\gradbasis = \sum_{n=1}^{\ell}\param_{n}\gradbasis_{n}\,, \quad\param\in\Re^{\ell}
 \end{equation*}
-
-\Fig{fig:lstd} compares the actual FPF gain with the best approximation from within the parameterized family obtained using $\nabla$-LSTD learning. Although, the approximation is not tight everywhere, it is the best that is possible for the chosen basis. As expected, the accuracy is typically better at values of $x$ for which $p(x)$ is large.
-
 
 \begin{figure}[htbp]
 	\centering
@@ -509,7 +506,7 @@ K_\param = \param^{\transpose}\gradbasis = \sum_{n=1}^{\ell}\param_{n}\gradbasis
 	\mbox{
 	\subfigure [] {\includegraphics[width = 6in]{images/Chap4_diff_td_linear_wt_polynomials}} 
 	}
-	\caption[LSTD performance]{Gain function approximations using a linear parameterization A) Polynomial basis B) Fourier basis consisting of sines and cosine functions C) Polynomials weighted by $\pr_i$.}
+	\caption[LSTD performance]{Gain function approximations using $\gradTD$ learning algorithm (\Section{s:diff_td_learning}) using a linear parameterization \cite{raddevmey16} A) Polynomial basis B) Fourier basis consisting of sines and cosine functions C) Polynomials weighted by $\pr_i$.}
 	\label{fig:lstd_linear}
 \end{figure}
 
@@ -552,7 +549,54 @@ Optimal nonlinear parameterization can be obtained by running $\nabla$-TD learni
 \Fig{f:nltd} shows the approximate gain obtained using stochastic Newton Raphson algorithm and the  exact gain values. The approximation obtained using nonlinear parameterization matches the exact gain better than the linear parameterization. \Section{asym_variance} compares the asymptotic error variances obtained using both these algorithms.
 
 \subsubsection*{Finite basis - diff TD}
+\begin{figure}
+\includegraphics[width=6in]{images/Chap4_lang_td_wt_polynomials}
+\caption[RKHS and coifman performance]{Gain function approximations using a $10$-dimensional polynomial$\times \pr_i$ basis using $\gradTD$ learning for Langevin diffusion (\Section{s:diff_td_lang})}
+\end{figure}
+
 \subsubsection*{RKHS- based algorithms}
+
+\begin{figure}[htbp]
+	\centering
+	\mbox{
+		\subfigure [] {\includegraphics[width=6in]{images/Chap4_N_dN}} 
+	}
+	\mbox{
+		\subfigure [] {\includegraphics[width=6in]{images/Chap4_rkhs_om}} 
+	}
+	\mbox{
+		\subfigure [] {\includegraphics[width = 6in]{images/Chap4_coif}} 
+	}
+	\caption[RKHS and coifman performance]{Gain function approximations A) RKHS optimal and RKHS simplified with $2N$ and $N$ parameters respectively \cite{radmey18a}, B) RKHS-OM method \cite{radmey19}, C) Markov semigroup approximation \cite{tagmeh16}.}
+	\label{fig:lstd_linear}
+\end{figure}
+
+\begin{figure}
+	\includegraphics[width=5in]{images/Chap4_beta_comparison}
+	\caption[RKHS and coifman performance]{Magnitudes of $\{\beta_i\}$ obtained from A) RKHS optimal, B) RKHS simplified and C) RKHS OM algorithms}
+	\label{fig:beta_comparison}
+\end{figure}
+
+\begin{figure}[htbp]
+	\centering
+	\mbox{
+		\subfigure [] {\includegraphics[width=6in]{images/Chap4_gain_N_dN_d2510}} 
+	}
+	\mbox{
+		\subfigure [] {\includegraphics[width=6in]{images/Chap4_gain_om_d2510}} 
+	}
+	\mbox{
+		\subfigure [] {\includegraphics[width = 6in]{images/Chap4_gain_coif_d2510}} 
+	}
+	\caption[RKHS and coifman performance]{Gain function approximations A) RKHS optimal and RKHS simplified with $2N$ and $N$ parameters respectively \cite{radmey18a}, B) RKHS-OM method \cite{radmey19}, C) Markov semigroup approximation \cite{tagmeh16}.}
+	\label{fig:lstd_linear}
+\end{figure}
+
+\subsection*{Results}
+
+\Fig{fig:lstd_linear} compares the performance of the various choices of basis functions for different simulation times $T = 10^4, 10^5, 10^6$ for the Langevin SDE. An Euler-discretization scheme was implemented with $\delta = 0.01$. The true FPF gain computed using the integral formula \eqref{e:fpf_gain_1d} is also plotted for comparison. with the best approximation from within the parameterized family obtained using $\nabla$-LSTD learning. Although, the approximation is not tight everywhere. As expected, the accuracy is typically better at values of $x$ for which $\pr(x)$ is large.
+Weighted polynomials is better because it ensures the gain decays at large $x$ values. 
+
 Mention about hyperparameter selection issues
 
 \subsection{Nonlinear oscillator}
@@ -577,20 +621,20 @@ The feedback particle filter for this model is given by :
 +\sigma_{B}\ud B^{i}_t+K(\oscState^{i}_t) \ud I^i(t)  \quad  \text{mod }2\pi\, ,
 \end{equation*}
 with $\ud I^i(t) = \ud Z_t-\frac{1}{2}(c(\oscState_t^{i}+\hac_t))\ud t$.
-The gain function $K(\oscState,t)$ at each instant $t$ is obtained as the solution to \eqref{eq_fish}:
+The gain function $K(\oscState,t)$ at each instant $t$ is obtained as the solution to \eqref{e:diff_td_poissons}:
 \begin{equation*}
-- U'(\oscState) K(\oscState) + K'(\oscState) = -\tilc(\oscState)  %\qquad \{\tilc =c-\int c(\oscState)p(\oscState,t)d\oscState\}
+- U'(\oscState) K(\oscState) + K'(\oscState) = -\tilc(\oscState)  %\qquad \{\tilc =c-\int c(\oscState)\pr(\oscState,t)d\oscState\}
 \end{equation*}
-The conditional density $p(\oscState,t)$ at any instant is modeled as a mixture of von Mises densities:
+The conditional density $\pr(\oscState,t)$ at any instant is modeled as a mixture of von Mises densities:
 \begin{equation*}
-p(\oscState)=\sum_{i=1}^{N}w_{i}p_{i}(\oscState)
+\pr(\oscState)=\sum_{i=1}^{m}w_{i}\pr_i(\oscState)
 \end{equation*}
-Each component of the mixture $p_{i}(\oscState)$ is given as follows:
+Each component of the mixture $\pr_i(\oscState)$ is given as follows:
 \begin{equation*}
-p_{i}(\oscState,t) =  \beta^{-1} \exp  \bigl( \kappa_i \cos(\oscState-\mu_{i} )    \bigr),
+\pr_i(\oscState,t) =  \beta^{-1} \exp  \bigl( \kappa_i \cos(\oscState-\mu_{i} )    \bigr),
 \end{equation*}
 where $\beta$ is a normalizing constant, and $\mu_{i}$ is the mean of the density. This reduces to   a uniform density for $\kappa_{i}=0$, and the variance vanishes as $\kappa_{i}\to \infty$ \cite{haspea00}. By choosing a family of a mixture of von Mises densities, it is possible to model any form of circular density from uniform to a bimodal Gaussian mixture.
-Poisson's equation can be numerically solved in the scalar case for this mixture density $p(\oscState)$, so that the gain function $\kFPF$ is numerically computed.
+Poisson's equation can be numerically solved in the scalar case for this mixture density $\pr(\oscState)$, so that the gain function $\kFPF$ is numerically computed.
 % \iffalse
 
 \subsubsection*{Simulation results}
@@ -604,20 +648,21 @@ $w_2 =0.3$.
 The $\nabla$-LSTD learning algorithm is applied to this nonlinear oscillator problem. A linearly parameterized family using sines and cosines is the chosen basis. This is a reasonable choice because for a uniform density, the gain $\kFPF=-\frac{\sin \oscState}{2\sigma_{W}^{2}}$.
 
 \begin{figure*}
-	\Ebox{.9}{images/Chap4_Fig_TD_v_BE_468}
-	\caption{$\nabla$-LSTD learning for $4,6$ and $8$ dimensional basis}
-	\label{f:qad468}
+	\Ebox{.9}{images/Chap4_nl_oscillator_be}
+	\caption{Comparison of $\nabla$-LSTD learning with Bellman error minimization for $4,6$ and $8$ dimensional Fourier basis for a nonlinear oscillator model}
+	\label{fig:gain_nl_oscillator}
 \end{figure*}
 
-For comparison, we also considered an approximation computed by minimizing the $p-$norm of the Bellman error:
+For comparison, we also considered an approximation computed by minimizing the $L^2(\pr)-$norm of the Bellman error:
 % \begin{equation*}
-\begin{align*}
-\min_{\param}\|\clE(\param)\|_{p}^{2}=\min_{\param}\langle \clD h^\param + \tilc \rangle_{p} = \min_{\param}\|\clD h^\param +\tilc \|_{p}^{2}
-\end{align*}
+\begin{align}
+\min_{\param}\|\clE(\param)\|_{L^2}^{2}=\min_{\param}\langle \clD h^\param + \tilc \rangle_{L^2} = \min_{\param}\|\clD h^\param +\tilc \|_{L^2}^{2}
+\label{e:fpf_nl_be}
+\end{align}
 % \end{equation*}
 This minimization problem can be solved using Monte-Carlo methods.
 
-Figure \ref{f:qad468} compare the performance of the $\nabla$-LSTD learning algorithm and the Bellman error minimization algorithm with the numerically computed exact gain function for basis functions of dimensions $4$, $6$ and $8$. It can be observed that $\nabla$-LSTD learning gives a better approximation than the $BE$ minimization algorithm in regions of high values of $p(\oscState)$.
+\Fig{fig:gain_nl_oscillator} compare the performance of the $\nabla$-LSTD learning algorithm and the Bellman error minimization algorithm with the numerically computed exact gain function for basis functions of dimensions $4$, $6$ and $8$. It can be observed that $\nabla$-LSTD learning gives a better approximation than the $BE$ minimization algorithm in regions of high values of $\pr(\oscState)$.
 
 \subsection{Filtering experiments}
 \label{s:filtering_experiments}
@@ -652,7 +697,7 @@ The parameter $\epsy$ was set to $0.1$ in the Markov semigroup approximation met
 
 \begin{figure}[h]
 	\centering
-	\Ebox{0.85}{images/Chap4_log_mse_contour_2m}
+	\includegraphics[width = 4in]{images/Chap4_log_mse_contour_2m}
 	\caption{Contour plots of average over $100$ trials of $\log(\|\kFPF - \widehat{\kFPF}\|^2_{L^2})$ with $\lambda$ and $\epsilon$ }
 	\label{fig:log_mse_contour}
 \end{figure}
