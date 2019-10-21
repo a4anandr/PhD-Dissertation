@@ -1,0 +1,18 @@
+\chapter{Expectation Maximization (EM) Algorithm for Gaussian Mixtures}
+\label{a:em}
+
+\begin{itemize}
+\item E Step :
+
+\begin{equation}
+w^{(k)}(j|n)= \displaystyle \dfrac{w_{j}^{(k)}p_{j}(x^i;\mu_{j}^{(k)},\sigma_{j}^{(k)})}{ \displaystyle \sum_{j=0}^{m-1}w_{j}^{(k)} p_{j}(x^i;\mu_{j}^{(k)},\sigma_{j}^{(k)})}
+\end{equation}
+\item M Step :
+\begin{equation}
+\begin{aligned}
+\mu_{j}^{(k+1)} &=  \dfrac{\displaystyle \sum_{n=1}^{N}w^{(k)}(j|n)x^i}{\displaystyle \sum_{n=1}^{N}w^{(k)}(j|n)}\\
+\sigma_{j}^{(k+1)} &=  \sqrt{ \dfrac{\displaystyle \sum_{n=1}^{N}w^{(k)}(j|n)\|x^i-\mu_{j}^{(k+1)}\|^2}{\displaystyle \sum_{n=1}^{N}w^{(k)}(j|n)}}\\
+w_{j}^{(k+1)} &=  \dfrac{1}{N} \displaystyle \sum_{n=1}^{N}w^{(k)}(j|n)
+\end{aligned}
+\end{equation}
+\end{itemize}
