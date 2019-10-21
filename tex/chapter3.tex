@@ -177,9 +177,10 @@ It is evident from the construction of the RKHS that the properties of the funct
 \Kern(x,x') \eqdef g(\gamma_1, \|x-x'\|^{\gamma_2})
 \end{equation}  
 The most popular example of a radial basis kernel is the exponential kernel defined as $\Kern(x,x') \eqdef \exp(-\gamma_1 \|x - x'\|^{\gamma_2})$, of which the standard Gaussian kernel is a special case:
-\[
+\begin{equation}
 \Kern_\epsilon \eqdef \exp\Bigl\{\frac{\|x-x'\|^2}{4 \epsilon}\Bigr\},
-\]
+\label{e:rkhs_gaussian_kernel}
+\end{equation}
 where $\epsilon$ is the variance parameter that controls the width of the function. Desirable properties of the Gaussian kernel that makes it widely used have been investigated in \cite{min10,stehussco06}. A brief review is provided in \Appendix{a:gaussian_rkhs}. 
 \end{arabnum}
 

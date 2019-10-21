@@ -529,6 +529,7 @@ The vector $\eligibvector(t)$ is analogous to the eligibility vector in TD learn
 The estimates of $\param^*$ are generated via $\param(t) = M(t)^{-1} b(t)$.   The ODE is initialized with $\eligibvector(0), b(0)\in \Re^\ell$,  and $M(0)>0$ a $\ell \times  \ell$ matrix.
 
 \subsection{Nonlinear parameterization}
+\label{s:diff_td_nl_param}
 Consider a more general case of nonlinear parameterization with an $\ell$- dimensional function class $\clH \eqdef \{h^\param : \param \in \Re^\ell\}$. In this case, the optimization problem \eqref{e:diff_td_gradTD_norm_error} may not be convex. Let $\basis_\param$ denote the gradient of $h^\param$ with respect to $\param$, i.e. $\grad_\param h^\param = \basis_\param$. For a nonlinear parameterization, following the first order optimality conditions for an optimizer $\param^{*}$ of \eqref{e:diff_td_gradTD_norm_error}, we have,
 
 %\begin{eqnarray*}
