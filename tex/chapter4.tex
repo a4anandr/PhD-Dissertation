@@ -471,9 +471,10 @@ One of the practical approaches to prevent $\kFPF$ from taking extremely high va
 
 \subsection{Gain function approximation for a fixed $t$}
 In each of the following experiments the density $\pr\in\clP$ was chosen with $m=2$,
-\[
+\begin{equation}
 \pr = 0.5 \mathcal{N}(-1, 0.4472) + 0.5 \mathcal{N}(1, 0.4472),
-\]
+\label{e:fpf_gaussian_mixture_example}
+\end{equation}
 such that each component has a variance of $0.2$. The observation function is linear, with $c(x)\equiv x$ and $\sigma_W = 1$. 
 
 \subsection*{Linear parameterization}
@@ -762,7 +763,7 @@ here are for SIS-PF with periodic resampling at every third time interval.
 
 \begin{figure}[htbp]
 	\includegraphics[width = 6in] {images/Chap4_Posterior_estimate}
-	\caption{ Gain approximations and posterior estimates at $t=0.02$ and $0.08$ respectively using i) exact computation ii) RKHS-OM method, iii) RKHS-OM with memory for $\lambda_1=1$.}
+	\caption{ Posterior estimates $\pr_t^{(N)}$ using EKF, FPF with constant gain and FPF with $\gradTD$-RKHS gain approximations at i) $t=0$ ,ii) $t = 50$, iii) $t = 100$}
 	\label{fig:gain_hist_028}
 \end{figure}
 
@@ -844,7 +845,7 @@ Two different priors were compared in these experiments, determined by matrices 
 	\centering
 	\includegraphics[width =6in] {images/Chap4_ship_state12_comparison}
 	\label{fig:ship_state_time_estimate}
-	\caption{ State estimates  from the various filters}
+	\caption{ State estimates $X_1$ and $X_2$ from the various filters}
 \end{figure}
 
 \Fig{fig:ship_state_estimate} displays a typical state trajectory along with the estimates obtained using the each of the five filters using  $\Sigma_2$. The EKF estimates are erratic as reported in \cite{budchelee07}, and are often seen to diverge. The particle methods exhibit superior performance.
