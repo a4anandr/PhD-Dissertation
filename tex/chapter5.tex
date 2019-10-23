@@ -48,6 +48,12 @@ It has been shown in \cite{glymey96a,MT} that the asymptotic variance $\asymvar^
 The representation \eqref{e:avarFish} is valid for any diffusion that is $V$-uniformly ergodic.
 For the special case of the Langevin diffusion,  by application of \Prop{prop:lang_generator_grad}, $\asymvar^2 = 2 \| \nabla h \|^2_{L^2}$.
 
+In practice, discretized versions of the equation based on Euler-Mauryama scheme are used \eqref{e:diff_td_langevin_discrete}:
+\begin{equation*}
+\markovstate_n = \markovstate_{n-1} - \nabla U(\markovstate_{n-1}) \mcmcstep_{n} + \sqrt{2  \mcmcstep_{n-1}} W_{n-1} ,
+\end{equation*}
+where $\{\mcmcstep_n\}_{n\geq 1}$ is a sequence of step sizes and $\{W_n\}_{n\geq 1}$ is a sequence of i.i.d. standard Gaussian random variables. This implementation is called the unadjusted Langevin algorithm (ULA) \cite{andddefdoujor03}. In the numerical experiments, the step size $\mcmcstep$ is chosen to be a constant, independent of $n$. 
+
 The primary goal in the design of MCMC algorithms is the faster convergence of the Markov chain to its invariant distribution (i.e. the target distribution). The asymptotic variance is a measure of this convergence and hence, it is ideal to minimize $\asymvar^2$. Several approaches have been proposed to improve the convergence rate including constructing an irreversible Markov chain with the same invariant density \cite{hwanorwu15, dunlelpav16}, using an optimal scaling parameter \cite{robros01} etc. Most of these approaches alter the transition kernel of the Markov chain and hence, do not work well on samples already obtained. In the remainder of this paper, we restrict our discussion to post-hoc schemes for reversible Markov chains, i.e. samples from an ergodic Markov chain are available and variance reduction is achieved by post-processing. These scheme require no changes to the sampling methodology. 
 
 Control variates introduced in \cite{HenThesis,henmeytad03a,kimhen07,ctcn} are zero-mean terms, which when added to the estimator can produce a significant reduction in the asymptotic variance without adding bias. One of the advantages of this scheme is that they work post-hoc, and are independent of the MCMC algorithm used. \anand{a few more words on original application}
@@ -129,11 +135,11 @@ P_{mh}(x,dy) \eqdef g(x,y) \alpha(x,y) dy + \left [ 1 - \int_{\state} g(x,y) \al
 \end{equation}
 and with the acceptance ratio $\alpha$ as defined, the reversible Markov chain with kernel $P_{mh}$ has its invariant density as $\rho$.
 
-A special case of this algorithm is obtained if $g$ is chosen to be a Gaussian centered at $x$ with $\gamma$ as the variance parameter. This also simplifies the expression for $\alpha$ as $g(x,x') = g(x',x)$. This variant is known as the random walk Metropolis (RWM) algorithm. For a small value of $\gamma$, it has been shown by Brosse et al. in \cite{brodurmeymourad18} that the following relation between $P_{mh}$ and the differential generator $\generate$ of the Langevin diffusion holds,
+A special case of this algorithm is obtained if $g$ is chosen to be a Gaussian centered at $x$ with $\mcmcstep$ as the variance parameter. This also simplifies the expression for $\alpha$ as $g(x,x') = g(x',x)$. This variant is known as the random walk Metropolis (RWM) algorithm. For a small value of $\mcmcstep$, it has been shown by Brosse et al. in \cite{brodurmeymourad18} that the following relation between $P_{mh}$ and the differential generator $\generate$ of the Langevin diffusion holds, \anand{variance parameter is equivalent to the time step in ULA?}
 \[
-\lim_{\gamma \to 0} \gamma^{-1} (P_{mh} - I) = \generate
+\lim_{\mcmcstep \to 0} \mcmcstep^{-1} (P_{mh} - I) = \generate
 \]
-Thus for small values of $\gamma$, the control variates can be obtained as $\gamma \generate h^\theta$. \rd{But this approximation is not valid for larger step-sizes and hence this method is practically limited in use.} \notes{Do we need this statement? Or is there a hack for larger $\gamma$? }
+Thus for small values of $\mcmcstep$, the control variates can be obtained as $\mcmcstep \generate h^\theta$. \rd{But this approximation is not valid for larger step-sizes and hence this method is practically limited in use.} \anand{Do we need this statement? Or is there a hack for larger $\mcmcstep$? }
 
 \section{Control Variates for a Reversible Markov Chain} 
 \label{s:mcmc_reversible_mc_cv}
@@ -254,7 +260,7 @@ b_N & \eqdef  \frac{1}{N} \sum_{n=0}^{N-1} \tilc(\markovstate_n)\, \Bigl( \psi(\
 \end{aligned}
 \]
 
-Similar results for optimal control variates for reversible Markov chains have been obtained in \cite{delkon12}. Although optimal parameter weight estimates $\param_N = M_N^{-1} b_N$ are easy to obtain, the main difficulty is to compute the term $P\psi$ which is part of the control variate defined in \Prop{t:theta_discrete}. In \cite{delkon12}, numerical examples are presented for a class of conjugate random-scan Gibbs samplers for which $P\psi$ is explicitly computable in closed form. In this dissertation, we substitute for $(P-I)\basis$ with $\gamma \generate \basis$, which is easy to compute. Recent results in \cite{brodurmeymourad18} justifies this substitution for small values of $\gamma$. 
+Similar results for optimal control variates for reversible Markov chains have been obtained in \cite{delkon12}. Although optimal parameter weight estimates $\param_N = M_N^{-1} b_N$ are easy to obtain, the main difficulty is to compute the term $P\psi$ which is part of the control variate defined in \Prop{t:theta_discrete}. In \cite{delkon12}, numerical examples are presented for a class of conjugate random-scan Gibbs samplers for which $P\psi$ is explicitly computable in closed form. In this dissertation, we substitute for $(P-I)\basis$ with $\mcmcstep \generate \basis$, which is easy to compute. Recent results in \cite{brodurmeymourad18} justifies this substitution for small values of $\mcmcstep$. 
 
 \section{Sample Variance v Asymptotic Variance}
 \label{s:mcmc_var_vs_asym_var}
@@ -273,13 +279,23 @@ h^\vartheta  =  \sum_{i=1}^\ell \vartheta_i \psi_i = \vartheta^\transpose \psi.\
 The quantity minimized is the sample variance, i.e. $(\sigma^\vartheta)^2 = \Expect[(\tilc^{\vartheta})^2] = \langle \tilc^\vartheta, \tilc^\vartheta \rangle_{L^2}$, where $\tilc^\vartheta = c^\vartheta - \eta$ resulting in
 \begin{equation}
 \vartheta^*= \argmin_{\vartheta \in \Re^\ell} (\sigma^\vartheta)^2  = M^{-1} b
-\label{e:optVar}
+\label{e:mcmc_var_theta_star}
 \end{equation}
-where $M = \langle \generate \psi,  \generate \psi \rangle_{L^2}$ and $b = - \langle \tilc, \generate \psi \rangle_{L^2}$. This is termed the zero-variance (ZV) algorithm in \cite{papmirgir14}.
+where $M = \langle \generate \psi,  \generate \psi \rangle_{L^2}$ and $b = - \langle \tilc, \generate \psi \rangle_{L^2}$. This is termed the zero-variance (ZV) algorithm in \cite{papmirgir14}. It is interesting to observe that the variance minimization algorithm is equivalent to minimizing the Bellman error technique presented in \eqref{e:fpf_nl_be}.
 
 The important question to be addressed is: does minimizing the sample variance minimize (perhaps approximately) minimize the asymptotic variance? Using a simple numerical example, it can be shown that this is not always the case.
 
-Consider $\state \equiv \Re$, $c(x) \equiv x $, $\pr$ is a univariate 2-component Gaussian mixture density defined in \eqref{e:fpf_gaussian_mixture_example} and shown by the shaded region in \Fig{fig:mcmc_cv_theta_var}. Two sets of basis functions are chosen for $\psi$ (similar to those defined in \Section{s:linear_param}) - i) a family of polynomials of the form $\basis_n(x) = x^n$ for $1 \leq n \leq \ell$ and ii) polynomial functions weighted by the component Gaussian densities, $\basis_n(x) = x^n \pr_i(x)$, where $1\leq n \leq \ell/2$ and $i = 1,2$. The resulting asymptotic variances for the two different parameters, $\theta^*$ and $\vartheta^*$ are compared against the basis dimension $\ell$.  The optimality gap shown in \Fig{fig:mcmc_var_vs_asym_var} is considerable for $c(x) = x$.
+Consider $\state \equiv \Re$, $c(x) \equiv x $, $\pr$ is a univariate 2-component Gaussian mixture density defined in \eqref{e:fpf_gaussian_mixture_example} and shown by the shaded region in \Fig{fig:mcmc_cv_theta_var}. Two sets of basis functions are chosen for $\psi$ (similar to those defined in \Section{s:linear_param}):
+\begin{romannum}
+	\item  a family of polynomials of the form $\basis_n(x) = x^n$ for $1 \leq n \leq \ell$.
+	\item a family of polynomial functions weighted by the Gaussian density components $\pr_i$,
+	\begin{equation}
+	\{\psi_n(x) : x\in\Re,\ 1\le n\le \ell\}  = \{ x^k \pr_i(x) :  1\le k \le \ell/2,   \ i=1,2\},
+	\label{e:basis}
+	\end{equation}
+	where $\pr_i \sim N(\mu_i, \sigma^2_i)$. The rationale behind this choice of basis functions is that the contribution of each $\psi_n$ is local to a particular mode.  This allows us to approximate $h$ with good accuracy in the region around $\mu_1$ and $\mu_2$, where most of the samples of the Langevin diffusion are concentrated. 
+\end{romannum}
+
 \begin{figure}[htbp]
 	\centering
 	\mbox{
@@ -289,26 +305,26 @@ Consider $\state \equiv \Re$, $c(x) \equiv x $, $\pr$ is a univariate 2-componen
 	}
 
 	\mbox{
-	\subfigure[]{\includegraphics[width=3in]{images/Chap5_x2_var_vs_asym_var_poly}} \quad
+	\subfigure[]{\includegraphics[width=3in]{images/Chap5_x2_var_vs_asym_var_poly}} \quad 
 	\subfigure[]{\includegraphics[width=3in]{images/Chap5_x2_var_vs_asym_var_wt_poly}}
 	% \subfigure[]{\includegraphics[width=3in]{images/Chap5_x_var_vs_asym_var_fourier}} 
 	}
-	\caption{Comparison of $(\asymvar^{\theta^*})^2$ and $(\asymvar^{\vartheta^*})^2$}
+	\caption{Comparison of $(\asymvar^{\theta^*})^2$ and $(\asymvar^{\vartheta^*})^2$ for $\theta^*, \vartheta^* \in \Re^{\ell}$, $0 \leq \ell \leq 12$ and $c(x) = x, x^2$, for i) a polynomial basis (in A and C) and ii) a weighted polynomial basis (in B and D)}
 	\label{fig:mcmc_var_vs_asym_var}
 \end{figure}
-
-The discrepancy is clear from a close look at the two functions $c^{\theta^*}$ and $c^{\vartheta^*}$ that are plotted
-in \Fig{fig:mcmc_cv_theta_var}.    The key difference is that the ``local mean'' of $c^{\theta^*}$ is nearly $\eta$ in each well of the density $\pr$ (shaded region of \Fig{fig:mcmc_cv_theta_var}):
+\anand{Wrong text in C}
+The resulting asymptotic variances for the parameters, $\theta^*$ \eqref{e:mcmc_theta_star} and $\vartheta^*$ \eqref{e:mcmc_var_theta_star} are compared against the basis dimension $\ell$.  The optimality gap for $c(x) = x$ shown in parts A and B of \Fig{fig:mcmc_var_vs_asym_var} is considerable.
+The discrepancy is clear from a close look at the two functions $c^{\theta^*}$ and $c^{\vartheta^*}$ that are plotted in \Fig{fig:mcmc_cv_theta_var}. The key difference is that the ``local mean'' of $c^{\theta^*}$ is nearly $\eta$ in each well of the density $\pr$ (shaded region of \Fig{fig:mcmc_cv_theta_var}):
 \[
 \begin{aligned}
 \int_{-\infty}^0 c^{\theta^*}(x) \pr(x)\, dx	
 \approx
-\int_0^\infty c^{\theta^*}(x) \pr(x) \, dx \approx \eta =0
+\int_0^\infty c^{\theta^*}(x) \pr(x) \, dx \approx \eta =0.
 \end{aligned}
 \]
 This helps reduce the asymptotic variance for this slowly mixing diffusion. The function $c^{\vartheta^*}$  does not share this property and produces biased estimates of $\eta$ in each well.
 The approximations $h'^{\vartheta^*}$ and $h'^{\theta^*}$ are plotted along with the exact solution $h'$ obtained analytically in
-\Fig{fig:mcmc_cv_theta_var}.  The function $h'^{\vartheta^*}$ is a poor approximation to $h'$,  and that results in much higher asymptotic variance. In summary, to minimize the asymptotic variance, it is  important to approximate $h'$ quite well and our objective function aims to minimize the approximation error in the mean-square sense. The same experiment was repeated for $c(x) \equiv\sin x$ with similar results. However, for $c(x) = x^2$, both the methods achieve nearly similar reduction in asymptotic variance. 
+\Fig{fig:mcmc_cv_theta_var}.  The function $h'^{\vartheta^*}$ is a poor approximation to $h'$,  and that results in much higher asymptotic variance. In summary, to minimize the asymptotic variance, it is  important to approximate $h'$ quite well and the $\gradTD$ objective function aims to minimize the approximation error in the mean-square sense. The same experiment was repeated for $c(x) \equiv\sin x$ with similar results. It is conjectured that this phenomenon is more pronounced in multimodal densities. However, for $c(x) = x^2$, both the methods achieve nearly similar reduction in asymptotic variance. 
 
 \begin{figure}[htbp]
 	\centering
@@ -321,238 +337,170 @@ The approximations $h'^{\vartheta^*}$ and $h'^{\theta^*}$ are plotted along with
 \end{figure}
 
 
-Another way to verify if the two objectives are equivalent is by looking at the autocorrelation functions. In the discrete time case, the asymptotic variance of the estimates of $\eta$ can be written as the infinite sum of all the autocorrelation functions,
+Examining the autocorrelation functions offers another perspective to verify if the two objectives are equivalent. In the discrete time case, the asymptotic variance of the estimates of $\eta$ can be written as the infinite sum of all the autocorrelation functions,
 \begin{equation}
 \begin{aligned}
-\asymvar^2  & \eqdef \sum_{n=-\infty}^\infty R(n), \qquad R(n) = \Expect [\tilc(\markovstate) \tilc(\markovstate_n)] \\
-& = 2 \sum_{n=0}^\infty R(n)- R(0)
+\asymvar^2  & \eqdef \sum_{n=-\infty}^\infty R(n), \qquad R(n) = \Expect [\tilc(\markovstate_0) \tilc(\markovstate_n)] \\
+& = 2 \sum_{n=0}^\infty R(n)- R(0).
 \end{aligned}
 \label{e:mcmc_autocorrelation}
 \end{equation}
-It may be noted that $c^{\theta^*}$ tries to minimize $\asymvar^2$ whereas $c^{\vartheta^*}$ minimizes just a term $R(0)$ in it. \Fig{fig:mcmc_autocorrelation} shows the autocorrelation function $R(n)$ in \eqref{e:mcmc_autocorrelation} corresponding to the three different estimators $c,c^{\theta^*}$  and $c^{\vartheta^*}$ plotted for $n$ upto $100$. Although, $c^{\vartheta^{*}}$ has the least correlation value at $n=0$ (variance), it shows a slow decay as $n$ increases, whereas $c^{\theta^*}$ shows a much steeper decay, resulting in a much lower overall asymptotic variance. The plot clearly illustrates that minimizing the sample variance is not always equivalent to minimizing the asymptotic variance.
+The expression for $\asymvar^2$ in \eqref{e:mcmc_avar_reversible} can be derived from this infinite summation form. On inspecting the two objectives, it is easy to see that while $c^{\theta^*}$ tries to minimize $\asymvar^2$, $c^{\vartheta^*}$ minimizes just the term $R(0)$ in it. This is evident from the the autocorrelation function $R(n)$ in \eqref{e:mcmc_autocorrelation} plotted in \Fig{fig:mcmc_auto_correlation}. Autocorrelation function corresponding to the three different estimators $c,c^{\theta^*}$  and $c^{\vartheta^*}$ for $c(x) = x$, are plotted for $n$ upto $100$. Although, $c^{\vartheta^{*}}$ has the least correlation value at $n=0$ (sample variance), it shows a slow decay as $n$ increases, $c^{\theta^*}$ shows a much sharper decay, resulting in a much lower overall asymptotic variance. The plot clearly illustrates that minimizing the sample variance is not always equivalent to minimizing the asymptotic variance.
 
 \begin{figure}[htbp]
 	\centering
-	\includegraphics[width=4in]{images/Chap5_cov_R_n_gamma_pt05}
-	\caption{ Autocorrelation functions $R(n)$ corresponding to the three estimators $c, c^{\theta^*}$ and $c^{\vartheta^*}$  for $n= 0$ to $100$  }
+	\includegraphics[width=3.5in]{images/Chap5_cov_R_n_gamma_pt05}
+	\caption{ Autocorrelation functions $R(n)$ corresponding to the three estimators $c, c^{\theta^*}$ and $c^{\vartheta^*}$  for $n= 0$ to $100$ for ULA with step size $\mcmcstep = 0.05$}
 	\label{fig:mcmc_auto_correlation}
 \end{figure}
 
 \section{Numerical Examples}
 \label{s:mcmc_numerics}
-In this section we present a survey of the numerical experiments performed based on the algorithms presented in this paper. We illustrate the remarkable reduction in asymptotic variance that is achieved by the various $\gradTD$ based algorithms, first on a univariate Gaussian mixture target density and simple functions $c(x)$.   
+In this section we present a survey of the numerical experiments performed based on the algorithms presented in this paper. We illustrate the remarkable reduction in asymptotic variance that is achieved by the various $\gradTD$ based algorithms, first for estimating the mean of a simple functions $c(x)$ with respect to a univariate Gaussian mixture target density and then in a maximum-likelihood parameter estimation problem using logistic regression.   
 
-%\subsection{Asymptotic variance reduction}
-%\label{s:ex_avar}
-%In this section, we first look at how the control variates help in reducing the asymptotic variance for the unadjusted Langevin algorithm (ULA) \cite{andddefdoujor03}, which is a discrete time approximation of a Langevin diffusion process.  For a simple demonstration of the idea, we consider a one dimensional  multimodal target density defined as mixture of Gaussians \eqref{e:fpf_gaussian_mix}. In our first example, we chose the same parameter values used in \Chapter{ch:fpf} - $M=2$, $\mu_1$ and $\mu_2$ are set to $-1$ and $1$ respectively, $\sigma_1 = \sigma_2 = 0.4472$ and $w_1 = w_2 = 0.5$. This gives a symmetric density $\pr$ as shown by the shaded region in \Fig{cv_theta_var}. The linear function $c(x) \equiv x$ is used in the simulation experiments; symmetry of $\pr$ and $c$ being an odd function imply $\eta = 0$.
-%
-%First, a finite linear parameterization is adopted, of the form
-%\[
-%h^\theta(x) =  \sum_{i=1}^\ell \theta_i \psi_i(x)
-%\]
-%in which $\ell$ is even, and denoting $\ell' = \ell/2$,
-%\begin{equation}
-%\{\psi_i(x) : x\in\Re,\ 1\le i\le \ell\}  = \{ x^k \pr_m(x) :  0\le k \le \ell',   \ m=1,2\}
-%\label{e:basis}
-%\end{equation}
-%where $\pr_m \sim N(\mu_m, \sigma^2_m)$. The rationale behind this choice of basis functions is that the contribution of each $\psi_i$ is local to a particular mode.  This allows us to approximate $h$ with good accuracy in the region around $\mu_1$ and $\mu_2$, where most of the samples of the Langevin diffusion are concentrated. 
-%
-%\subsection*{Unadjusted Langevin Algorithm (ULA)}
-%The Langevin diffusion process was simulated using Euler discretization with a step size of $0.1$. \Fig{asym_var} shows a comparison of the theoretical reduction in asymptotic variance $\gamma_\theta^2$ with the basis dimension $\ell$, obtained for both basis 1 and 2. The case $\ell=0$ corresponds to the standard Monte Carlo estimator \eqref{e:sample_mean}. The variance decreases significantly from around $7.4$ for $\ell=0$ to $0.12$ for $\ell=20$ for each basis. It can be seen that basis 1 achieves a larger reduction in the asymptotic variance for $2 \leq \ell \leq 16$. In fact, basis 1 with $\ell=6$ gives roughly the same asymptotic variance as basis 2 with $\ell=12$. This shows that choosing an appropriate basis can help achieve the target variance with a much lower basis dimension.
-%
-%\begin{figure}[htbp]
-%	\centering
-%  \includegraphics[width=4in]{images/Chap5_hist_all_ds_basis_10000runs_100000samples}
-%	\caption{Asymptotic variance reduction in Unadjusted Langevin Algorithm (ULA)}
-%	\label{fig:mcmc_ula}
-%\end{figure}
-%
-%
-%\Fig{d_all} shows the histograms of the estimates obtained over $10^4$ independent trials for $\ell= 10,20$ compared to the standard MC method. A total number of $10^5$ samples were used in each trial. The empirical variance values observed on the histograms are very close to the analytical variances, although a small bias is seen in the estimate in some cases. This bias may be attributed to the Euler-discretization of the Langevin diffusion which alters the ergodicity properties of the process as mentioned in \cite{robtwe96}.  %\Fig{mean_estimate_lang} compares the trajectories of the mean estimate using the standard ULA technique and the improved estimator with the control variates. The improved estimator shows quicker convergence to the actual mean $\eta$ and far fewer fluctuations than the one using the standard technique.
-%
-%\begin{figure}[htbp]
-%	\centering
-%		\includegraphics[width=4in]{images/Chap5_hist_asym_var_all_methods}
-%		\caption{Histogram of $\sqrt{N}(\eta_N^{i} - \eta$) for the various control variate schemes}
-%		\label{hist_all}
-%\end{figure}
-%
-%\Fig{hist_all} presents a comparison of the performance of the control variates obtained by the other approximation schemes that are not based on finite parameterization for the ULA. The histograms were obtained from $1000$ independent trials and the number of samples used in each trial was $N=10^5$. It may be noted that using the exact $h'$ obtained analytically produces a near-zero asymptotic variance. Among the other methods, the RKHS based approximation produces the lowest asymptotic variance. Compared to the standard estimator, the variance minimization method (ZV) \cite{papmirgir14} produced nearly the same variance. Markov semigroup approximation method \cite{tagmeh16a} and the constant approximation to $h'$ produced variance larger the the standard Langevin sampling.
-%
-%
+\subsection{ULA and RWM for a univariate Gaussian mixture target density}
+\label{s:mcmc_ex_avar}
+In this section, we first look at how the control variates help in reducing the asymptotic variance for both the ULA and RWM algorithms.  For a simple demonstration of the idea, we consider the same one dimensional bimodal target density defined as mixture of Gaussians \eqref{e:fpf_gaussian_mixture_example}. This gives a symmetric density $\pr$ as shown by the shaded region in \Fig{fig:mcmc_cv_theta_var}. The linear function $c(x) \equiv x$ is used in the simulation experiments; symmetry of $\pr$ and $c$ being an odd function imply $\eta = 0$.
 
-%In the numerical results discussed, the optimal $\theta^*$ obtained in \eqref{e:theta_star} based on \Prop{t:gradDual} is used. The target density $\pr$ is the same multimodal density as in the previous example. The control variate and the function $c^\theta$ are constructed in the same manner as before, using the same linear parameterization for $h^\theta$. The caveat in this case is that, it cannot be proved that the control variate thus computed is optimal for the RWM algorithm, as \Prop{t:gradDual} is specific to the Langevin diffusion. However, significant reduction in the variance is observed in simulation results. % The intuitive explanation is because of the fact that in the design of $c^\theta$, we try to track $c$ closely using $\generate h^\theta$. Minimizing the error between $h$ and $h^\theta$ tends to minimize the asymptotic variance. In the case of  perfect tracking, $c^\theta$ reduces to the exact mean $\eta$.
-%
-%\begin{figure}[htbp]
-%	\centering
-%	\mbox{
-%		\subfigure [] {\includegraphics[width=3in]{images/Chap5_rel_red_lang_mh_all}} \qquad
-%		\subfigure [] {\includegraphics[width = 3in]{images/Chap5_hist_mh_all_ds_basis_10000runs_100000samples}} 
-%	} 
-%\caption{Asymptotic variance reduction in Metropolis-Hastings algorithm - A) Langevin v Metropolis-Hastings, B) Histogram of $\sqrt{N}(\eta^{i}_N - \eta$) for $\ell=0,10,20$}
-%\label{fig:mcmc_metropolis}
-%\end{figure}
-%
-%
-%\begin{figure}[htbp]
-%	\centering
-%		\includegraphics[width=4in]{images/Chap5_hist_mh_asym_var_all_methods}
-%		\caption{Histogram of $\sqrt{N}(\eta_N^{i} - \eta$) for the various control variate schemes}
-%		\label{hist_mh_all}
-%\end{figure}
-%\Fig{mh_all} compares the histograms of the estimates of $\eta$ obtained from $1000$ independent runs for $\ell = 6, 10$ and $20$. The histograms show zero-bias and a significant reduction in variance. \Fig{lang_mh} shows the relative reduction in variance for both the ULA and RWM algorithms. The value corresponding to $\ell = 0$ is normalized to $1$ in both the cases. It may be seen that significant variance reduction is achieved for RWM, although at a reduced rate than for ULA.
-%
-%The algorithm can be applied to a wider class of densities with similar results; we have seen positive results for heavy-tailed densities also. %  Similar trends can also be observed in the Metropolis-Hastings case. \rd{Better results are expected for the Metropolis-Hastings example by applying the algorithm described in \Section{s:cv_reversible_mc}.}
-%
-%\subsection*{Logistic regression - Swiss bank notes example}
-%In practice, MCMC algorithms find wide applications in Bayesian inference problems, where estimates of the mean with respect to the posterior distribution is required. In this section, we discuss a particular example of Bayesian logistic regression or the logit model. A detailed description of the problem in the context of the Swiss bank notes example is given in \cite{papmirgir14} and a brief summary is provided here.
-%
-%The aim is to learn the regression coefficients that can be used to classify the Swiss bank notes dataset into genuine and counterfeit. Given in the dataset is the measurements for four covariates - the length of the bill, the width of the left and the right edges and the bottom margin width for 200 bank notes of which 100 each are counterfeit and genuine.
-%
-%Let $X \in \Re^{N_n \times N_d}$ correspond to the covariates measurements of $N_n = 200$ bank notes, with $N_d =4$ denoting the %\notes{ need a new symbol instead of $d$}
-%number of covariates. Let $\{Y_i  \in \{0,1\}, 1 \leq i \leq N_n \}$ correspond to the labels for each note being genuine or counterfeit respectively. Let $\boldsymbol{\Theta} \in \Re^{N_d}$ be the regression coefficients that are learned from the given data to obtain a good classifier. We are interested in finding the best estimates for the regression coefficients, i.e. the coefficients that maximize the posterior probability $\pr$ defined as,
-%\[
-%\pr(\boldsymbol{\Theta}| \{X_i,Y_i\}_{i=1}^{N_n}) \propto \exp\left( \sum_{i=1}^{N_n} \{Y_i \boldsymbol{\Theta}^\transpose X_i - \log(1+e^{\boldsymbol{\Theta}^\transpose X_i} ) \} - 2^{-1} \boldsymbol{\Theta}^\transpose \Sigma^{-1} \boldsymbol{\Theta} \right),
-%\]
-%where the parameter $\boldsymbol{\Theta} = [ \Theta_1 \dots \Theta_{N_d}]$ has a zero-mean Gaussian prior with a covariance matrix $\Sigma$.
-%
-%In problems such as this, the maximum likelihood estimate is rarely available in closed-form and is hard to compute. Obtaining the Bayesian estimator requires sampling $\boldsymbol{\Theta}$ values from the posterior distribution and then computing the empirical mean $\hat{\boldsymbol{\Theta}}$. Samples from this posterior density may be obtained using any MCMC technique, in particular we focus on the random walk Metropolis algorithm. In the following, it is assumed that $N$ samples generated by the RWM algorithm are available.
-%
-%The goal as before is to compute the optimal control variates that minimize the asymptotic variance of the estimate $\hat{\boldsymbol{\Theta}}$.
-%Finding the optimal control variates boils down to finding approximate  solutions to the Poisson's equations corresponding to each of the four regression coefficients. The equations to be solved are,
-%\begin{equation}
-%\generate h_k = -\tilde{\Theta}_k = - (\Theta_k - \hat{\Theta}_k), \qquad \forall k = 1 \dots N_d.
-%\label{e:poisson_logit}
-%\end{equation}
-%The approximation $h^\theta_k$ is chosen to belong to a family of linearly parameterized functions as before,
-%\[
-%h^\theta_k \eqdef \theta_k^\transpose \psi =  \sum_{j=1}^\ell \theta_{kj} \psi_j,
-%\]
-%where $\psi_j : \Re^{N_d} \to \Re$ is the chosen set of basis functions and $\theta_{kj} \in \Re$ are the parameter values.  The optimal parameter values are obtained by minimizing $ \| \nabla h_k - \nabla h^\theta_k \|^2_{L^2}$. For a general basis, the optimal parameter $\theta_k^*$  can be derived along the same lines as before,
-%\begin{equation}
-%\begin{aligned}
-%\theta_k^*  &= M^{-1} b_k, \qquad \text{where,}\\
-%M & \eqdef \langle \nabla \psi, \nabla \psi \rangle_{L^2} \approx \frac{1}{N} \sum_{i = 0}^{N-1}\nabla \psi(\boldsymbol{\Theta}^i) \nabla \psi^\transpose(\boldsymbol{\Theta}^i)\\
-%b_k & \eqdef \langle \tilde{\Theta}_k, \psi \rangle_{L^2} \approx \frac{1}{N} \sum_{i=0}^{N-1}\tilde{\Theta}_k^i \psi(\boldsymbol{\Theta}^i) \\
-%\label{e:theta_k}
-%\end{aligned}
-%\end{equation}
-%\noindent \subsubsection*{Linear polynomial basis}
-%First we choose $\ell=4$ and $\psi_j$ to be polynomial of degree $1$ as in \cite{papmirgir14}, i.e.
-%\[
-%\psi^\transpose \eqdef [ \Theta_1 \quad \Theta_2 \quad \Theta_3 \quad \Theta_4] := \boldsymbol{\Theta}^\transpose
-%\]
-%For this choice of $\psi$,  $\nabla \psi = I$ and $ \Delta \psi = 0$. Hence, $\theta^*_k$ has the simple expression,
-%\begin{equation}
-%\theta^*_k = \frac{1}{N} \sum_{i=0}^{N-1} \tilde{\Theta}_k^i \boldsymbol{\Theta}^i
-%\label{e:theta_lin_polynomial}
-%\end{equation}
-%The control variate $\generate h^\theta_k$ is explicitly computable and is given by,
-%\[
-%\generate h^\theta_k(\boldsymbol{\Theta}^i) = -\nabla \log(\pr(\boldsymbol{\Theta}^i|\{X_j,Y_j\}_{j=1}^N)) \cdot \theta^*_k \qquad \forall k, i
-%\]
-%and the new estimator of the regression coefficients will be,
-%\[
-%\bar{\Theta}^i_k \eqdef \Theta^i_k + \generate h^\theta_k(\boldsymbol{\Theta}^i).
-%\]
-%
-%As mentioned previously, the \textit{Zero-variance (ZV)} algorithm is proposed in \cite{papmirgir14}  that minimizes the ordinary variance instead of the asymptotic variance. Although it is an easier optimization problem to solve, It is interesting to note that $\theta_k^*$  using \eqref{e:theta_lin_polynomial} is simpler to compute and the solution is numerically more stable (as inversion of an ill-conditioned matrix is not required) than the ZV method.
-%\noindent \subsubsection*{Quadratic basis}
-%A quadratic polynomial basis of the form,
-%\[\psi^\transpose \eqdef [\Theta_1 \quad \Theta_2 \quad \Theta_3 \quad \Theta_4 \quad \Theta_1^2 \quad \Theta_1 \Theta_2 \quad \Theta_1\Theta_3 \quad \Theta_1 \Theta_4 \quad \Theta_2^2 \quad \Theta_2\Theta_3 \quad \Theta_2\Theta_4 \quad \Theta_3^2 \quad \Theta_3 \Theta_4 \quad \Theta_4^2] \]
-%is also considered similar to \cite{papmirgir14}.  In this case, $\nabla \psi \in \Re^{14 \times 4}$ and $\theta_k \in \Re^{14}$. The optimal parameter values are given by \eqref{e:theta_k}.
-%
-%\noindent \subsubsection*{Using RKHS method}
-%We also investigate the performance of the RKHS based differential-TD learning algorithm for this example.  The parameter values of $\lambda = 10^{-7}$ and $\epsy = 2$ were found to produce the best results.  Gaussian kernels were placed at $200$ randomly chosen samples.
-%
-%Simulations were performed using the Swiss bank note dataset provided in \cite{papmirgir14}. We performed $1000$ independent trials each with  $10^5$ samples and $10^4$ samples used for burn-in. The box plots of the estimates of the four regression coefficients $\boldsymbol{\Theta}$ shown in \Fig{Theta_1} - \ref{Theta_4} indicate that significant variance reduction is  achieved using all the control variate methods. It may be observed that for a linear basis, both the ZV and differential TD learning method produce nearly the same asymptotic variance. Using linear polynomials produces values that are $10-65$ times smaller for the four regression coefficient estimates than the standard RWM sampling. For the quadratic polynomial basis, although ZV  outperforms the differential-TD learning method slightly a reduction by a factor of $100-200$ over the standard estimator is still observed. The RKHS method exhibits the best results with variances that are lower by a factor $20-50$ over the ZV method with quadratic polynomials. The RKHS method however has a larger number of outliers. By a more careful choice of the values for $\lambda,\epsy$ and by placing the kernel functions at more well-chosen samples, better results may be obtained. The problem of hyperparameter selection in the RKHS method is discussed in detail in Section \ref{s:hyperparameter}.
-%
-%%\begin{figure}[htbp]
-%%	\centering
-%%	\begin{subfigure}{0.45\textwidth}
-%%		\includegraphics[width=4in]{images/Chap5_hist_Theta1_no_std}
-%%		\caption{$\Theta_1$}
-%%		\label{Theta_1}
-%%	\end{subfigure}
-%%	\hfill
-%%	\begin{subfigure}{0.45\textwidth}
-%%		\includegraphics[width=4in]{images/Chap5_hist_Theta2_no_std}
-%%		\caption{$\Theta_2$}
-%%		\label{Theta_2}
-%%	\end{subfigure}
-%%	\vfill
-%%	\begin{subfigure}{0.45\textwidth}
-%%		\includegraphics[width=4in]{images/Chap5_hist_Theta3_no_std}
-%%		\caption{$\Theta_3$}
-%%		\label{Theta_3}
-%%	\end{subfigure}
-%%	\hfill
-%%	\begin{subfigure}{0.45\textwidth}
-%%		\includegraphics[width=4in]{images/Chap5_hist_Theta4_no_std}
-%%		\caption{$\Theta_4$}
-%%		\label{Theta_4}
-%%	\end{subfigure}
-%%	
-%%	\label{box_plots_Theta}
-%%	\caption{Boxplots of estimates of $\boldsymbol{\Theta}$ obtained over 1000 trials using linear and quadratic polynomial basis (both diff TD learning and ZV-MCMC methods).}
-%%\end{figure}
-%
-%\begin{figure}[htbp]
-%	\centering
-%	\mbox{
-%		\subfigure [] {\includegraphics[width=3in]{images/Chap5_hist_Theta1_no_std}} \qquad
-%		\subfigure [] {\includegraphics[width=3in]{images/Chap5_hist_Theta2_no_std}} 
-%	}
-%	\mbox{
-%		\subfigure [] {\includegraphics[width = 3in]{images/Chap5_hist_Theta3_no_std}} \qquad
-%		\subfigure [] {\includegraphics[width = 3in]{images/Chap5_hist_Theta4_no_std}} 
-%	} 
-%	\caption{Boxplots of estimates of $\boldsymbol{\Theta}$ obtained over 1000 trials using linear and quadratic polynomial basis (both diff TD learning and ZV-MCMC methods).}
-%  \label{fig:box_plots_Theta}
-%\end{figure}
-%
-%One might also be interested in the ordinary variance of the samples within a single run. The box plots in \Fig{var_Theta1} - \ref{var_Theta4} compare the variance values of the samples obtained within a run using the ZV method with quadratic polynomials and the RKHS based differential-TD learning method. It may be observed that in spite of having outliers, the mean sample variance using the RKHS method is almost an order of magnitude lower than the ZV method.
-%
-%The same set of experiments were tried out with similar results for the logistic regression example using MALA and ULA sampling. Similar results were also obtained for the probit model Vaso constriction example discussed in \cite{papmirgir14}. The plots for these simulations are provided in the appendix.
-%%\begin{figure}[htbp]
-%%	\centering
-%%	\begin{subfigure}{0.45\textwidth}
-%%		\includegraphics[width=4in]{images/Chap5_box_var_Theta1}
-%%		\caption{$\Theta_1$}
-%%		\label{var_Theta1}
-%%	\end{subfigure}
-%%	\hfill
-%%	\begin{subfigure}{0.45\textwidth}
-%%		\includegraphics[width=4in]{images/Chap5_box_var_Theta2}
-%%		\caption{$\Theta_2$}
-%%		\label{var_Theta2}
-%%	\end{subfigure}
-%%	\vfill
-%%	\begin{subfigure}{0.45\textwidth}
-%%		\includegraphics[width=4in]{images/Chap5_box_var_Theta3}
-%%		\caption{$\Theta_3$}
-%%		\label{var_Theta3}
-%%	\end{subfigure}
-%%	\hfill
-%%	\begin{subfigure}{0.45\textwidth}
-%%		\includegraphics[width=4in]{images/Chap5_box_var_Theta4}
-%%		\caption{$\Theta_4$}
-%%		\label{var_Theta4}
-%%	\end{subfigure}
-%	\label{box_plots_ varTheta_all}
-%	\caption{Boxplots of the in-trial variances of $\boldsymbol{\Theta}$ obtained over 1000 trials using the differential TD (RKHS) and ZV with quadratic polynomials}
-%\end{figure}
+\begin{figure}[htbp]
+	\centering
+	\mbox{
+  	\subfigure[] {\includegraphics[width=3in]{images/Chap5_hist_all_ds_basis_10000runs_100000samples}}
+  	\subfigure[] {\includegraphics[width=3in]{images/Chap5_hist_asym_var_all_methods}}
+  }
+ \mbox{
+	\subfigure [] {\includegraphics[width = 3in]{images/Chap5_hist_mh_all_ds_basis_10000runs_100000samples}} 
+	\subfigure[]	{\includegraphics[width=3in]{images/Chap5_hist_mh_asym_var_all_methods}}
+ } 
+	\caption{Histogram of $\sqrt{N}(\eta_N^{i} - \eta$) for the various control variate schemes -  A) and B) ULA with $\mcmcstep =0.05$ and $c(x) = x$ with finite basis $\ell = 10,20$ in A) and other approximation schemes in B), and C) and D) for RWM with $\mcmcstep = 0.05$ with finite basis $\ell = 10,20$ in C) and other approximation schemes in D).}
+	\label{fig:mcmc_ula_rwm_hist}
+\end{figure}
 
-%\begin{figure}[htbp]
-%	\centering
-%	\mbox{
-%		\subfigure [] {\includegraphics[width=3in]{images/Chap5_box_var_Theta1}} \qquad
-%		\subfigure [] {\includegraphics[width=3in]{images/Chap5_box_var_Theta2}} 
-%	}
-%	\mbox{
-%		\subfigure [] {\includegraphics[width = 3in]{images/Chap5_box_var_Theta3}}  \qquad
-%		\subfigure [] {\includegraphics[width = 3in]{images/Chap5_box_var_Theta4}} 
-%	} 
-%\caption{Boxplots of the in-trial variances of $\boldsymbol{\Theta}$ obtained over 1000 trials using the $\gradTD$-RKHS and ZV with quadratic polynomials}
-%\label{fig:mcmc_box_var_Theta}
-%\end{figure}
+Both the ULA and RWM algorithms were simulated using Euler discretization with a step size of $\mcmcstep = 0.05$. Part A in \Fig{fig:mcmc_ula_rwm_hist} shows the histograms of the estimates obtained over $10^4$ independent trials for $\ell= 10,20$ compared to the standard MC method. A total number of $10^5$ samples were used in each trial. The empirical variance values observed on the histograms are very close to the analytical variances, although a small bias is seen in the estimate in some cases. This bias may be attributed to the Euler-discretization of the Langevin diffusion which alters the invariant distribution as mentioned in \cite{robtwe96}.  %\Fig{mean_estimate_lang} compares the trajectories of the mean estimate using the standard ULA technique and the improved estimator with the control variates. The improved estimator shows quicker convergence to the actual mean $\eta$ and far fewer fluctuations than the one using the standard technique.
+
+Part B of \Fig{fig:mcmc_ula_rwm_hist} presents a comparison of the performance of the control variates obtained by the other approximation schemes. The histograms were obtained from $1000$ independent trials and the number of samples used in each trial was $N=10^5$. The exact $h'$ obtained analytically \eqref{e:fpf_gain_1d} is used to illustrate that it produces a near-zero asymptotic variance. The RKHS based $\gradTD$ algorithm produces the lowest asymptotic variance among approximation methods. Compared to the standard estimator, the variance minimization method (ZV) \cite{papmirgir14} produced nearly the same variance. Markov semigroup approximation method \cite{tagmeh16a} and the constant approximation to $h'$ were also tested, but they produced variances larger the the standard estimator.
+
+The same set of experiments is repeated for the RWM algorithm with the results displayed in parts C and D of \Fig{fig:mcmc_ula_rwm_hist}. The caveat in this case is that, it cannot be proved that the control variate thus computed is optimal for the RWM algorithm, as \Prop{prop:lang_generator_grad} is specific to the Langevin diffusion. However, significant reduction in the variance is observed in simulation results. % The intuitive explanation is because of the fact that in the design of $c^\theta$, we try to track $c$ closely using $\generate h^\theta$. Minimizing the error between $h$ and $h^\theta$ tends to minimize the asymptotic variance. In the case of  perfect tracking, $c^\theta$ reduces to the exact mean $\eta$.
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=4in]{images/Chap5_rel_red_lang_mh_all}
+\caption{Asymptotic variance reduction comparison between ULA and RWM algorithms for $c(x) =x$ and $1\leq \ell \leq 20$}
+\label{fig:mcmc_ula_rwm_asy_var}
+\end{figure}
+\Fig{fig:mcmc_ula_rwm_asy_var} shows the relative reduction in variance for both the ULA and RWM algorithms. The value corresponding to $\ell = 0$ is normalized to $1$ in both the cases. It may be seen that significant variance reduction is achieved for RWM, although at a reduced rate than for ULA.
+
+The algorithm can be applied to a wider class of densities with similar results; we have seen positive results for heavy-tailed densities also. %  Similar trends can also be observed in the Metropolis-Hastings case. \rd{Better results are expected for the Metropolis-Hastings example by applying the algorithm described in \Section{s:cv_reversible_mc}.}
+
+\subsection{Logistic regression - Swiss bank notes example}
+In practice, MCMC algorithms find wide applications in Bayesian inference problems, where we are interested in estimating the mean with respect to a posterior distribution. In this section, we discuss a particular example of Bayesian logistic regression or the logit model. A detailed description of the problem in the context of the Swiss bank notes example is given in \cite{papmirgir14} and a brief summary is provided here.
+
+The goal is to learn the regression coefficients that can be used to classify the Swiss bank notes dataset into genuine and counterfeit. Given in the dataset are the measurements for four covariates - the length of the bill, the width of the left and the right edges and the bottom margin width for 200 bank notes of which 100 each are counterfeit and genuine. This is essentially a binary classification problem in a supervised learning setting. 
+
+Let $X \in \Re^{N_n \times N_d}$ correspond to the covariate measurements of $N_n$ bank notes, with $N_d$ denoting the number of covariates with $N_n = 200$ and $N_d = 4$. Let $\{Y_i  \in \{0,1\}, 1 \leq i \leq N_n \}$ correspond to the labels for each note being genuine or counterfeit respectively. Let $\boldsymbol{\Theta} \in \Re^{N_d}$ be the regression coefficients that are learned from the given data to obtain a good classifier. We are interested in finding the best estimates for the regression coefficients, i.e. the coefficients that maximize the posterior probability $\pr$ defined as,
+\begin{equation}
+\begin{aligned}
+\boldsymbol{\Theta}^* &\eqdef  \argmax_{\Theta \in \Re^{N_d}} \pr(\boldsymbol{\Theta}| \{X_i,Y_i\}_{i=1}^{N_n}) \\
+&= \argmax_{\Theta \in \Re^{N_d} }\exp\left( \underbrace{\sum_{i=1}^{N_n} \{Y_i \boldsymbol{\Theta}^\transpose X_i - \log(1+e^{\boldsymbol{\Theta}^\transpose X_i} ) \}}_{\text{Likelihood}} - \underbrace{2^{-1} \boldsymbol{\Theta}^\transpose \Sigma^{-1} \boldsymbol{\Theta}}_{\text{prior}} \right),
+\end{aligned}
+\label{e:mcmc_log_reg}
+\end{equation}
+where the parameter vector $\boldsymbol{\Theta} = [ \Theta_1, \dots ,\Theta_{N_d}]$ has a zero-mean Gaussian prior with a covariance matrix $\Sigma$.
+
+In problems such as this, the maximum likelihood estimate is rarely available in closed-form and is hard to compute. Instead, we try to compute the Bayesian estimate: 
+\begin{equation}
+\boldsymbol{\Theta}_{{bayes}} \eqdef \int_{\Theta \in \Re^{N_d}} \boldsymbol{\Theta} \, \pr(\boldsymbol{\Theta}| \{X_i,Y_i\}_{i=1}^{N_n}) \ud \Theta.
+\label{e:mcmc_log_reg_bayes}
+\end{equation}
+Obtaining the Bayesian estimator \eqref{e:mcmc_log_reg_bayes} requires sampling $\boldsymbol{\Theta}$ values from the posterior distribution and then computing the empirical mean $\hat{\boldsymbol{\Theta}}$. Samples from this posterior density may be obtained using any reversible MCMC technique, in particular we focus on the RWM algorithm. In the following, it is assumed that $N$ samples generated by the RWM algorithm are available.
+
+The goal as before is to compute the optimal control variates that minimize the asymptotic variance of each of the estimates $\hat{\boldsymbol{\Theta}}$.
+Finding the optimal control variates boils down to finding approximate  solutions to the Poisson's equations corresponding to each of the four regression coefficients. The equations to be solved are,
+\begin{equation}
+\generate h_k = -\tilde{\Theta}_k = - (\Theta_k - \hat{\Theta}_k), \qquad   1 \leq k \leq N_d.
+\label{e:poisson_logit}
+\end{equation}
+The approximation $h^\theta_k$ is chosen to belong to a family of linearly parameterized functions as before,
+\[
+h^\theta_k \eqdef \theta_k^\transpose \psi =  \sum_{j=1}^\ell \theta_{kj} \psi_j,
+\]
+where $\psi_j : \Re^{N_d} \to \Re$ is the chosen set of basis functions and $\theta_{kj} \in \Re$ are the parameter values.  The optimal parameter values are obtained by minimizing $ \| \nabla h_k - \nabla h^\theta_k \|^2_{L^2}$. For a general basis, the optimal parameter $\theta_k^*$  can be derived along the same lines as before,
+\begin{equation}
+\begin{aligned}
+\theta_k^*  &= M^{-1} b_k, \qquad \text{where,}\\
+M & \eqdef \langle \nabla \psi, \nabla \psi \rangle_{L^2} \approx \frac{1}{N} \sum_{i = 0}^{N-1}\nabla \psi(\boldsymbol{\Theta}^i) \nabla \psi^\transpose(\boldsymbol{\Theta}^i)\\
+b_k & \eqdef \langle \tilde{\Theta}_k, \psi \rangle_{L^2} \approx \frac{1}{N} \sum_{i=0}^{N-1}\tilde{\Theta}_k^i \psi(\boldsymbol{\Theta}^i), \\
+\label{e:theta_k}
+\end{aligned}
+\end{equation}
+where each $\boldsymbol{\Theta^i}$ corresponds to the $i^{\text{th}}$ sample of the MCMC algorithm
+
+Polynomials of degree $1$ and $2$ are chosen as the basis functions in \cite{papmirgir14} and we use the same basis for comparing the algorithm performances. Additionally, we also compare the results against the $\gradTD$-RKHS algorithm with Gaussian kernels. 
+
+\noindent \subsubsection*{Linear polynomial basis}
+First we choose $\ell=4$ and $\psi_j$ to be polynomial of degree $1$, i.e.
+\begin{equation}
+\psi^\transpose \eqdef [ \Theta_1 \quad \Theta_2 \quad \Theta_3 \quad \Theta_4] := \boldsymbol{\Theta}^\transpose
+\label{e:mcmc_log_reg_linear}
+\end{equation}
+For this choice of $\psi$,  $\nabla \psi = I$ and $ \Delta \psi = 0$. Hence, $\theta^*_k$ has the simple expression,
+\begin{equation}
+\theta^*_k = \frac{1}{N} \sum_{i=0}^{N-1} \tilde{\Theta}_k^i \boldsymbol{\Theta}^i
+\label{e:mcmc_log_reg_theta_lin_poly}
+\end{equation}
+The control variate $\generate h^\theta_k$ is explicitly computable and is given by,
+\[
+\generate h^\theta_k(\boldsymbol{\Theta}^i) = -\nabla \log(\pr(\boldsymbol{\Theta}^i|\{X_j,Y_j\}_{j=1}^N)) \cdot \theta^*_k \qquad \forall k, i
+\]
+and the new estimator of the regression coefficients will be,
+\[
+\bar{\Theta}^i_k \eqdef \Theta^i_k + \generate h^\theta_k(\boldsymbol{\Theta}^i).
+\]
+The ZV-MCMC algorithm, proposed in \cite{papmirgir14} minimizes the ordinary variance instead of the asymptotic variance. In general, it is an easier optimization problem to solve, but in this specific example, it is interesting to note that $\theta_k^*$  using \eqref{e:mcmc_log_reg_theta_lin_poly} is simpler to compute and the solution is numerically more stable (as inverting an ill-conditioned matrix is not required) than the ZV method.
+\noindent \subsubsection*{Quadratic basis}
+A quadratic polynomial basis of the form,
+\begin{equation}
+\psi^\transpose \eqdef [\Theta_1, \, \Theta_2, \, \Theta_3, \, \Theta_4, \, \Theta_1^2, \, \Theta_1 \Theta_2, \, \Theta_1\Theta_3, \, \Theta_1 \Theta_4, \, \Theta_2^2, \, \Theta_2\Theta_3, \, \Theta_2\Theta_4, \, \Theta_3^2, \, \Theta_3 \Theta_4, \, \Theta_4^2] 
+\label{e:mcmc_log_reg_quadratic}
+\end{equation}
+is also considered similar to \cite{papmirgir14}.  In this case, $\nabla \psi \in \Re^{14 \times 4}$ and $\theta_k \in \Re^{14}$. The optimal parameter values are given by \eqref{e:theta_k}.
+
+\noindent \subsubsection*{$\gradTD$-RKHS algorithm}
+We also investigate the performance of the RKHS based $\gradTD$ learning algorithm for this example.  The parameter values of $\lambda = 10^{-7}$ and $\epsy = 2$ were found to produce the best results.  As it becomes prohibitively expensive to place a Gaussian kernel at each of the RWM samples, they were placed at $200$ randomly chosen samples.
+\noindent \subsection*{Results}
+Simulations were performed using the Swiss bank note dataset provided in \cite{papmirgir14}. We performed $1000$ independent trials each with  $10^5$ samples and $10^4$ samples used for burn-in. The box plots of the estimates of the four regression coefficients $\boldsymbol{\Theta}$ shown in \Fig{fig:mcmc_box_plots_Theta} indicate that significant variance reduction is  achieved using all the control variate methods. It may be observed that for a linear basis, both the ZV-L and $\gradTD$-L learning produce nearly the same asymptotic variance. The $\gradTD$ method is able to produce estimates for the four regression coefficients, whose variance values are $10-65$ times smaller than the standard RWM sampler. Using the quadratic polynomial basis, ZV-Q method outperforms the $\gradTD$-Q method slightly, a variance reduction factor of $100-200$ over the standard estimator is still obtained. The $\gradTD$-RKHS method produces the best results with variances that are lower by a factor $20-50$ over the ZV-Q method. The $\gradTD$-RKHS method however produced a much larger number of outliers. By a more careful choice of the values for $\lambda,\epsy$ and by placing the kernel functions at more well-chosen samples, better results may be obtained.
+
+\begin{figure}[htbp]
+	\centering
+	\mbox{
+		\subfigure [] {\includegraphics[width=3.5in]{images/Chap5_hist_Theta1_no_std}}
+		\subfigure [] {\includegraphics[width=3.5in]{images/Chap5_hist_Theta2_no_std}} 
+	}
+	\mbox{
+		\subfigure [] {\includegraphics[width = 3.5in]{images/Chap5_hist_Theta3_no_std}} 
+		\subfigure [] {\includegraphics[width = 3.5in]{images/Chap5_hist_Theta4_no_std}} 
+	} 
+	\caption{Boxplots of estimates of $\boldsymbol{\Theta}$ obtained over 1000 trials using linear and quadratic polynomial basis using the ZV-MCMC and $\gradTD$ and the $\gradTD$-RKHS algorithms).}
+  \label{fig:mcmc_box_plots_Theta}
+\end{figure}
+
+One might also be interested in the ordinary variance of the samples within a single run. The box plots in \Fig{fig:mcmc_box_var_Theta} compare the variance values of the samples obtained within a run using the ZV-Q method and the $\gradTD$-RKHS learning method. It may be observed that in spite of having outliers, the mean sample variance using the RKHS method is about one order of magnitude lower than the ZV-Q method.
+
+The same set of experiments were tried out with similar results for the logistic regression example using MALA and ULA sampling. Similar results were also obtained for the probit model Vaso constriction example discussed in \cite{papmirgir14}. The plots for these simulations are provided in the appendix. \anand{Should I include those plots?}
+
+\begin{figure}[htbp]
+	\centering
+	\mbox{
+		\subfigure [] {\includegraphics[width=3.5in]{images/Chap5_box_var_Theta1}}
+		\subfigure [] {\includegraphics[width=3.5in]{images/Chap5_box_var_Theta2}} 
+	}
+	\mbox{
+		\subfigure [] {\includegraphics[width = 3.5in]{images/Chap5_box_var_Theta3}} 
+		\subfigure [] {\includegraphics[width = 3.5in]{images/Chap5_box_var_Theta4}} 
+	} 
+\caption{Boxplots of the in-trial variances of estimates of $\boldsymbol{\Theta}$ obtained over 1000 trials using the $\gradTD$-RKHS and ZV with quadratic polynomials}
+\label{fig:mcmc_box_var_Theta}
+\end{figure}
+
+\section{Conclusions}
+In this Chapter, we provided a brief discussion on MCMC algorithms, particularly the ULA, which has an associated continuous time Langevin diffusion process. MCMC algorithms have been widely used in Bayesian inference, as a means of approximating expectations using numerical integration. Asymptotic variance was defined as a measure of convergence of these algorithms. We proved that the simpler task of minimizing the sample variance is not always equivalent to minimizing the asymptotic variance, in fact in certain examples minimizing one quantity produces undesirable results on the other. For the Langevin based algorithms, using \Prop{prop:lang_generator_grad}, we are able to express the asymptotic variance minimization problem in a form that fits into the $\gradTD$ learning objective function. This immediately opens up the application of the various versions of $\gradTD$ learning algorithms discussed in the previous chapters to be applied to this problem. The effectiveness of these techniques is however not limited to ULA, they are also seen to produce significant variance reduction in MALA and RWM algorithms. Through recent research, theoretical justification has been sought towards this explaining this effectiveness.  

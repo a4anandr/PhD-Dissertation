@@ -483,12 +483,11 @@ It is reasonable to search for a basis that offers flexibility in regions where 
 \begin{romannum}
 \item A polynomial basis, such that $\basis_n(x) = x^n$ for $1 \leq n \leq \ell$.
 \item A Fourier basis composed of sines and cosines of harmonic frequencies, $\basis_n(x) = \sin(n x), \basis_{n+1}(x) = \cos(n x)$ for $1 \leq n \leq \ell/2$.
-\item Polynomials weighted by the component densities $\pr_i$. 
-\[
-\basis_n(x) \eqdef x^n \pr_1(x), \qquad 
-\basis_{n+1}(x) \eqdef x^n \pr_2(x),
-\] 
-for $1 \leq n \leq \ell/2$. 
+\item Polynomials weighted by the component densities $\pr_i$, defined as: 
+\begin{equation}
+\{\basis_n(x) : x\in\Re,\ 1\le n\le \ell\}  = \{ x^k \pr_i(x) :  1\le k \le \ell/2, \,  i=1,2\}
+\label{e:wt_polynomial_basis}
+\end{equation}
 \end{romannum}
 It is not difficult to show that the true gain is nearly constant for large $x$, with $\lim_{|x|\to\infty} \kFPF(x) = \Kkal$. The limit corresponds to the Kalman-like gain $\Kkal$ obtained for the model in which $\pr$ is replaced by $\pr_i$  (the Gaussian density with the highest variance). The function $\basis_n(x) = x$ is added to the basis (for choices ii and iii, it is already included in i), such that $\nabla \basis(x)\equiv 1$ is present to account for this constant asymptotic gain value. The class $\clK$ is defined using this basis:
 \begin{equation*}
@@ -650,7 +649,7 @@ In particular, we consider $c(x) = C^\transpose x$, where $C =\mathbf{1}$.
 
 \Fig{fig:diff_td_rkhs_coif_d2510} compares the performance of the various methods for $d=2,5,10$ for $N=1000$. The performance degrades with $d$ as expected. This is partly because $N=1000$ is insufficient for larger values of $d$.   
 \subsection{Nonlinear oscillator}
-\label{section_nl_oscillator}
+\label{s:nl_oscillator}
 We consider next the nonlinear oscillator example introduced in \cite{yanmehmey13}.
 The state evolves on the unit circle, and the observations are nonlinear:
 \begin{equation*}
