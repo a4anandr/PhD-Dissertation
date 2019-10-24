@@ -15,7 +15,7 @@ It is shown in \Section{s:diff_td_langevin}, that in the special case of Langevi
 \label{s:langevin_diffusion}
 In this section, we introduce the Langevin diffusion with only the requisite amount of detail, so that the broad motivation is not obfuscated by technical details. A more elaborate discussion is reserved for \Section{s:langevin_mcmc} in the context of MCMC algorithms. %\anand{minor}
 
-\subsection{Langevin Diffusion}
+\subsection{Langevin diffusion}
 
 The Langevin diffusion may be regarded as  a $d$-dimensional gradient flow perturbed with ``noise'',  described by  the SDE,
 \begin{equation}
@@ -47,7 +47,7 @@ where $\nabla$ denotes the gradient and $\Delta$ is the Laplacian. The different
 \label{e:diff_td_langevin_semigroup}
 \end{equation}
 
-\subsection{Poisson's Equation}
+\subsection{Poisson's equation}
 Let $c \colon \state \to \Re$ be a function of interest, and 
 \begin{equation}
 \eta := \Expect_{\markovstate \sim \pr}[c(\markovstate)] =  \int_\state c(x) \pr(x) \ud x = \langle c, 1 \rangle_{L^2}.
@@ -73,7 +73,7 @@ h^\discount(x) := \int_0^\infty \exp(-\discount t )\Expect_x[c(\markovstate_t)] 
 \end{equation}
 with a discount rate $\discount  >0$ and $c(x)$ is the one-step cost function at the state $x$. The discounted-cost value function is often more popular in applications where the future costs incurred are assigned lower weights than the immediate costs. It may be noted that as the value of $\discount \to 0$, it closely approximates an average-cost problem. 
 
-\subsection{Relevance to our Applications} 
+\subsection{Relevance to our applications} 
 The solution $h$ of Poisson's equation associated to the Langevin diffusion \eqref{e:diff_td_poissons} is crucial in each of the applications we consider in this dissertation. In the feedback particle filter (FPF), the innovations gain function $\kFPF$ at each $t$ is obtained as  the gradient of $h$ \cite{yanmehmey13}:
 \begin{equation}
 \kFPF (x) = \nabla h(x)\, ,  \quad x\in\state\, .

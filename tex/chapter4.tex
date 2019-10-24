@@ -250,7 +250,7 @@ The Galerkin methods provide a good algorithmic framework for approximating the 
 
 \subsection{Markov semigroup approximation}
 \label{s:coifman}
-In this section, a very concise overview of the Markov semigroup approximation for the FPF gain function is provided. The algorithm was initially presented in \cite{tagmeh16}, followed by error analysis in \cite{tagmehmey17}. While the approach is entirely different, it is likely that concepts from this concurrent work can provide valuable insights to design an improved solution that combines the merits of both the algorithms. 
+In this section, a very concise overview of the Markov semigroup approximation for the FPF gain function is provided. The algorithm was initially presented in \cite{tagmeh16}, followed by error analysis in \cite{tagmehmey17}. While the approach is entirely different, it is likely that concepts from this concurrent work can provide valuable insights to design an improved solution that combines the merits of both the approaches. 
 
 The algorithm is based on a semigroup formulation of the Poisson's equation for Langevin diffusion \eqref{e:diff_td_poissons}. The function $h$ can be expressed as the solution to the following fixed-point equation:
 \begin{equation}
@@ -280,7 +280,7 @@ An empirical solution to the fixed-point equation at the particle locations is o
 \end{algorithmic}
 \end{algorithm}
 
-Similar to the RKHS-based $\gradTD$ learning, the Markov semigroup approximation provides a basis-independent solution to FPF gain function approximation. The only hyperparameter that needs to be tuned is the time-step parameter $\epsilon$ and it has been remarked in \cite{tagmeh16} that the approximation is valid for small values of $\epsilon$. However, the algorithm may lead to two potential difficulties. Solving for the Poisson's equation on the particles may result in overfitting,  and numerical issues may be magnified in the subsequent gradient approximation. The RKHS method addresses these difficulties via regularization. Another potential drawback is the use of successive approximation, which might require a large number of iterations to converge. 
+Similar to the RKHS-based $\gradTD$ learning, the Markov semigroup approximation provides a basis-independent solution to FPF gain function approximation. The only hyperparameter that needs to be tuned is the time-step parameter $\epsilon$ and it has been remarked in \cite{tagmeh16} that the approximation is valid for small values of $\epsilon$. However, the algorithm may lead to two potential difficulties. Solving for the Poisson's equation on the particles may result in overfitting,  and numerical issues may be magnified in the subsequent gradient approximation. The RKHS method addresses these difficulties via regularization. Another potential drawback is the use of successive approximation, which might require a large number of iterations to converge. \anand{I had it before the discussion, I can remove this.}
 
 In this dissertation, we use this algorithm acts as a benchmark for comparing the performance of $\gradTD$ learning based techniques, as this is the only known basis-independent technique to approximate $\kFPF$. Numerical examples that compare the performance are discussed in \Section{s:fpf_numerics}.
 
@@ -289,7 +289,7 @@ In this dissertation, we use this algorithm acts as a benchmark for comparing th
 \label{s:fpf_rkhs_improvements}
 In this section, two new enhancements to the RKHS based $\gradTD$ learning algorithm described in \Chapter{ch:rkhs} are presented. 
 \begin{romannum}
-\item Dynamic regularization - The online filtering problem is considered here. To obtain the estimates of the posterior using the FPF, we need to compute the gain function $\kFPF_t$ for all $t$. This necessitates computationally simple algorithms that can update the gain function in an iterative fashion.
+\item Dynamic regularization - The online filtering problem is considered here. To obtain the estimates of the posterior using the FPF, we need to compute the gain function $\kFPF_t$ for all $t$. This necessitates computationally simple algorithms that can update the gain function in an iterative fashion. The basic idea is to modify the ERM to include a term with the gain function at the previous instant.
 \item Utilizing the constant gain - To obtain good approximations using the RKHS based $\gradTD$ algorithm, a suitable choice of the hyperparameters $\reg$ and $\epsy$ are required. As described in \Chapter{ch:rkhs}, there are no standard rules to choose the optimal values and the selection is usually done by cross-validation in a supervised learning setting. However, this may not always be possible in gain function approximation and any additional information that can aid in this selection or make the algorithm robust to the values of hyperparameters is useful. We propose to use the easily computable constant gain approximation \eqref{e:fpf_const} as an additional constraint in the ERM problem. 
 \end{romannum}
 It is possible to apply both the enhancements independently or simultaneously to improve performance. 
@@ -462,7 +462,7 @@ where $F_i = \int_{-\infty}^{x} \pr_i(x) \ud x$ is the Gaussian CDF. The second 
 \includegraphics[width = 4in]{images/Chap4_Fig_gain_comparison}
 	\caption{True FPF gains $\kFPF_1$ for $\pr_1$ with $w_{0}=0.01$ and $\kFPF_2$ for $\pr_2$ with $w_{0}=0.1$.}
 	\label{fig:fpf_gain_num_issues}
-\end{figure} \anand{Can Prof. Meyn make the notation in the Figure consistent?}
+\end{figure}
 
 These numerical issues also impact the performance of $\gradTD$ learning algorithm. The rate of convergence of the parameters depends on properties of the stochastic process $\bfPhi$ described by Langevin's diffusion \eqref{e:diff_td_langevin_cts}, and the associated stochastic process that defines the eligibility vectors in \eqref{e:diff_td_gradTD_eligib}.  While a stationary version of this process exists in all of the examples considered here, it will be seen that in some examples the sample paths take on large values, which contributes to high variance.
 These issues are most pronounced when the mixture density has a very shallow ``valley'', which is precisely the situation that leads to very large values of the true gain $\kFPF$. 
