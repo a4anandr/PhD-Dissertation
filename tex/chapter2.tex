@@ -5,7 +5,7 @@ A basic introduction of the essential elements of this dissertation was provided
 \item In \Section{s:langevin_diffusion}, a prerequisite introduction to the Langevin diffusion and its associated Poisson's equation is given. The intention is to provide motivation as to why solving this equation is important to the two applications of interest.
 \item The standard least squares temporal difference (LSTD) learning algorithm is described. This algorithm forms the basis of techniques to approximate the solution to Poisson's equation. A detailed derivation is presented, as a precursor to deriving a new variant.
 \item We derive the differential LSTD ($\gradTD$) learning algorithm that tries to approximate the gradient of the solution to Poisson's equation directly rather than the function itself.
-It is shown in \Section{s:diff_td_langevin}, that in the special case of Langevin diffusion, the $\gradTD$ algorithm provides a simple and elegant solution. This is achieved by using the self-adjoint property of its differential generator. This is the major contribution in this chapter. 
+It is shown in \Section{s:diff_td_langevin}, that in the special case of Langevin diffusion, the $\gradTD$-L algorithm provides a simple and elegant solution. This is achieved by using the self-adjoint property of its differential generator. This is the major contribution in this chapter. 
 \item A more general version of the algorithm, that can be applied to a broad class of continuous-time diffusion processes is also derived along the lines of the standard LSTD algorithm. This algorithm with its application to gain function approximation in the FPF was published as a conference proceeding \cite{raddevmey16}. A discrete-time analog of the algorithm has been successfully applied to problems in optimal control. 
 \end{romannum}
 % cite the paper as a foot note.
@@ -13,7 +13,7 @@ It is shown in \Section{s:diff_td_langevin}, that in the special case of Langevi
 
 \section{Langevin Diffusion and Poisson's Equation}
 \label{s:langevin_diffusion}
-In this section, we introduce the Langevin diffusion with only the requisite amount of detail, so that the broad motivation is not obfuscated by technical details. A more elaborate discussion is reserved for \Section{s:langevin_mcmc} in the context of MCMC algorithms. %\anand{minor}
+In this section, we introduce the Langevin diffusion with only the requisite amount of detail, so that the broad motivation is not obfuscated by technical details. A more elaborate discussion is reserved for \Section{s:mcmc_langevin} in the context of MCMC algorithms. %\anand{minor}
 
 \subsection{Langevin diffusion}
 

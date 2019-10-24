@@ -399,10 +399,10 @@ $
 \label{alg:rkhs}
 \begin{algorithm}{RKHS based $\gradTD$ learning algorithms for gain function approximation}
 	\begin{algorithmic}[1]
-		\Require $\{x^i\}_{i=1}^N, \{c(x^i)\}_{i=1}^N, \beta_{n-1}, \epsilon, \reg$.
+		\Require $\{x^i\}_{i=1}^N, \{c(x^i)\}_{i=1}^N, \beta_{n-1}, \epsy, \reg$.
 		\Ensure $\{\kFPF^i\}_{i=1}^N$
-		\State Calculate $\Kern_{ij} = \exp(-\|x^i - x^j\|^2/ 4\epsilon)$ for $i,j = 1$ to $N$  \Comment{Gaussian kernel}
-		\State Calculate $ \partial_{x_k}\Kern_{ij} = -\frac{(x_k^i - x_k^j)}{2\epsilon} \Kern_{ij}$ for all $i,j =1$ to $N$ and $k = 1$ to $d$ \Comment{Gaussian kernel derivative}
+		\State Calculate $\Kern_{ij} = \exp(-\|x^i - x^j\|^2/ 4\epsy)$ for $i,j = 1$ to $N$  \Comment{Gaussian kernel}
+		\State Calculate $ \partial_{x_k}\Kern_{ij} = -\frac{(x_k^i - x_k^j)}{2\epsy} \Kern_{ij}$ for all $i,j =1$ to $N$ and $k = 1$ to $d$ \Comment{Gaussian kernel derivative}
 		\State Calculate $M$ and $b$ according to Equations (give list based on the variant chosen)
 		\State Calculate $\beta^* = M^{-1}b$
 		\State Calulate $\text{K}_i  = \sum_{j=1}^N \sum_{k=1}^d \beta^*_{jk} \partial_{x_k} \Kern_{ij}$ for $i =1$ to $N$ \Comment{FPF gain function approximation}
@@ -410,9 +410,10 @@ $
 	\end{algorithmic}
 \end{algorithm} \anand{Needs more work}
 
-\section{Computational complexity}
+\section{Complexity comparison of the algorithms}
 \label{s:computational_complexity}
 \anand{Need Prof. Meyn's help on this}
+The Markov semigroup approximation attempts to solve an approximate problem exactly, whereas the $\gradTD$-RKHS method tries to find the best approximate solutions without altering the problem. Due to their different approaches, there is no direct way of comparing the performances using analysis. However, it is firmly believed that the $\gradTD$-RKHS method produces asymptotically unbiased approximations.
 
 \section{Numerical Experiments}
 \label{s:fpf_numerics}
