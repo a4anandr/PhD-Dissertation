@@ -181,7 +181,7 @@ The most popular example of a radial basis kernel is the exponential kernel defi
 \Kern_\epsilon \eqdef \exp\Bigl\{\frac{\|x-x'\|^2}{4 \epsilon}\Bigr\},
 \label{e:rkhs_gaussian_kernel}
 \end{equation}
-where $\epsilon$ is the variance parameter that controls the width of the function. Desirable properties of the Gaussian kernel that makes it widely used have been investigated in \cite{min10,stehussco06}. A brief review is provided in \Appendix{a:gaussian_rkhs}. 
+where $\epsilon$ is the variance parameter that controls the width of the function. Desirable properties of the Gaussian kernel that makes it widely used and also the choice of kernel in this dissertation have been investigated in \cite{min10,stehussco06}. A brief review is provided in \Appendix{a:gaussian_rkhs}. 
 \end{arabnum}
 
 More composite kernel functions can be constructed by taking various combinations of reproducing kernels. 
@@ -372,7 +372,7 @@ Similar to the standard representer theorem, that guarantees a finite dimensiona
 	Then the  optimizer $g^*$ of \eqref{e:rkhs_erm_rkhs_gradient} over $g\in\clH$ exists, is unique, and has the following representation: \anand{change $x^i_k$ to $x^k$}
 	\begin{equation}
 	g^*(x) = \sum_{i=1}^N  \Bigl[
-	\rkhsparam_i^{0*}  K(x^i,x)   +  \sum_{k =1}^d  \rkhsparam_i^{k*} \frac{\partial K}{\partial x^i_k} (x^i, x) \Bigr],
+	\rkhsparam_i^{0*}  K(x^i,x)   +  \sum_{k =1}^d  \rkhsparam_i^{k*} \frac{\partial K}{\partial x_k} (x^i, x) \Bigr],
 	\label{e:rkhs_ext_rep_theorem}
 	\end{equation}
 	where $\{\rkhsparam_i^{k*} \colon i=1,\cdots,N,\, k = 0,\cdots,d\}$ are real numbers.
@@ -386,7 +386,7 @@ Similar to the standard representer theorem, that guarantees a finite dimensiona
  \item For any $x \in \state$, $\frac{\partial \Kern}{\partial x^i_k} \in \clH$. 
  \item A partial derivative reproducing property holds:
  \begin{equation}
- \frac{\partial f(x)}{\partial x^i_k} = \Bigl \langle \frac{\partial K(x, \cdot)}{\partial x^i_k} , f(\cdot) \Bigr \rangle_\clH \qquad \forall x \in \state, \forall f \in \clH.
+ \frac{\partial f(x)}{\partial x_k} = \Bigl \langle \frac{\partial K(x, \cdot)}{\partial x_k} , f(\cdot) \Bigr \rangle_\clH \qquad \forall x \in \state, \forall f \in \clH.
  \end{equation}
  \end{romannum}
  \label{lemma:der_rep_property}
@@ -395,7 +395,7 @@ Similar to the standard representer theorem, that guarantees a finite dimensiona
 Therefore, any $f$ of the form:
 	\[
 	f \eqdef  \sum_{i=1}^N  \Bigl[
-	\rkhsparam_i^{0}  K(x^i, .)   +  \sum_{k =1}^d  \rkhsparam_i^{k} \frac{\partial K}{\partial x^i_k}  (x^i, .) \Bigr],
+	\rkhsparam_i^{0}  K(x^i, .)   +  \sum_{k =1}^d  \rkhsparam_i^{k} \frac{\partial K}{\partial x_k}  (x^i, .) \Bigr],
 	\]
 	is in $\clH$. The rest of the proof proceeds using arguments similar to those in the proof of \Theorem{theorem:rep_theorem}. 
 
@@ -427,9 +427,9 @@ Let us denote by $\clH_\parallel$, the linear subspace of $\clH$ made up of all 
 	\begin{equation}
 	\begin{aligned}
 	\frac{\partial g(x^i)}{\partial x^i_k} & = \Bigl \langle g \, , \frac{\partial K}{\partial x^i_k} (x^i,.) \Bigr \rangle_\clH\\
-	&  = \Bigl \langle g_\parallel\, , \frac{\partial K}{\partial x^i_k} (x^i,.)  \Bigr \rangle_\clH + \Bigl \langle g_\perp \, ,\frac{\partial K}{\partial x^i_k} (x^i,.) \Bigr \rangle_\clH \\
-	&  = \langle g_\parallel\, , \frac{\partial K}{\partial x^i_k} (x^i,.) \rangle_\clH \\
-	&  = \frac{\partial g_\parallel(x^i) }{\partial x^i_k}.
+	&  = \Bigl \langle g_\parallel\, , \frac{\partial K}{\partial x_k} (x^i,.)  \Bigr \rangle_\clH + \Bigl \langle g_\perp \, ,\frac{\partial K}{\partial x_k} (x^i,.) \Bigr \rangle_\clH \\
+	&  = \langle g_\parallel\, , \frac{\partial K}{\partial x_k} (x^i,.) \rangle_\clH \\
+	&  = \frac{\partial g_\parallel(x^i) }{\partial x_k}.
 	\end{aligned}
 	\label{e:rkhs_der_g_parallel}
 	\end{equation}
@@ -439,7 +439,7 @@ Let us denote by $\clH_\parallel$, the linear subspace of $\clH$ made up of all 
 	\]
 	and from \eqref{e:rkhs_g_reg}, $g_\parallel$ minimizes the regularization term. Hence, the regularized objective function is minimized if $g^*$ lies within $\clH_\parallel$ and takes the form,
 	\[
-	g^*(y) = \sum_{i=1}^N  \Bigl[ \rkhsparam_i^{0*}  K(x^i, y)   +  \sum_{k =1}^d  \rkhsparam_i^{k*} \frac{\partial}{\partial x^i_k}  K(x^i, y) \Bigr]
+	g^*(y) = \sum_{i=1}^N  \Bigl[ \rkhsparam_i^{0*}  K(x^i, y)   +  \sum_{k =1}^d  \rkhsparam_i^{k*} \frac{\partial}{\partial x_k}  K(x^i, y) \Bigr]
 	\]
 \end{proof}
 
@@ -580,7 +580,7 @@ Since this does not depend upon $g$, we can apply the classical representer theo
 \[
 {g^*}'  = \sum_{i=1}^N  \beta_i^* K(x^i,y) \,,  \qquad y \in \state \, .
 \]
-We cannot use the definition \eqref{e:rkhs_IdealLossERM} to compute $\beta^*$ since $h$ is not known.   However,  following the Law of Large Numbers approximation arguments,   we can obtain the value of $\beta$  by substituting $g_\beta$ of this form into the right hand side  of this variant of \eqref{e:rkhs_1dloss}: \notes{Law of Large Numbers needs capitalization?}
+We cannot use the definition \eqref{e:rkhs_IdealLossERM} to compute $\beta^*$ since $h$ is not known.   However,  following the Law of Large Numbers approximation arguments,   we can obtain the value of $\beta$  by substituting $g_\beta$ of this form into the right hand side  of this variant of \eqref{e:rkhs_1dloss}: \anand{Law of Large Numbers needs capitalization?}
 \begin{equation*}
 g^* := \argmin_{g\in\clH} \frac{1}{N} \sum_{i=1}^N \Bigl\{ (g'(x^i))^2 - 2 \tilc_N(x^i) g(x^i) \Bigr\} + \lambda \|g'\|^2_\clH,
 \label{e:rkhs_1dlossDiff}
@@ -600,7 +600,7 @@ It is not clear if the optimal solution has this form for dimension greater than
 
 \section{Algorithm Design and Error Analysis}
 \label{s:error_analysis}
-After choosing an appropriate loss function \eqref{e:rkhs_erm_diff_td} to suit our objective, the next choice in the algorithm is that of a suitable kernel function $\Kern$. In the case of $\gradTD$ learning, desirable properties of the RKHS used as the approximating function space will help us make an informed choice.   More discussion on choosing the kernel in the context of $\gradTD$ learning is reserved for \Section{s:kernel}. An equally important step in the algorithm design is the choice of kernel hyperparameters and the regularization parameter $\reg$. The importance of a good choice of $\reg$ is illustrated with examples in \cite{wah90}. Methods such as ordinary cross-validation and generalized cross-validation are suggested. As mentioned before, a large value of $\reg$ introduces bias and a small value of $\reg$ contributes to the variance of the error. A general criteria chosen to obtain the optimal $\reg^*$ is to minimize the sum of the bias and the variance terms. Also, it may be seen that a good choice of $\reg$  depends on the number of samples $N$. $\reg(N)$ is chosen to be a decaying function of $N$ such as $\propto \frac{1}{N}$ or $\frac{1}{\sqrt{N}}$. 
+After choosing an appropriate loss function \eqref{e:rkhs_erm_diff_td} to suit our objective, the next choice in the algorithm is that of a suitable kernel function $\Kern$. In the case of $\gradTD$ learning, desirable properties of the RKHS used as the approximating function space will help us make an informed choice.   More discussion on choosing the kernel in the context of $\gradTD$ learning is reserved for \Section{s:kernel}. \anand{section referencing required}An equally important step in the algorithm design is the choice of kernel hyperparameters and the regularization parameter $\reg$. The importance of a good choice of $\reg$ is illustrated with examples in \cite{wah90}. Methods such as ordinary cross-validation and generalized cross-validation are suggested. As mentioned before, a large value of $\reg$ introduces bias and a small value of $\reg$ contributes to the variance of the error. A general criteria chosen to obtain the optimal $\reg^*$ is to minimize the sum of the bias and the variance terms. Also, it may be seen that a good choice of $\reg$  depends on the number of samples $N$. $\reg(N)$ is chosen to be a decaying function of $N$ such as $\propto \frac{1}{N}$ or $\frac{1}{\sqrt{N}}$. 
 
 
 
