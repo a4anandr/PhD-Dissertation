@@ -1,7 +1,7 @@
 \chapter{INTRODUCTION} 
 \label{ch:intro}
 
-In a broad sense, this dissertation explores the development of reinforcement learning based techniques suited to applications in nonlinear filtering (or nonlinear state estimation) and Markov chain Monte Carlo (MCMC) algorithms. During the initial development of this dissertation, a special class of approximate nonlinear filters called the feedback particle filter (FPF) was the primary focus. Later, by lucky coincidence, it was observed that similar techniques could be applied to obtain interesting results in MCMC algorithms as well. \anand{lucky coincidence maybe too casual?} Hence, the chapter on MCMC forms a smaller portion of the dissertation. 
+In a broad sense, this dissertation explores the development of reinforcement learning based techniques suited to applications in nonlinear filtering (or nonlinear state estimation) and Markov chain Monte Carlo (MCMC) algorithms. During the initial development of this dissertation, a special class of approximate nonlinear filters called the feedback particle filter (FPF) was the primary focus. Later, by lucky coincidence, it was observed that similar techniques could be applied to obtain interesting results in MCMC algorithms as well. \anandspm{lucky coincidence maybe too casual?} Hence, the chapter on MCMC forms a smaller portion of the dissertation. 
 
 The goal of this chapter is a cursory introduction of the elements that are key to the problems considered in this dissertation. In \Section{s:goals}, we describe the two major goals undertaken - in the areas of nonlinear filtering and MCMC. Subsequently, in \Section{s:tools}, we introduce the various tools used, motivate the solution approaches adopted, without delving much into the technical details. 
 \section{Goals of the Dissertation}
@@ -18,8 +18,8 @@ A generic block diagram of a state estimator is depicted in \Fig{Fig:state_estim
 	\caption{Block diagram of a state estimator}
 	\label{Fig:state_estimator}
 \end{figure} 
-\anand{Need to verify if the block diagram is correct}
-Initial applications of filtering included satellite orbit determination, aircraft navigation and tracking \cite{kutsurpfi19}. More recently, filtering has found applications in diverse areas such as machine learning \cite{bishop06}, queueing networks, mathematical finance \cite{brihan08} and data assimilation problems for weather forecasting \cite{eve94}. \anand{A simple example may be good here.}
+\anandspm{Need to verify if the block diagram is correct}
+Initial applications of filtering included satellite orbit determination, aircraft navigation and tracking \cite{kutsurpfi19}. More recently, filtering has found applications in diverse areas such as machine learning \cite{bishop06}, queueing networks, mathematical finance \cite{brihan08} and data assimilation problems for weather forecasting \cite{eve94}. \anandspm{A simple example may be good here.}
 
 When the system dynamics are linear and the noise quantities are Gaussian, the problem is simpler and the well-known Kalman filter is the optimal solution. The Kalman filter gives a linear SDE (stochastic differential equation) for the conditional mean of the state and a Riccati type ODE for the state covariance. These two quantities However, in practice, the linear state dynamics - Gaussian disturbances assumption is often violated.  For example, in weather forecasting the states evolve via a complex system of fluid mechanics equations that are nonlinear. The optimal solution is given by a set of SDEs, like the Zakai's equation or the Kushner-Stratonovich equation. The posterior estimates are in the form of conditional distributions of the state, given the entire history of observations. A detailed discussion of the nonlinear filtering theory can be found in \cite{baicri08}. 
 
@@ -29,7 +29,7 @@ The main focus of this dissertation is a class of controlled particle system alg
 
 \subsection{Markov chain Monte Carlo (MCMC) algorithms}
 \label{s:mcmc}
-The second application of interest is Markov chain Monte Carlo (MCMC) algorithms. MCMC algorithms have a long history of being applied to problems in Bayesian statistics \cite{}. \anand{citation needed}
+The second application of interest is Markov chain Monte Carlo (MCMC) algorithms. MCMC algorithms have a long history of being applied to problems in Bayesian statistics \cite{}. \anandspm{citation needed}
 
 In standard Monte Carlo methods, expectation of a function $f$ of a random variable $X$ distributed according to a density $\pr$ is approximated empirically as,
 \begin{equation}
@@ -64,7 +64,7 @@ In its most general form, Poisson's equation is a second-order differential equa
 \end{equation*}
 where $\generate$ is a second-order differential operator. Usually, $f \in C^2$ is given and is ``centered'' by subtracting its mean. The function $h$ is unknown and is called the solution to the Poisson's equation. In Physics, the operator $\generate$ is often taken to be the Laplacian. Poisson's equation appears widely in the context of Markov chains and stochastic optimal control. In the context of a continuous-time diffusion process, the operator $\generate$ refers to the infinitesimal generator, also called the differential generator.  \anand{ If $f \equiv 0$, then $h$ is precisely harmonic functions \cite{glymey96a}}.
 
-Poisson's equation is central to average-cost optimal control theory. In this case, $f$ is a one-step cost function and $h$ is called a relative value function. \anand{The states evolve in the form of a controlled Markov chain based on a given policy.} Relative value function gives the infinite-horizon expected cost when starting from a given state under this stationary policy. Approximate solutions to the equation lead to direct performance bounds of the control algorithm \cite{ctcn}. Explicit bounds on the solution $h$ have been obtained under general conditions of the chain in \cite{}. \anand{citation needed}
+Poisson's equation is central to average-cost optimal control theory. In this case, $f$ is a one-step cost function and $h$ is called a relative value function. \anandspm{The states evolve in the form of a controlled Markov chain based on a given policy.} Relative value function gives the infinite-horizon expected cost when starting from a given state under this stationary policy. Approximate solutions to the equation lead to direct performance bounds of the control algorithm \cite{ctcn}. Explicit bounds on the solution $h$ have been obtained under general conditions of the chain in \cite{}. \anandspm{citation needed}
 % measure of long-term system performance in \cite{brabar96}.
 
 Our interest lies in a particular version of Poisson's equation associated to the Langevin diffusion process. Langevin diffusion is discussed in greater detail in \Section{s:langevin_diffusion} and \Section{s:langevin_mcmc}. Gradient of the solution to this equation is the optimal choice of the gain function associated with the FPF \cite{yanmehmey13}. In MCMC algorithms, as noted by Henderson \cite{henthesis97} and later by Dellaportas et al. \cite{delkon12}, the optimal control variates can be constructed from this solution. Thus, Poisson's equation and its solution are central to the goals of this dissertation. 
