@@ -300,7 +300,7 @@ In this Section, we describe the differential LSTD ($\gradTD$) learning algorith
 \label{e:diff_td_gradTD_norm_error}
 \end{equation}
 
-\subsection{$\gradTD$ learning for Langevin diffusion}
+\subsection{$\gradTD$ learning for Langevin diffusion ($\gradTD$-L)}
 \label{s:diff_td_langevin}
 In this Section, we first focus on the special case of the Langevin diffusion \eqref{e:diff_td_langevin_cts}. A more generic version of $\gradTD$ learning that is applicable to any continuous-time diffiusion process is described in \Section{s:diff_td_learning}. For the Langevin diffusion, a property of its differential generator \eqref{e:diff_td_langevin_generator},  described in \Prop{prop:lang_generator_grad} allows the construction of a simple algorithm. The advantages of this simpler resolution will be more evident after the general version is presented in \Section{s:diff_td_learning}. \Prop{prop:lang_generator_grad} is a corollary to the following result from \cite{hwanorwu15,yanlaumehmey16} and can be proved by a simple application of the integration by parts formula:
 \begin{proposition}
@@ -381,7 +381,7 @@ b_i & = \langle \nabla h, \nabla \basis_i \rangle_{L^2} \\
 \end{aligned}
 \end{equation}
 
-The expressions for $M$ and $b$ in \eqref{e:diff_td_gradTD_M_b}, permit the construction of Monte Carlo based approximations to implement the $\gradTD$ algorithm. The centered function $\tilc$ can be approximated using its empirical equivalent $\tilc_T$ defined as,
+The expressions for $M$ and $b$ in \eqref{e:diff_td_gradTD_M_b}, permit the construction of Monte Carlo based approximations to implement the $\gradTD$-L algorithm. The centered function $\tilc$ can be approximated using its empirical equivalent $\tilc_T$ defined as,
 \begin{equation}
 \tilc_T(x) \eqdef c(x) - \frac{1}{T} \int_0^T c(\markovstate_t) dt,
 \end{equation}
@@ -392,12 +392,12 @@ b &\approx b_T \eqdef \frac{1}{T} \int_0^T \tilc_T(\markovstate_t) \basis(\marko
 \label{e:diff_td_gradTD_M_b_int}
 \end{align}
 and $\param_T = M_T^{-1} b_T$. 
-It is interesting to note that the eligibility vector term $\eligibvector_t$ is absent in the $\gradTD$ algorithm for the Langevin diffusion. We shall discuss the benefits and limitations of this algorithm after presenting the more generic version in \Section{s:diff_td_learning}. 
+We shall discuss the benefits and limitations of this algorithm after presenting the more generic version in \Section{s:diff_td_learning}. 
  
-\subsection{$\gradTD$ learning for a general diffusion}
+\subsection{$\gradTD$ learning for a general diffusion ($\gradTD$)}
 \label{s:diff_td_learning}
 % \cite{tsiroy99a}
-In this Section, we present the differential TD learning algorithm for a general continuous-time diffusion process. 
+In this Section, we present the differential TD learning algorithm for a general continuous-time diffusion process. This generic algorithm is denoted as $\gradTD$ in the remainder of this dissertation.
 The ideas involved in the derivation are similar to those in the LSTD algorithm.  A derivation of the $\gradTD$ algorithm for a discrete-time MDP with examples from optimal control is provided in \cite{devmey16arXiv}. This algorithm is discussed in the context of gain function approximation for the FPF in \Chapter{ch:filtering} and in \cite{raddevmey16}. 
 %\Section{s:fpf_gain}.  
 
@@ -526,7 +526,7 @@ The $\gradTD$ learning algorithm provides an unbiased and asymptotically consist
 	\end{eqnarray}
 \end{subequations}
 The vector $\eligibvector(t)$ is analogous to the eligibility vector in TD learning \cite{bertsi96a,ctcn}. Existence of a steady state solution to \eqref{e:diff_td_gradTD_eligib} of the form in \eqref{e:diff_td_gradTD_eligib_integral} is guaranteed under a Lyapunov drift condition in \cite{devkonmey17b}.
-The estimates of $\param^*$ are generated via $\param(t) = M(t)^{-1} b(t)$.   The ODE is initialized with $\eligibvector(0), b(0)\in \Re^\ell$,  and $M(0)>0$ a $\ell \times  \ell$ matrix.
+The estimates of $\param^*$ are generated via $\param(t) = M(t)^{-1} b(t)$.   The ODE is initialized with $\eligibvector(0), b(0)\in \Re^\ell$,  and $M(0)>0$ a $\ell \times  \ell$ matrix. It is interesting to note that the eligibility vector term $\eligibvector_t$ is absent in the $\gradTD$-L algorithm.
 
 \subsection{Nonlinear parameterization}
 \label{s:diff_td_nl_param}
