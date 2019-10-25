@@ -2,8 +2,8 @@
 \label{ch:diff_td}
 A basic introduction of the essential elements of this dissertation was provided in \Chapter{ch:intro}. In this chapter, a more formal mathematical description of the concepts is aimed at. The outline of this chapter is:
 \begin{romannum}
-\item In \Section{s:langevin_diffusion}, a prerequisite introduction to the Langevin diffusion and its associated Poisson's equation is given. The intention is to provide motivation as to why solving this equation is important to the two applications of interest.
-\item The standard least squares temporal difference (LSTD) learning algorithm is described. This algorithm forms the basis of techniques to approximate the solution to Poisson's equation. A detailed derivation is presented, as a precursor to deriving a new variant.
+\item In \Section{s:langevin_diffusion}, a prerequisite introduction to the Langevin diffusion and its associated Poisson's equation is given. The intention is to motivate why solving this equation is important to the two applications of interest.
+\item The standard least squares temporal difference (LSTD) learning algorithm is described next. This algorithm forms the basis of techniques to approximate the solution to Poisson's equation. A detailed derivation is presented, as a precursor to deriving a new variant.
 \item We derive the differential LSTD ($\gradTD$) learning algorithm that tries to approximate the gradient of the solution to Poisson's equation directly rather than the function itself.
 It is shown in \Section{s:diff_td_langevin}, that in the special case of Langevin diffusion, the $\gradTD$-L algorithm provides a simple and elegant solution. This is achieved by using the self-adjoint property of its differential generator. This is the major contribution in this chapter. 
 \item A more general version of the algorithm, that can be applied to a broad class of continuous-time diffusion processes is also derived along the lines of the standard LSTD algorithm. This algorithm with its application to gain function approximation in the FPF was published as a conference proceeding \cite{raddevmey16}. A discrete-time analog of the algorithm has been successfully applied to problems in optimal control. 
@@ -13,7 +13,7 @@ It is shown in \Section{s:diff_td_langevin}, that in the special case of Langevi
 
 \section{Langevin Diffusion and Poisson's Equation}
 \label{s:langevin_diffusion}
-In this section, we introduce the Langevin diffusion with only the requisite amount of detail, so that the broad motivation is not obfuscated by technical details. A more elaborate discussion is reserved for \Section{s:mcmc_langevin} in the context of MCMC algorithms. %\anand{minor}
+In this section, we introduce the Langevin diffusion and its associated Poisson's equation with only the requisite amount of detail, so that the broad motivation is not obfuscated by technical details. A more elaborate discussion is reserved for \Section{s:mcmc_langevin} in the context of MCMC algorithms. 
 
 \subsection{Langevin diffusion}
 
@@ -133,7 +133,7 @@ The necessary conditions for optimality can be obtained by taking the gradient o
 \end{aligned}
 \label{e:diff_td_first_order_condition}
 \end{equation} 
-	\anand{Need to verify if the exchange of derivative and expectation is valid for a nonlinear parameterization}
+	\anandspm{Conditions under which the exchange of derivative and expectation is valid for a nonlinear parameterization}
 In general, a solution to \eqref{e:diff_td_first_order_condition} can be obtained using recursive updates of the parameter $\param$ by stochastic approximation techniques. However, for the linear parameterization \eqref{e:diff_td_linear_param}, the optimal $\param^*$ admits a closed form expression:
 \begin{equation}
 \param^* := M^{-1} b,
@@ -313,7 +313,7 @@ In this Section, we first focus on the special case of the Langevin diffusion \e
 	\qed
 \end{proposition} 
 \begin{proof}[Proof]
-	We can assume that $f$ and $g$ have compact support. The extension to arbitrary functions satisfying the assumptions of the proposition is obtained by approximation in $L^2(\pr)$. In the following, $\partial_k f$ is used as shorthand for $\frac{\partial f}{\partial x_k}$. \anand{What does this comment mean?} 
+	We can assume that $f$ and $g$ have compact support. The extension to arbitrary functions satisfying the assumptions of the proposition is obtained by approximation in $L^2(\pr)$. In the following, $\partial_k f$ is used as shorthand for $\frac{\partial f}{\partial x_k}$. \anandspm{ I found this in the CDC 16 paper. What does this comment mean?} 
 	
 	Consider first the scalar case, where $d=1$: 
 	
@@ -401,7 +401,7 @@ In this Section, we present the differential TD learning algorithm for a general
 The ideas involved in the derivation are similar to those in the LSTD algorithm.  A derivation of the $\gradTD$ algorithm for a discrete-time MDP with examples from optimal control is provided in \cite{devmey16arXiv}. This algorithm is discussed in the context of gain function approximation for the FPF in \Chapter{ch:filtering} and in \cite{raddevmey16}. 
 %\Section{s:fpf_gain}.  
 
-The presentation of the algorithm here is restricted to the scalar case, where $\state = \Re$. However, it is expected that the algorithm can be extended to higher dimensions. \anand{not sure if this is true}
+The presentation of the algorithm here is restricted to the scalar case, where $\state = \Re$. However, it is expected that the algorithm can be extended to higher dimensions. \anandspm{Should I say anything more?}
 Consider a general continuous-time diffusion process defined in \eqref{e:diff_td_cts_diffusion} with the definition for its associated differential generator $\generate$ in \eqref{e:diff_td_diffusion_generator}. Denote by $h$ the solution to Poisson's equation \eqref{e:diff_td_poissons} with forcing function $c \in C^1$.  Differentiating each side of \eqref{e:diff_td_poissons} with respect to $x$, we obtain
 \begin{equation}
 \begin{aligned}
