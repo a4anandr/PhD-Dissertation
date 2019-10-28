@@ -7,8 +7,7 @@ In \Chapter{ch:diff_td}, the standard LSTD algorithm was reviewed and two versio
 \end{romannum}
 Hence, it is a better idea to choose a function class that adapts dynamically to suit the problem and the sample distribution. Kernel methods provide an alternative approach to basis selection. 
 
-This chapter aims to adapt the $\gradTD$ algorithm proposed in \Chapter{ch:diff_td} in a reproducing kernel Hilbert space (RKHS) setting.  The remainder of this chapter is organized as follows - In \Section{s:rkhs_basics}, a very concise introduction to kernel functions and the RKHS theory is provided. A more detailed discussion of its properties including Mercer's theorem can be found in \Appendix{a:mercers_theorem}. Gaussian kernels have found wide acceptance in machine learning and function approximation and some of the useful properties of the RKHS induced by the Gaussian kernel is discussed in \Appendix{a:gaussian_rkhs}. Function approximation problems arising in machine learning are usually cast in the form of a regularized empirical risk minimization (ERM) problem - a brief introduction is provided in \Section{s:erm}. Obtaining solutions to such problems are made possible via the classical representer theorem. The theorem is stated in \ref{s:erm_rkhs} and the proof is provided in \Appendix{a:rep_theorem}. In \Section{s:erm}, the minimum-norm problem in $L^2(\pr)$ \eqref{e:rkhs_diff_td_gradTD_norm_error} of approximating the gradient of the solution to Poisson's equation is reformulated as an equivalent ERM problem to apply the RKHS machinery. As the ERM formulated consists of gradient terms, a generalized  version of the representer theorem (\Theorem{theorem:rep_theorem}) is required to obtain the optimal solution.  A simplified sub-optimal solution that lies on a subspace of the original RKHS is also presented. A short review of the various existing approaches to error analysis for a generic least squares regression problem is given  in \Appendix{a:bousquet}. Error analysis where loss functions have gradient terms is in Section 3.5.
-\anand{yet to be done}
+This chapter aims to adapt the $\gradTD$-L algorithm proposed in \Chapter{ch:diff_td} in a reproducing kernel Hilbert space (RKHS) setting.  The remainder of this chapter is organized as follows - In \Section{s:rkhs_basics}, a very concise introduction to kernel functions and the RKHS theory is provided. A more detailed discussion of its properties including Mercer's theorem can be found in \Appendix{a:mercers_theorem}. Gaussian kernels have found wide acceptance in machine learning and function approximation and some of the useful properties of the RKHS induced by the Gaussian kernel is discussed in \Appendix{a:gaussian_rkhs}. Function approximation problems arising in machine learning are usually cast in the form of a regularized empirical risk minimization (ERM) problem - a brief introduction is provided in \Section{s:erm}. Obtaining solutions to such problems are made possible via the classical representer theorem. The theorem is stated in \ref{s:erm_rkhs} and the proof is provided in \Appendix{a:rep_theorem}. In \Section{s:erm}, the minimum-norm problem in $L^2(\pr)$ \eqref{e:diff_td_gradTD_norm_error} of approximating the gradient of the solution to Poisson's equation is reformulated as an equivalent ERM problem to apply the RKHS machinery. As the ERM formulated consists of gradient terms, a generalized  version of the representer theorem (\Theorem{theorem:rep_theorem}) is required to obtain the optimal solution.  A simplified sub-optimal solution that lies on a subspace of the original RKHS is also presented. A short review of the various existing approaches to error analysis for a generic least squares regression problem is given  in \Appendix{a:bousquet}. Error analysis for ERMs with loss functions having gradient terms is saved for future research. \anandspm{is this statement about error analysis okay?}
 
 \section{RKHS Basics}
 \label{s:rkhs_basics}
@@ -383,7 +382,7 @@ Similar to the standard representer theorem, that guarantees a finite dimensiona
  \begin{lemma}
  If $\Kern :\state \times \state \to \Re$ is a Mercer kernel such that $\Kern \in C^2$, then the following statements hold:
  \begin{romannum}
- \item For any $x \in \state$, $\frac{\partial \Kern}{\partial x^i_k} \in \clH$. 
+ \item For any $x \in \state$, $\frac{\partial \Kern}{\partial x_k} \in \clH$. 
  \item A partial derivative reproducing property holds:
  \begin{equation}
  \frac{\partial f(x)}{\partial x_k} = \Bigl \langle \frac{\partial K(x, \cdot)}{\partial x_k} , f(\cdot) \Bigr \rangle_\clH \qquad \forall x \in \state, \forall f \in \clH.
@@ -391,7 +390,7 @@ Similar to the standard representer theorem, that guarantees a finite dimensiona
  \end{romannum}
  \label{lemma:der_rep_property}
  \end{lemma}
- By \Lemma{lemma:der_rep_property}, $\frac{\partial K}{\partial x^i_k}(x^i,.) \in \clH$ for each $k$.
+ By \Lemma{lemma:der_rep_property}, $\frac{\partial K}{\partial x_k}(x^i,.) \in \clH$ for each $k$.
 Therefore, any $f$ of the form:
 	\[
 	f \eqdef  \sum_{i=1}^N  \Bigl[
@@ -401,7 +400,7 @@ Therefore, any $f$ of the form:
 
 Let us denote by $\clH_\parallel$, the linear subspace of $\clH$ made up of all such functions $f$,
 	\[
-	\clH_\parallel := \Bigl\{f \in \clH\, |\, f = \sum_{i=1}^N \Bigl[ \rkhsparam^0_i K(x^i,.) + \sum_{k=1}^d \rkhsparam_i^k \frac{\partial K }{\partial x^i_k} (x^i, .)\Bigr]\Bigr\},
+	\clH_\parallel := \Bigl\{f \in \clH\, |\, f = \sum_{i=1}^N \Bigl[ \rkhsparam^0_i K(x^i,.) + \sum_{k=1}^d \rkhsparam_i^k \frac{\partial K }{\partial x_k} (x^i, .)\Bigr]\Bigr\},
 	\]
 	where $N$ ranges over $\mathbb{Z}_+$, and  each $\rkhsparam_i^k \in \Re$ for each $i$ and $k = 0$ to $d$. Let $\clH_{\perp}$ be the subspace of $\clH$ orthogonal to $\clH_\parallel$:
 	\[
@@ -443,7 +442,7 @@ Let us denote by $\clH_\parallel$, the linear subspace of $\clH$ made up of all 
 	\]
 \end{proof}
 
-\subsection{Optimal ERM solution}
+\subsection{Optimal ERM solution ($\gradTD$-RKHS-Opt)}
 \label{sec:one_dimension}
 We first provide a full description of the solution to \eqref{e:rkhs_erm_diff_td} for the one-dimensional model in this section. The optimizer is obtained as the solution to a system of linear equations, extensions to higher dimensions is straight-forward and provided towards the end of the section. 
 The regularized ERM problem \eqref{e:rkhs_erm_diff_td} in one-dimension reduces to the following:
@@ -508,15 +507,15 @@ Here, $\frac{\partial }{\partial x}$ and $\frac{\partial}{\partial y}$ refer to 
 \end{proposition}
 The derivation of the optimal parameter $\rkhsparam^*$ is analogous to the derivation of the optimal $\theta^*$ in the finite basis case in \Lemma{lemma:gradTD}. The proof of \Prop{prop:beta_star} follows from elementary calculus. 
 
-Following the above derivation, for an arbitrary dimension $d$, using the following matrix notation with $1 \leq m,n \leq d$ and $1 \leq i,j \leq N$:
+Following the above derivation, for an arbitrary dimension $d$, using the following matrix notation with $1 \leq k,l \leq d$ and $1 \leq i,j \leq N$:
 \[
-M_{m0}(i,j) := \frac{\partial K}{\partial x_m}(x^i,x^j),
+M_{m0}(i,j) := \frac{\partial K}{\partial x_k}(x^i,x^j),
 \quad 
-M_{0n}(i,j) := \frac{\partial K}{\partial y_n}(x^i,x^j),
+M_{0n}(i,j) := \frac{\partial K}{\partial y_l}(x^i,x^j),
 \quad
-M_{mn}(i,j) := \frac{\partial^2 K}{\partial x_m \partial y_n}(x^i,x^j).
+M_{mn}(i,j) := \frac{\partial^2 K}{\partial x_k \partial y_l}(x^i,x^j).
 \]	
-\begin{equation*}
+\begin{equation}
 \begin{aligned}
 \text{where,
 }
@@ -530,16 +529,16 @@ M_{d0} & \hdots & M_{dd}
 \right] \\
 b & :=  \frac{1}{N} \left[ \begin{array}{c} M_{00} \\ \vdots \\ M_{d0} \end{array}\right] \boldsymbol{\zeta}
 \end{aligned}
-\label{e:rkhs_beta_optimal}
-\end{equation*}
-Each $M_{mn} \in \Re^{N \times N}$ and therefore $M$ is a $(d+1) N \times (d+1) N$ matrix and $b$ is a $(d+1) N$ vector. The optimal parameter vector $\rkhsparam^* \eqdef [ (\rkhsparam^0_i)_{i=1}^N, (\rkhsparam^1_i)_{i=1}^N, \hdots, (\rkhsparam^d_i)_{i=1}^N] \in \Re^{(d+1) N}$ is in the same form as \eqref{e:rkhs_beta_2N}. Although, $\rkhsparam^*$ is easily computable, the solution scales poorly with dimensions. 
-Moreover, there are more parameters ($(d+1)N$ than there are sample points ($N$), which is usually not preferred in machine learning. This could potentially lead to overfitting and other numerical issues.   
+\label{e:rkhs_beta_optimal_d}
+\end{equation}
+Each $M_{kl} \in \Re^{N \times N}$ and therefore $M$ is a $(d+1) N \times (d+1) N$ matrix and $b$ is a $(d+1) N$ vector. The optimal parameter vector $\rkhsparam^* \eqdef [ (\rkhsparam^0_i)_{i=1}^N, (\rkhsparam^1_i)_{i=1}^N, \hdots, (\rkhsparam^d_i)_{i=1}^N] \in \Re^{(d+1) N}$ is in the same form as \eqref{e:rkhs_beta_2N}. Although, $\rkhsparam^*$ is easily computable, the solution scales poorly with dimensions. 
+Moreover, there are more parameters $(d+1)N$ than there are sample points $N$, which is usually not preferred in machine learning. This could potentially lead to overfitting and other numerical issues.   
 Ideally, we prefer an algorithm that scales well with dimensions. This leads to the following two extensions:
 \begin{itemize}
 	\item A reduced complexity solution \eqref{e:rkhs_g_circ}.
 	\item A differential regularizer \eqref{e:rkhs_1dloss_diff}.
 \end{itemize}
-\subsection{Reduced complexity solution}
+\subsection{Reduced complexity solution ($\gradTD$-RKHS-Simple)}
 \Theorem{theorem:ext_rep_theorem} states that the optimizer of the ERM with gradient terms in the loss function lies in a subspace of the RKHS $\clH$ spanned by the kernel functions ($\Kern_{x^i}$) and its partial derivatives ($\{\partial_k K_{x^i}\}_{k=1}^d$) centered at the sample points. The main source of complexity is the presence of the $d \times N$ kernel partial derivative terms of the solution . To obtain a reduced complexity solution, $g$ is restricted to a subspace of the following form:
 \begin{equation}
 g(y)  := \sum_{i=1}^N \rkhsparam_i K(x^i,y).
@@ -560,7 +559,7 @@ Although, \eqref{e:rkhs_beta_N} is clearly a sub-optimal solution to \eqref{e:rk
 
 \subsection{Differential regularizer formulation}
 \label{s:diffReg} 
-\anand{will come back to this later}
+\anand{need to check if it is possible}
 
 An alternate approach is to add a regularizing term that penalizes the $\clH$-norm of the gradient $\nabla g$ rather than $g$ itself. The modified objective for the one-dimensional model becomes,
 \begin{equation}

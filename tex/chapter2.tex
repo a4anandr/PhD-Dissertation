@@ -393,7 +393,17 @@ b &\approx b_T \eqdef \frac{1}{T} \int_0^T \tilc_T(\markovstate_t) \basis(\marko
 \end{align}
 and $\param_T = M_T^{-1} b_T$. 
 We shall discuss the benefits and limitations of this algorithm after presenting the more generic version in \Section{s:diff_td_learning}. 
- 
+
+\begin{algorithm}{$\gradTD$-L algorithm}
+	\begin{algorithmic}[1]
+		\Require $\{x^i\}_{i=1}^N, \{c(x^i)\}_{i=1}^N, \{\basis_j\}_{j=1}^{\ell}$.
+		\Ensure $\nabla h$
+		\State Calculate $M$ and $b$ according to \eqref{e:diff_td_gradTD_M_b_int}
+		\State Calculate $\param^* = M^{-1}b$
+		\State Calculate $\nabla h(x)  =  \sum_{j=1}^{\ell}  \theta^* \gradbasis(x)$  \Comment{Gradient approximation}
+	\end{algorithmic}
+\end{algorithm} \anand{Probably, this needs to go in Chapter 4, Will come back to this later}
+
 \subsection{$\gradTD$ learning for a general diffusion ($\gradTD$)}
 \label{s:diff_td_learning}
 % \cite{tsiroy99a}
@@ -570,10 +580,10 @@ A common choice is $\sagain_t = 1/(t+1)$. More recently, by the use of a Hessian
 M^* &:= \nabla^2_{\param}\mathcal{E}|_{\param = \param^*}\\
 & \approx  - \langle \basis'_{\param^*}, \basis_{\param^*}^{'\transpose} \rangle_{L^2}, 
 \end{aligned}
-\end{equation} \anand{is this correct?}
+\end{equation} \anandspm{is the sign and notation for $M$ correct?}
 and approximated as,
 \begin{equation}
-M_T  \eqdef  \frac{1}{T} \int_0^T \basis'_{\param_t}(\markovstate_t) \basis^{'\transpose}_{\param_t}(\markovstate_t) dt
+M_T  \eqdef  - \frac{1}{T} \int_0^T \basis'_{\param_t}(\markovstate_t) \basis^{'\transpose}_{\param_t}(\markovstate_t) dt
 \end{equation}
 A better estimate of $M^*$ would require a two-time-scale stochastic approximation algorithm. To keep the discussion simple, such algorithms are skipped here. Interested readers are referred to the work by Devraj et al. \cite{devmey17a}.
  
