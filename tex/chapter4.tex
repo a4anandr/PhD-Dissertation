@@ -42,7 +42,7 @@ For a nonlinear observation function $c(x)$, a moment closure problem arises in 
 \end{equation}
 \anandspm{need the definition of $\generate^\dagger$. Is it the adjoint to the differential generator?}
 
-\subsection{Kalman-Bucy filter}
+\subsection{Kalman-Bucy Filter}
 Solution to the \cref{e:fpf_kushner_stratonovich,e:fpf_zakai} are in general, infinite dimensional. In the special case where the functions $a(x)$ and $c(x)$ are linear, i.e. $a(x) = Ax$ and $c(x) = Cx$ and the prior distribution $\pr_0$ is Gaussian, it is guaranteed that the posterior density $\pr^*_t$ also remains Gaussian for all $t$. A closed-form solution can be obtained to the filtering problem in this case. The posterior density $\pr^*_t$ is completely characterized by the conditional mean $\mu_t$ and the state covariance $\Sigma_t$. The optimal filter is given by the classical Kalman-Bucy filter \cite{kal64}, which is described by the set of \cref{e:fpf_kalman_mu,e:fpf_kalman_sigma}, for a scalar system:
 \begin{align}
 \text{Conditional mean:} \quad \ud \mu_t & = A \mu_t \ud t + \underbrace{\frac{\Sigma_t C}{\sigma^2_W}}_{\text{Kalman gain}} ( \ud Z_t - C \mu_t \ud t), 
@@ -57,7 +57,7 @@ The term $\frac{\Sigma_t C}{\sigma^2_W}$ is called the Kalman gain, denoted as $
 In a general nonlinear setting, excepting special cases like the Bene\v{s} filter \cite{ben81}, the optimal nonlinear filter cannot expressed in terms of a finite set of parameters. \Cref{e:fpf_kushner_stratonovich,e:fpf_zakai} show that the posterior density can be computed in a recursive fashion. This leads to the development of discretization schemes to approximate the nonlinear filter. However, numerical approximations to the solution of the K-S equation using an Euler-type discretization are not accurate or robust. 
 
 As noted in \Section{s:filtering}, typically a filtering problem can be separated into two steps - prediction step, where the posterior density $\pr^*_t$ at time $t$ is propagated according to the state model, without accounting for the current observations, and the correction step, where the estimates are corrected after receiving the latest observations. As the state dimension increases, numerical solutions to both these steps become prohibitively expensive and approximate solutions are sought. Approaches to approximating the prediction step and the correction step can be chosen independently and then combined. In a broad sense, two approaches can be taken, one where an exact solution is obtained under the assumptions of linearity and another, where a finite-dimensional approximation of the Kushner-Stratonovich equation is used. Budhiraja et al. in \cite{budchelee07} provide a comprehensive survey of approximation techniques for nonlinear filtering, with a particular focus on particle filtering based algorithms. A tutorial on a number of variants of particle filtering methods, particularly in the discrete-time setting is given in \cite{arumasgorcla02}.
-\subsection{Extended Kalman filter}
+\subsection{Extended Kalman Filter}
 \label{s:ekf}
 Extended Kalman filter (EKF) \cite{jaz70} is based on the principle of local linearization of the state and observation models around the mean $\mu_t$. Consequently, the resulting posterior densities are approximated as Gaussians. In the EKF, the conditional mean and state covariance estimates for the system in \eqref{e:fpf_cts_filtering} are governed by the following equations: 
 \begin{align}
@@ -66,7 +66,7 @@ Extended Kalman filter (EKF) \cite{jaz70} is based on the principle of local lin
 \label{e:fpf_ekf}
 \end{align}
 where $A = \frac{d a}{dx}$ and $C = \frac{d c}{dx}$. In higher dimensional state spaces, $A$ and $C$ are the Jacobian matrices. These are fairly easy to implement for moderate state dimensions. The performance of the EKF deteriorates if the state and observation models deviate significantly from linearity or if the noise variances are high and as a result, they suffer from severe divergence and instability problems. Furthermore, the EKF fails to capture the multi-modal features of the posterior distribution.
-\subsection{Particle filters}
+\subsection{Particle Filters}
 \label{e:fpf_particle}
 Particle filters are Monte Carlo based approximations to the nonlinear filter \cite{doucet2000sequential}. \anand{check this reference} They belong to the second category mentioned, wherein without relying on the linearization of dynamics, the posterior is approximated using a finite number of samples called particles. They are based on the idea of sequential importance sampling (SIS). Although, the discrete-time variant of the filter is more common, the derivation of the continuous-time particle filter is provided in \cite{kutsurpfi19}. The basic idea is this: a large number of particles $\{X^i_0\}$ drawn independently from the same prior distribution $\pr^*_0$ are propagated through time according to the state model \eqref{e:fpf_cts_filtering}. Each particle is associated with an importance weight. Initialized with equal weights, the weight corresponding to each particle is updated based on the observations as follows:
 \begin{equation}
@@ -134,7 +134,7 @@ with $\hat{c}_t \eqdef \Expect[c(X^i_t)\mid \clZ_t] = \int c(x) \pr_t(x)\, dx$ a
 \end{equation}
 where, the symbol ``$\circ$'' indicates  that the SDE is in Stratonovich form. The main subject of interest in this dissertation is the gain function $\kFPF_t$, that multiplies the innovations term $I_t$ in \eqref{e:fpf_stratonovich}. A detailed description of the gain function is provided next in \Section{s:fpf_gain}.
 % \anand{Include block diagrams comparing FPF and KF}
-\subsection{FPF gain function}
+\subsection{FPF Gain Function}
 \label{s:fpf_gain}
 It is evident from \eqref{e:fpf_stratonovich}, that the FPF exhibits a gain $\times$ innovation error structure that is a hallmark feature of the Kalman-Bucy filter. This feedback control structure was also present in the K-S equation \eqref{e:fpf_kushner_stratonovich} describing the nonlinear filter, but conspicuously absent in the standard formulation of the particle filter \anand{bootstrap PF?}. The FPF restores this feedback structure, which contributes to the robustness of the filter via the self-correcting property.  The block diagrams in \Fig{fig:fpf_kalman} illustrate the similarity in structure of the FPF with the Kalman filter. However, unlike the Kalman-Bucy filter where the gain is a constant, the FPF gain function $\kFPF_t$ depends on the state $X_t$. For a linear-Gaussian system, the optimal gain has been shown to coincide with the Kalman gain. 
 \begin{figure}[htbp]
@@ -189,7 +189,7 @@ As motivated in Chapters \ref{ch:diff_td} and \ref{ch:rkhs}, approximation algor
 \end{equation}
 Thus, $\gradTD$ learning algorithms can be directly applied for gain approximation. Two refinements of the RKHS based $\gradTD$ learning algorithm to enable online gain estimation, are proposed in \Section{s:fpf_rkhs_improvements}.
 
-\subsection{Galerkin-based methods}
+\subsection{Galerkin-based Methods}
 \label{s:galerkin}
 Galerkin-based algorithms are a result of a weak formulation of the EL-BVP \eqref{e:fpf_el_bvp}. A function $h$ is called a weak solution to the Poisson's equation \eqref{e:fpf_el_bvp} if
 \begin{equation}
@@ -248,7 +248,7 @@ where $\{e_j\}$ are the standard basis elements in $\Re^d$. This approximation h
 
 The Galerkin methods provide a good algorithmic framework for approximating the gain. However, in general it is not easy to obtain performance guarantees. In this dissertation, we obtain approximations by solving  the minimum norm problem \eqref{e:diff_td_gradTD_norm_error} using $\nabla$-TD learning.  Under general conditions we can be assured that the approximation is the minimum-norm optimal solution.   
 
-\subsection{Markov semigroup approximation}
+\subsection{Markov Semigroup Approximation}
 \label{s:coifman}
 In this section, a very concise overview of the Markov semigroup approximation for the FPF gain function is provided. The algorithm was initially presented in \cite{tagmeh16}, followed by error analysis in \cite{tagmehmey17}. While the approach is entirely different, it is likely that concepts from this concurrent work can provide valuable insights to design an improved solution that combines the merits of both the approaches. 
 
@@ -285,7 +285,7 @@ Similar to the RKHS-based $\gradTD$ learning, the Markov semigroup approximation
 In this dissertation, we use this algorithm acts as a benchmark for comparing the performance of $\gradTD$ learning based techniques, as this is the only known basis-independent technique to approximate $\kFPF$. Numerical examples that compare the performance are discussed in \Section{s:fpf_numerics}.
 
 
-\section{Enhanced $\gradTD$ algorithms for FPF gain approximation} 
+\section{Enhanced $\gradTD$ Algorithms for FPF Gain Approximation} 
 \label{s:fpf_rkhs_improvements}
 In this section, two new enhancements to the RKHS based $\gradTD$ learning algorithm described in \Chapter{ch:rkhs} are presented. 
 \begin{romannum}
@@ -294,7 +294,7 @@ In this section, two new enhancements to the RKHS based $\gradTD$ learning algor
 \end{romannum}
 It is possible to apply both the enhancements independently or simultaneously to improve performance. 
 
-\subsection{Dynamic regularization - $\gradTD$-RKHS with memory}
+\subsection{Dynamic Regularization - $\gradTD$-RKHS with Memory}
 \label{s:fpf_rkhs_memory}
 In a discrete implementation of the FPF, it is assumed that time is sampled with constant inter-sampling time $\delta$. The gain updates are performed at $t = n \delta$, and the FPF uses $\kFPF_n$ rather than $\kFPF_t$. It is expected that $\kFPF_{n} = \kFPF_{t_n}  \approx \kFPF_{t_{n-1}}$ if $\delta\approx 0$.   This is the motivation for the dynamic regularization developed in this section.    Given an additional regularization parameter $\lambda_1$,  the proposed ERM is defined as in \eqref{e:rkhs_erm},  with modified loss function:
 \begin{equation}
@@ -331,7 +331,7 @@ M =  (1+ \lambda_1)\sum_{k=1}^d M_{0k}^\transpose M_{0k} + \lambda N M_{00}
 \label{e:fpf_beta_n}
 \end{equation}
 
-\subsection{Utilizing the constant gain approximation ($\gradTD$-RKHS-OM)}
+\subsection{Utilizing the Constant Gain Approximation ($\gradTD$-RKHS-OM)}
 \label{s:rkhs_om}
 
 The constant gain approximation \eqref{e:fpf_gain_const_approx} has been shown to work well in applications \cite{tilghiomeh13}. It is also easy to compute, so it is natural to impose the constraint at time $t=n\delta$,
@@ -395,7 +395,7 @@ The gain $\kFPF$ is then computed as
 $
 \kFPF = \hakFPF^* + \nabla \tilg^*$.
 
-\subsection{Algorithm summary}
+\subsection{Algorithm Summary}
 \label{alg:rkhs}
 \begin{algorithm}{$\gradTD$-RKHS algorithms for gain function approximation}
 	\begin{algorithmic}[1]
@@ -410,7 +410,7 @@ $
 	\end{algorithmic}
 \end{algorithm} \anandspm{Could you check this?}
 
-\section{Complexity comparison of the algorithms}
+\section{Complexity Comparison of the Algorithms}
 \label{s:computational_complexity}
 \anandspm{Should I keep this? I can remove the section and just have it as a paragraph instead}
 The Markov semigroup approximation attempts to solve an approximate problem exactly, whereas the $\gradTD$-RKHS method tries to find the best approximate solutions without altering the problem. Due to their different approaches, there is no direct way of comparing the performances using analysis. However, it is firmly believed that the $\gradTD$-RKHS method produces asymptotically unbiased approximations.
@@ -445,7 +445,7 @@ The density estimation problem in Step~1 is defined as follows: Given the set of
 
 The choice of $\clK$ is also problem-specific -- examples are given in \Section{s:linear_nl}. The EM algorithm followed by the simulation of the Langevin SDE for implementing the $\gradTD$ learning algorithm adds a layer of additional complexity to the FPF. For online estimation in a filtering setting, the EM algorithm at each instant $t$ can be initialized with the ML parameters obtained from the previous instant for faster convergence.   
 
-\subsection{Numerical issues with the gain}
+\subsection{Numerical Issues with the Gain}
 \label{s:fpf_numerical}
 In this section, we highlight some of the numerical issues associated with the optimal FPF gain and how the approximation method described in \Section{s:fpf_em} can be adapted to ensure the stability of the filter. For $d=1$, the optimal gain takes the integral form in \eqref{e:fpf_gain_1d}:
 \[
@@ -470,7 +470,7 @@ These issues are most pronounced when the mixture density has a very shallow ``v
 
 One of the practical approaches to prevent $\kFPF$ from taking extremely high values is to introduce a third Gaussian density $\pr_0$ to ``fill the well''. The third density $\pr_0(x)$ is chosen as $\mathcal{N}(\mu_{0}, \sigma_{0}^{2})$, where $\mu_0$ and $\sigma_0$ correspond to the sample mean and standard deviation of the entire particle population. The mixture probability $w_0$ of $\pr_0$ in the overall distribution $\pr$ is forced to be greater than a threshold value. This is further illustrated by the sharp decline in the peak magnitude of $\kFPF_1$ compared to $\kFPF_2$ in \Fig{fig:fpf_gain_num_issues}.
 
-\subsection{Gain function approximation for a fixed $t$}
+\subsection{Gain Function Approximation for a Fixed $t$}
 In each of the following experiments the density $\pr\in\clP$ was chosen with $m=2$,
 \begin{equation}
 \pr = 0.5 \mathcal{N}(-1, 0.4472) + 0.5 \mathcal{N}(1, 0.4472),
@@ -542,13 +542,13 @@ The following basis-free approximation approaches were compared:
 	\mbox{
 		\subfigure [] {\includegraphics[width = 6in]{images/Chap4_diff_td_linear_wt_polynomials}} 
 	}
-	\caption[LSTD performance]{Gain function approximations using $\gradTD$ learning algorithm (\Section{s:diff_td_learning}) using a linear parameterization \cite{raddevmey16} A) Polynomial basis, B) Fourier basis consisting of sines and cosine functions, C) Polynomials weighted by $\pr_i$.}
+	\caption[$\gradTD$ performance comparison with finite basis]{Gain function approximations using $\gradTD$ learning algorithm (\Section{s:diff_td_learning}) using a linear parameterization \cite{raddevmey16} A) Polynomial basis, B) Fourier basis consisting of sines and cosine functions, C) Polynomials weighted by $\pr_i$.}
 	\label{fig:diff_td_linear}
 \end{figure}
 
 \begin{figure}
 	\includegraphics[width=6in]{images/Chap4_lang_td_wt_polynomials}
-	\caption[Finite dimensional polynomial basis]{Gain function approximations using a $10$-dimensional polynomial$\times \pr_i$ basis using $\gradTD$ learning for Langevin diffusion (\Section{s:diff_td_langevin})}
+	\caption[$\gradTD$-L performance with polynomial basis]{Gain function approximations using a $10$-dimensional polynomial$\times \pr_i$ basis using $\gradTD$-L algorithm (\Section{s:diff_td_langevin})}
 	\label{fig:diff_td_lang_linear}
 \end{figure}
 
@@ -564,21 +564,21 @@ The following basis-free approximation approaches were compared:
 	\mbox{
 		\subfigure [] {\includegraphics[width = 6in]{images/Chap4_coif}} 
 	} 
-	\caption[RKHS and coifman performance]{Gain function approximations using basis-free approaches - A) RKHS optimal and RKHS simplified with $2N$ and $N$ parameters respectively \cite{radmey18a}, B) RKHS-OM method \cite{radmey19}, C) Markov semigroup approximation \cite{tagmeh16}.}
+	\caption[$\gradTD$-RKHS algorithms performance comparison]{Gain function approximations using basis-free approaches - A) $\gradTD$-RKHS-Opt and $\gradTD$-Simple with $2N$ and $N$ parameters respectively \cite{radmey18a}, B) $\gradTD$-RKHS-OM algorithm \cite{radmey19}, C) Markov semigroup approximation \cite{tagmeh16}.}
 	\label{fig:diff_td_rkhs_coif}
 \end{figure}
  \anand{Change $\pr_1$ in the legend to $\pr$}
 \begin{figure}
 	\centering
 	\includegraphics[width=5in]{images/Chap4_beta_comparison}
-	\caption[RKHS and coifman performance]{Magnitudes of $\{\beta_i\}$ obtained from A) RKHS optimal, B) RKHS simplified and C) RKHS OM algorithms}
+	\caption[Parameter magnitudes comparison]{Magnitudes of $\{\beta_i\}$ obtained from A) $\gradTD$-RKHS-Optimal, B) $\gradTD$-RKHS-Simple and C) $\gradTD$-RKHS-OM algorithms}
 	\label{fig:beta_comparison}
 \end{figure}
 
 \begin{figure}
 	\centering
 	\includegraphics[width=6in]{images/Chap4_hist_mse_d1_runs100}
-	\caption[RKHS and coifman performance]{Histograms of MSE obtained using various methods for $d=1,N=1000$ over $100$ independent trials.}
+	\caption[Histograms of MSEs obtained over $100$ trials]{Histograms of MSE obtained using various methods for $d=1,N=1000$ over $100$ independent trials.}
 	\label{fig:hist_mse}
 \end{figure}
 
@@ -593,7 +593,7 @@ The following basis-free approximation approaches were compared:
 	\mbox{
 		\subfigure [] {\includegraphics[width = 6in]{images/Chap4_gain_coif_d2510}} 
 	}
-	\caption[RKHS and coifman performance]{Gain function approximations A) RKHS optimal and RKHS simplified with $2N$ and $N$ parameters respectively \cite{radmey18a}, B) RKHS-OM method \cite{radmey19}, C) Markov semigroup approximation \cite{tagmeh16}.}
+	\caption[$\gradTD$-RKHS algorithms for $d=2,5,10$]{Gain function approximations A) $\gradTD$-RKHS-Opt and $\gradTD$-RKHS-Simple with $2N$ and $N$ parameters respectively \cite{radmey18a}, B) $\gradTD$-RKHS-OM method \cite{radmey19}, C) Markov semigroup approximation \cite{tagmeh16}.}
 	\label{fig:diff_td_rkhs_coif_d2510}
 \end{figure}
 
@@ -608,7 +608,7 @@ The following basis-free approximation approaches were compared:
 	\mbox{
 		\subfigure [] {\includegraphics[width = 4.5in]{images/Chap4_logMSEvdforN1000}} 
 	}
-	\caption[RKHS and coifman performance]{Gain function approximations A) RKHS optimal and RKHS simplified with $2N$ and $N$ parameters respectively \cite{radmey18a}, B) RKHS-OM method \cite{radmey19}, C) Markov semigroup approximation \cite{tagmeh16}.}
+	\caption[$\gradTD$-RKHS-OM performance with $N$ and $d$]{Gain function approximations A) RKHS optimal and RKHS simplified with $2N$ and $N$ parameters respectively \cite{radmey18a}, B) RKHS-OM method \cite{radmey19}, C) Markov semigroup approximation \cite{tagmeh16}.}
 	\label{fig:diff_td_rkhs_coif_d2510}
 \end{figure}
 
@@ -664,7 +664,7 @@ This can be split into $d$ independent Poisson's equations as follows:
 In particular, we consider $c(x) = C^\transpose x$, where $C =\mathbf{1}$. 
 
 \Fig{fig:diff_td_rkhs_coif_d2510} compares the performance of the various methods for $d=2,5,10$ for $N=1000$. The performance degrades with $d$ as expected. This is partly because $N=1000$ is insufficient for larger values of $d$.   
-\subsection{Nonlinear oscillator}
+\subsection{Nonlinear Oscillator}
 \label{s:nl_oscillator}
 We consider next the nonlinear oscillator example introduced in \cite{yanmehmey13}.
 The state evolves on the unit circle, and the observations are nonlinear:
@@ -728,14 +728,14 @@ This minimization problem can be solved using Monte-Carlo methods.
 
 \Fig{fig:gain_nl_oscillator} compares the performance of the $\nabla$-LSTD learning algorithm and the Bellman error minimization algorithm with the numerically computed exact gain function for basis functions of dimensions $4$, $6$ and $8$. It can be observed that $\nabla$-LSTD learning gives a better approximation than the $BE$ minimization algorithm in regions of high values of $\pr(\oscState)$.
 
-\subsection{Filtering experiments}
+\subsection{Filtering Experiments}
 \label{s:filtering_experiments}
 The examples surveyed in this section are the following:
 \begin{itemize}
 	\item A parameter estimation problem with linear observations and bimodal prior
 	\item A nonlinear multidimensional ship dynamics model.
 \end{itemize}
-\subsection{Parameter estimation }
+\subsection{Parameter Estimation }
 \label{s:param_estimation} \anand{needs more work in terms of better plots}
 A simple example where the state $X_t \in \Re$ remains at its initial value is considered first.
 State-observation model:

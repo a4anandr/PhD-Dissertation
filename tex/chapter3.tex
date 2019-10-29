@@ -13,7 +13,7 @@ This chapter aims to adapt the $\gradTD$-L algorithm proposed in \Chapter{ch:dif
 \label{s:rkhs_basics}
 Kernel methods have been quite well-studied for over five decades now. They provide a flexible and mathematically-elegant framework for a range of estimation problems by relating them to a function reconstruction problem in a higher dimensional feature space. By controlling the features of this space, the properties of the candidate functions can also be implicitly controlled. \anand{From Bhujwalla's thesis, need to rephrase}The mathematical properties of kernel functions were first investigated by Moore \cite{moo1916} and Mercer \cite{merrus09} in the early twentieth century. Although initial applications were in time series analysis, detection, filtering and prediction problems, more recently they have been found to be incredibly useful in machine learning \cite{wah90}, especially after the advent of support vector machines (SVM) for classification and regression problems \cite{corvap95, drucburkaufsmovap97}. In this dissertation, the goal is to employ kernel methods as an alternative to choosing a finite set of basis functions for the $\gradTD$ learning algorithm. 
 
-\subsection{Reproducing kernels} 
+\subsection{Reproducing Kernels} 
 Before defining an RKHS, a positive definite kernel needs to be defined. A function $\Kern : \state \times \state \to \Re$ which for all $N \in \mathbb{N}$ and all $x^i1,x^i2,\cdots,x^iN \in \state$ gives rise to a positive definite Gram matrix is a called a positive definite kernel. That is, 
 \begin{equation}
 \sum_{i=1}^N \sum_{j=1}^N \alpha_i \alpha_j \Kern(x^i,x^j) \geq 0, \qquad \forall \alpha_i \in \Re, \, \forall x^i \in \state 
@@ -160,7 +160,7 @@ The RKHS also has a feature map representation. Let $\featuremap: \state \to \Re
 
 % The below section needs to go in Chapter 4 on FPF
 
-\subsection{Examples of reproducing kernel functions}
+\subsection{Examples of Reproducing Kernel Functions}
 It is evident from the construction of the RKHS that the properties of the functions in $\clH$ are governed by the properties of its kernel $\Kern$. Therefore, by choosing different kernel functions, different function spaces can be generated. Typically, $\Kern$ depends on a variable hyperparameter, which can be tuned to control the scaling. Some commonly used kernel functions are:
 \begin{arabnum}
 \item Linear kernel: The simplest example is a linear kernel in one dimension:
@@ -213,7 +213,7 @@ where $A$ is an operator and $\mathcal{L}^2_{\pr}(\state)$ is the Hilbert space 
 The key objective in an ERM problem is not just to obtain a good fit on the observed data, but to generalize well on ``unseen'' data as well. If the standard $L^2$ norm is used for regularization, \eqref{e:rkhs_erm_regularized} is called the ridge regression. To obtain sparse solutions, $L^1$-regularization is used, which forms the LASSO technique. Regularization is used to prevent overfitting and achieve better generalization.   In this dissertation, we consider a Tikhonov regularization scheme \cite{tikars79} associated with Mercer kernels.
 \anand{ridge and LASSO needs citations}
 
-\subsection{ERM in an RKHS setting}
+\subsection{ERM in an RKHS Setting}
 \label{s:erm_rkhs}
 Now that the utility of regularized empirical risk minimization has been motivated, we consider a more general formulation of an ERM in an RKHS setting. A loss function $L \colon  \state\times \Re \to\Re$ is given. It is not necessary that the loss function takes the mean-squared error form in \eqref{e:rkhs_erm_regularized}. Given an RKHS $\clH$, the goal is to find the function $f_\reg^*\in\clH$ that solves the infinite-dimensional regularized optimization problem:
 \begin{equation}
@@ -356,7 +356,7 @@ in which the centered function $\tilc$ is also approximated:
 \]
 The term $\| \nabla h \|^2$ can be conveniently dropped from \eqref{e:rkhs_erm_diff_td} as it does not affect the optimization problem.
 
-\subsection{Extended representer theorem}
+\subsection{Extended Representer Theorem}
 It may be seen that the ERM in \eqref{e:rkhs_erm_diff_td} falls in the standard form in \eqref{e:rkhs_erm_rkhs} except that the loss function $L^\bullet$ depends on the gradient of the estimator $g$. Problems of this form where learning with gradients is required The classical version of the representer theorem (\Theorem{theorem:rep_theorem}) is valid under the assumption that the loss function $L$ depends only on $g$. In this dissertation, as we are interested in loss functions of the form 
 \begin{equation}
 \min_{g\in\clH} \Bigl\{  \frac{1}{N} \sum_{i=1}^N L(x^i,  g(x^i), \nabla g\, (x^i))     + \lambda \| g\|^2_{\clH}  \Bigr\},
@@ -442,7 +442,7 @@ Let us denote by $\clH_\parallel$, the linear subspace of $\clH$ made up of all 
 	\]
 \end{proof}
 
-\subsection{Optimal ERM solution ($\gradTD$-RKHS-Opt)}
+\subsection{Optimal ERM Solution ($\gradTD$-RKHS-Opt)}
 \label{sec:one_dimension}
 We first provide a full description of the solution to \eqref{e:rkhs_erm_diff_td} for the one-dimensional model in this section. The optimizer is obtained as the solution to a system of linear equations, extensions to higher dimensions is straight-forward and provided towards the end of the section. 
 The regularized ERM problem \eqref{e:rkhs_erm_diff_td} in one-dimension reduces to the following:
@@ -538,7 +538,7 @@ Ideally, we prefer an algorithm that scales well with dimensions. This leads to 
 	\item A reduced complexity solution \eqref{e:rkhs_g_circ}.
 	\item A differential regularizer \eqref{e:rkhs_1dloss_diff}.
 \end{itemize}
-\subsection{Reduced complexity solution ($\gradTD$-RKHS-Simple)}
+\subsection{Reduced Complexity Solution ($\gradTD$-RKHS-Simple)}
 \Theorem{theorem:ext_rep_theorem} states that the optimizer of the ERM with gradient terms in the loss function lies in a subspace of the RKHS $\clH$ spanned by the kernel functions ($\Kern_{x^i}$) and its partial derivatives ($\{\partial_k K_{x^i}\}_{k=1}^d$) centered at the sample points. The main source of complexity is the presence of the $d \times N$ kernel partial derivative terms of the solution . To obtain a reduced complexity solution, $g$ is restricted to a subspace of the following form:
 \begin{equation}
 g(y)  := \sum_{i=1}^N \rkhsparam_i K(x^i,y).
@@ -557,7 +557,7 @@ g(y)  := \sum_{i=1}^N \rkhsparam_i K(x^i,y).
 Solutions of the form \eqref{e:rkhs_g_circ} are the optimal solution given by the standard representer theorem if the loss function did not have gradient terms. 
 Although, \eqref{e:rkhs_beta_N} is clearly a sub-optimal solution to \eqref{e:rkhs_1dloss}, $\rkhsparam^\circ$  is computationally simpler to obtain than $\rkhsparam^*$ as there are only $N$ parameters to estimate. In a surprising observation, it was found that their performance is nearly the same in numerical examples using Gaussian kernels for $d \leq 5$. More details are contained in \Section{s:numerics}.
 
-\subsection{Differential regularizer formulation}
+\subsection{Differential Regularizer Formulation}
 \label{s:diffReg} 
 \anand{need to check if it is possible}
 

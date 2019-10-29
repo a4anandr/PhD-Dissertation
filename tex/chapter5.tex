@@ -113,7 +113,7 @@ Here, $(\asymvar^\param)^2$ corresponds to the asymptotic variance of the new es
 
 An important observtion here is that the asymptotic variance $(\asymvar^\param)^2$ for the new estimator \eqref{e:mcmc_h_and_c}, with control variates \eqref{e:mcmc_asy_var_cv} has the same form as \eqref{e:diff_td_gradTD_norm_error}, and hence any of the variants of the $\gradTD$ algorithm can be applied. Numerical examples using these algorithms are discussed in \Section{s:mcmc_numerics}.
 
-\section{Metropolis-Hastings algorithm}
+\section{Metropolis-Hastings Algorithm}
 \label{s:mcmc_metropolis}
 Although Langevin diffusion offers a very intuitive sampling algorithm, it requires the computation of the gradient of the potential function $U$, which may be expensive in high dimensions. Hence, other discrete time algorithms are preferred. Metropolis-Hastings algorithm is a popular MCMC technique to simulate multivariate distributions. It was originally proposed by Metropolis in 1953 and extended to a more general case by Hastings in 1970 \cite{has70}. The only requirement in Metropolis-Hastings is that it should be possible to compute the value of a function $f$ proportional to the target density $\pr$. The function $f$ could potentially be the unnormalized form of $\pr$.
 
@@ -358,7 +358,7 @@ The expression for $\asymvar^2$ in \eqref{e:mcmc_avar_reversible} can be derived
 \label{s:mcmc_numerics}
 In this section we present a survey of the numerical experiments performed based on the algorithms presented in this paper. We illustrate the remarkable reduction in asymptotic variance that is achieved by the various $\gradTD$ based algorithms, first for estimating the mean of a simple functions $c(x)$ with respect to a univariate Gaussian mixture target density and then in a maximum-likelihood parameter estimation problem using logistic regression.   
 
-\subsection{ULA and RWM for a univariate Gaussian mixture target density}
+\subsection{ULA and RWM for a Univariate Gaussian Mixture Target Density}
 \label{s:mcmc_ex_avar}
 In this section, we first look at how the control variates help in reducing the asymptotic variance for both the ULA and RWM algorithms.  For a simple demonstration of the idea, we consider the same one dimensional bimodal target density defined as mixture of Gaussians \eqref{e:fpf_gaussian_mixture_example}. This gives a symmetric density $\pr$ as shown by the shaded region in \Fig{fig:mcmc_cv_theta_var}. The linear function $c(x) \equiv x$ is used in the simulation experiments; symmetry of $\pr$ and $c$ being an odd function imply $\eta = 0$.
 
@@ -392,7 +392,7 @@ The same set of experiments is repeated for the RWM algorithm with the results d
 
 The algorithm can be applied to a wider class of densities with similar results; we have seen positive results for heavy-tailed densities also. %  Similar trends can also be observed in the Metropolis-Hastings case. \rd{Better results are expected for the Metropolis-Hastings example by applying the algorithm described in \Section{s:cv_reversible_mc}.}
 
-\subsection{Logistic regression - Swiss bank notes example}
+\subsection{Logistic Regression - Swiss Bank Notes Example}
 In practice, MCMC algorithms find wide applications in Bayesian inference problems, where we are interested in estimating the mean with respect to a posterior distribution. In this section, we discuss a particular example of Bayesian logistic regression or the logit model. A detailed description of the problem in the context of the Swiss bank notes example is given in \cite{papmirgir14} and a brief summary is provided here.
 
 The goal is to learn the regression coefficients that can be used to classify the Swiss bank notes dataset into genuine and counterfeit. Given in the dataset are the measurements for four covariates - the length of the bill, the width of the left and the right edges and the bottom margin width for 200 bank notes of which 100 each are counterfeit and genuine. This is essentially a binary classification problem in a supervised learning setting. 
