@@ -1,6 +1,6 @@
 \chapter{Application to Markov chain Monte Carlo algorithms}
 \label{ch:mcmc}
-One of the interesting applications of $\gradTD$ learning is in the context of Markov chain Monte Carlo(MCMC) simulations. In this chapter, a basic introduction to MCMC algorithms with a particular emphasis on Langevin diffusion and its discrete variants is provided first in \Section{s:mcmc_langevin}. We then define asymptotic variance as a measure of convergence and motivate how $\gradTD$ learning is perfectly suited to obtain MCMC estimates with minimal asymptotic variance. In \Section{s:mcmc_metropolis}, we introduce the very popular Metropolis-Hastings (MH) algorithm and present an extension of the asymptotic variance reduction methods to the class of reversible Markov chains in \Section{s:mcmc_reversible_mc_cv}. A majority of the existing research that aims to improve the convergence of MCMC estimates focus on minimizing the sample variance, as it is easier to implement. In \Section{s:mcmc_var_vs_asym_var}, through a motivating example, we prove why this is not the correct objective for MCMC. 
+One of the interesting applications of $\gradTD$ learning is in the context of Markov chain Monte Carlo(MCMC) simulations. In this chapter, a basic introduction to MCMC algorithms with a particular emphasis on Langevin diffusion and its discrete variants is provided first in \Section{s:mcmc_langevin}. We then define asymptotic variance as a measure of convergence and motivate how $\gradTD$ learning is perfectly suited to obtain MCMC estimates with minimal asymptotic variance. In \Section{s:mcmc_metropolis}, we introduce the very popular Metropolis-Hastings (MH) algorithm and present an extension of the asymptotic variance reduction methods to the class of reversible Markov chains in \Section{s:mcmc_reversible_mc_cv}. A majority of the existing research that aims to improve the convergence of MCMC estimates focus on minimizing the sample variance, as it is easier to implement. \anandspm{sample variance or ordinary variance, what is the right term?} In \Section{s:mcmc_var_vs_asym_var}, through a motivating example, we prove why this is not the correct objective for MCMC. 
 In recent research, it has been found that under certain assumptions, the convergence rates of ULA and RWM are related and the same asymptotic variance reduction techniques can be applied to RWM \cite{brodurmeymourad18}. \anand{Need to rephrase after reading \cite{brodurmeymourad18}} Applications to numerical examples involving logistic regression (logit) and probit models are discussed in \Section{s:mcmc_numerics}. 
 
 \section{Langevin Diffusion for MCMC}
@@ -54,7 +54,7 @@ In practice, discretized versions of the equation based on Euler-Mauryama scheme
 \end{equation*}
 where $\{\mcmcstep_n\}_{n\geq 1}$ is a sequence of step sizes and $\{W_n\}_{n\geq 1}$ is a sequence of i.i.d. standard Gaussian random variables. This implementation is called the unadjusted Langevin algorithm (ULA) \cite{andddefdoujor03}. In the numerical experiments, the step size $\mcmcstep$ is chosen to be a constant, independent of $n$. 
 
-The primary goal in the design of MCMC algorithms is the faster convergence of the Markov chain to its invariant distribution (i.e. the target distribution). The asymptotic variance is a measure of this convergence and hence, it is ideal to minimize $\asymvar^2$. Several approaches have been proposed to improve the convergence rate including constructing an irreversible Markov chain with the same invariant density \cite{hwanorwu15, dunlelpav16}, using an optimal scaling parameter \cite{robros01} etc. Most of these approaches alter the transition kernel of the Markov chain and hence, do not work well on samples already obtained. In the remainder of this paper, we restrict our discussion to post-hoc schemes for reversible Markov chains, i.e. samples from an ergodic Markov chain are available and variance reduction is achieved by post-processing. These scheme require no changes to the sampling methodology. 
+The primary goal in the design of MCMC algorithms is the faster convergence of the Markov chain to its invariant distribution (i.e. the target distribution). The asymptotic variance is a measure of this convergence and hence, it is ideal to minimize $\asymvar^2$. Several approaches have been proposed to improve the convergence rate including constructing an irreversible Markov chain with the same invariant density \cite{hwanorwu15, dunlelpav16}, using an optimal scaling parameter \cite{robros01} etc. Most of these approaches alter the transition kernel of the Markov chain and hence, do not work well on samples already obtained. In the remainder of this paper, we restrict our discussion to post-hoc schemes for reversible Markov chains, i.e. samples from an ergodic Markov chain are available and variance reduction is achieved by post-processing. These schemes require no changes to the sampling methodology. 
 
 Control variates introduced in \cite{HenThesis,henmeytad03a,kimhen07,ctcn} are zero-mean terms, which when added to the estimator can produce a significant reduction in the asymptotic variance without adding bias. One of the advantages of this scheme is that they work post-hoc, and are independent of the MCMC algorithm used. \anand{a few more words on original application}
 
@@ -82,7 +82,7 @@ It is then of interest to find the parameter with minimal asymptotic variance:
 \begin{equation}
 \param^* = \argmin_\param (\asymvar^\param)^2
 \label{e:mcmc_theta_star}
-\end{equation}
+\end{equation} \anandspm{Is there a better notation ${\asymvar^\param}^2$?}
 Here, $(\asymvar^\param)^2$ corresponds to the asymptotic variance of the new estimate \eqref{e:mcmc_eta_theta}, i.e.
 \[
 \sqrt{T} (\eta^\param_T - \eta ) \xrightarrow[]{d} N (0,(\asymvar^\param)^2).
@@ -111,7 +111,7 @@ Here, $(\asymvar^\param)^2$ corresponds to the asymptotic variance of the new es
 	Hence $h-h^\param$ is the solution to Poisson's equation with forcing function $c^\param$. Analogous to \eqref{e:avarFish}, the asymptotic variance for the new estimator in \eqref{e:mcmc_eta_theta} is represented as $(\asymvar^\param)^2 = 2 \langle h - h^\param, \tilc^\param \rangle_{L^2}$, and applying \Prop{prop:lang_generator_grad} gives \eqref{e:mcmc_asy_var_cv}.
 \end{proof}
 
-An important observtion here is that the asymptotic variance $(\asymvar^\param)^2$ for the new estimator \eqref{e:mcmc_h_and_c}, with control variates \eqref{e:mcmc_asy_var_cv} has the same form as \eqref{e:diff_td_gradTD_norm_error}, and hence any of the variants of the $\gradTD$ algorithm can be applied. Numerical examples using these algorithms are discussed in \Section{s:mcmc_numerics}.
+An important observtion here is that the asymptotic variance $(\asymvar^\param)^2$ for the new estimator \eqref{e:mcmc_h_and_c}, with control variates \eqref{e:mcmc_asy_var_cv} has the same form as the norm in \eqref{e:diff_td_gradTD_norm_error}, and hence any of the variants of the $\gradTD$ algorithm can be applied can be applied to minimize it. Numerical examples using these algorithms are discussed in \Section{s:mcmc_numerics}.
 
 \section{Metropolis-Hastings Algorithm}
 \label{s:mcmc_metropolis}
@@ -119,13 +119,17 @@ Although Langevin diffusion offers a very intuitive sampling algorithm, it requi
 
 The algorithm requires the choice of a simple ``proposal'' distribution $g$, from which samples can be drawn easily. The function $g(x,y)$ gives the conditional distribution for the next sample $y$, given the current sample $x$.  The algorithm can be summarized in the following steps:
 
-\begin{itemize}
-	\item Choose an arbitrary point $\markovstate_0 = x$ to be the first sample.
-	\item Choose a proposal distribution $g$. Pick a new candidate sample point $x' \sim g (x,.) $.
-	\item Compute the acceptance ratio $\alpha(x,x')= \min \left[ \frac{f(x') \, g (x',x)}{f(x) \, g(x,x')}, 1\right] $.
-	\item With probability $\alpha$, accept $x'$ and set $\markovstate_1 = x'$; if rejected set $\markovstate_1 = x$.
-	\item Repeat above for $ \markovstate_2, \hdots \markovstate_N$ for a fixed $N$.
-\end{itemize}
+\begin{algorithm}{Metropolis-Hastings Algorithm}
+	\begin{algorithmic}[1]
+	\Require $f(x) \propto \pr(x), g(x,y)$
+	\Ensure Samples $\{\markovstate_i\}_1^N \sim \pr$
+	\State Choose an arbitrary point $\markovstate_0 = x$ to be the first sample.
+	\State Pick a new candidate sample point $x' \sim g (x,.) $ according to the proposal distribution.
+	\State Compute the acceptance ratio $\alpha(x,x')= \min \left[ \frac{f(x') \, g (x',x)}{f(x) \, g(x,x')}, 1\right] $.
+	\State With probability $\alpha$, accept $x'$ and set $\markovstate_1 = x'$; if rejected set $\markovstate_1 = x$.
+	\State Repeat above for $ \markovstate_2, \hdots \markovstate_N$ for a fixed $N$.
+	\end{algorithmic}
+\end{algorithm}
 % If $g$ is chosen to be Gaussian, due to symmetry $g(x,y) = g(y,x)$. This simplifies the computation of the acceptance ratio $\alpha$.
 
 The transition kernel $P_{mh}$ for a Metropolis-Hastings chain can be written as:
@@ -313,7 +317,7 @@ Consider $\state \equiv \Re$, $c(x) \equiv x $, $\pr$ is a univariate 2-componen
 	\label{fig:mcmc_var_vs_asym_var}
 \end{figure}
 \anand{Wrong text in C}
-The resulting asymptotic variances for the parameters, $\theta^*$ \eqref{e:mcmc_theta_star} and $\vartheta^*$ \eqref{e:mcmc_var_theta_star} are compared against the basis dimension $\ell$.  The optimality gap for $c(x) = x$ shown in parts A and B of \Fig{fig:mcmc_var_vs_asym_var} is considerable.
+The resulting asymptotic variances for the parameters, $\theta^*$ \eqref{e:mcmc_theta_star} and $\vartheta^*$ \eqref{e:mcmc_var_theta_star} are compared against the basis dimension $\ell$.  The optimality gap for $c(x) = x$, shown in parts A and B of \Fig{fig:mcmc_var_vs_asym_var} is considerable.
 The discrepancy is clear from a close look at the two functions $c^{\theta^*}$ and $c^{\vartheta^*}$ that are plotted in \Fig{fig:mcmc_cv_theta_var}. The key difference is that the ``local mean'' of $c^{\theta^*}$ is nearly $\eta$ in each well of the density $\pr$ (shaded region of \Fig{fig:mcmc_cv_theta_var}):
 \[
 \begin{aligned}
@@ -378,7 +382,7 @@ In this section, we first look at how the control variates help in reducing the 
 
 Both the ULA and RWM algorithms were simulated using Euler discretization with a step size of $\mcmcstep = 0.05$. Part A in \Fig{fig:mcmc_ula_rwm_hist} shows the histograms of the estimates obtained over $10^4$ independent trials for $\ell= 10,20$ compared to the standard MC method. A total number of $10^5$ samples were used in each trial. The empirical variance values observed on the histograms are very close to the analytical variances, although a small bias is seen in the estimate in some cases. This bias may be attributed to the Euler-discretization of the Langevin diffusion which alters the invariant distribution as mentioned in \cite{robtwe96}.  %\Fig{mean_estimate_lang} compares the trajectories of the mean estimate using the standard ULA technique and the improved estimator with the control variates. The improved estimator shows quicker convergence to the actual mean $\eta$ and far fewer fluctuations than the one using the standard technique.
 
-Part B of \Fig{fig:mcmc_ula_rwm_hist} presents a comparison of the performance of the control variates obtained by the other approximation schemes. The histograms were obtained from $1000$ independent trials and the number of samples used in each trial was $N=10^5$. The exact $h'$ obtained analytically \eqref{e:fpf_gain_1d} is used to illustrate that it produces a near-zero asymptotic variance. The RKHS based $\gradTD$ algorithm produces the lowest asymptotic variance among approximation methods. Compared to the standard estimator, the variance minimization method (ZV) \cite{papmirgir14} produced nearly the same variance. Markov semigroup approximation method \cite{tagmeh16a} and the constant approximation to $h'$ were also tested, but they produced variances larger the the standard estimator.
+Part B of \Fig{fig:mcmc_ula_rwm_hist} presents a comparison of the performance of the control variates obtained by the other approximation schemes. The histograms were obtained from $1000$ independent trials and the number of samples used in each trial was $N=10^5$. The asymptotic variance obtained by using the exact function $h'$ obtained analytically \eqref{e:fpf_gain_1d} is nearly zero. The $\gradTD$-RKHS algorithm produces the lowest asymptotic variance among approximation methods. Compared to the standard estimator, the variance minimization method (ZV) \cite{papmirgir14} produced nearly the same variance. Markov semigroup approximation method \cite{tagmeh16a} and the constant approximation to $h'$ were also tested, but they produced variances larger the the standard estimator.
 
 The same set of experiments is repeated for the RWM algorithm with the results displayed in parts C and D of \Fig{fig:mcmc_ula_rwm_hist}. The caveat in this case is that, it cannot be proved that the control variate thus computed is optimal for the RWM algorithm, as \Prop{prop:lang_generator_grad} is specific to the Langevin diffusion. However, significant reduction in the variance is observed in simulation results. % The intuitive explanation is because of the fact that in the design of $c^\theta$, we try to track $c$ closely using $\generate h^\theta$. Minimizing the error between $h$ and $h^\theta$ tends to minimize the asymptotic variance. In the case of  perfect tracking, $c^\theta$ reduces to the exact mean $\eta$.
 
@@ -388,16 +392,14 @@ The same set of experiments is repeated for the RWM algorithm with the results d
 \caption{Asymptotic variance reduction comparison between ULA and RWM algorithms for $c(x) =x$ and $1\leq \ell \leq 20$}
 \label{fig:mcmc_ula_rwm_asy_var}
 \end{figure}
-\Fig{fig:mcmc_ula_rwm_asy_var} shows the relative reduction in variance for both the ULA and RWM algorithms. The value corresponding to $\ell = 0$ is normalized to $1$ in both the cases. It may be seen that significant variance reduction is achieved for RWM, although at a reduced rate than for ULA.
-
-The algorithm can be applied to a wider class of densities with similar results; we have seen positive results for heavy-tailed densities also. %  Similar trends can also be observed in the Metropolis-Hastings case. \rd{Better results are expected for the Metropolis-Hastings example by applying the algorithm described in \Section{s:cv_reversible_mc}.}
+\Fig{fig:mcmc_ula_rwm_asy_var} shows the relative reduction in variance for both the ULA and RWM algorithms. The value corresponding to $\ell = 0$ is normalized to $1$ in both the cases. It may be seen that significant variance reduction is achieved for RWM, although at a reduced rate than for ULA. The algorithm can be applied to a wider class of densities with similar results %; we have seen positive results for heavy-tailed densities also. %  Similar trends can also be observed in the Metropolis-Hastings case. \rd{Better results are expected for the Metropolis-Hastings example by applying the algorithm described in \Section{s:cv_reversible_mc}.}
 
 \subsection{Logistic Regression - Swiss Bank Notes Example}
 In practice, MCMC algorithms find wide applications in Bayesian inference problems, where we are interested in estimating the mean with respect to a posterior distribution. In this section, we discuss a particular example of Bayesian logistic regression or the logit model. A detailed description of the problem in the context of the Swiss bank notes example is given in \cite{papmirgir14} and a brief summary is provided here.
 
 The goal is to learn the regression coefficients that can be used to classify the Swiss bank notes dataset into genuine and counterfeit. Given in the dataset are the measurements for four covariates - the length of the bill, the width of the left and the right edges and the bottom margin width for 200 bank notes of which 100 each are counterfeit and genuine. This is essentially a binary classification problem in a supervised learning setting. 
 
-Let $X \in \Re^{N_n \times N_d}$ correspond to the covariate measurements of $N_n$ bank notes, with $N_d$ denoting the number of covariates with $N_n = 200$ and $N_d = 4$. Let $\{Y_i  \in \{0,1\}, 1 \leq i \leq N_n \}$ correspond to the labels for each note being genuine or counterfeit respectively. Let $\boldsymbol{\Theta} \in \Re^{N_d}$ be the regression coefficients that are learned from the given data to obtain a good classifier. We are interested in finding the best estimates for the regression coefficients, i.e. the coefficients that maximize the posterior probability $\pr$ defined as,
+Let $X \in \Re^{N_n \times N_d}$ correspond to the covariate measurements of $N_n$ bank notes, with $N_d$ denoting the number of covariates with $N_n = 200$ and $N_d = 4$. Let $\{Y_i  \in \{0,1\}, 1 \leq i \leq N_n \}$ correspond to the labels for each note being genuine or counterfeit respectively. Let $\boldsymbol{\Theta} \in \Re^{N_d}$ be the regression coefficients that are learned from the given data. We are interested in finding the best estimates for the regression coefficients, i.e. the coefficients that maximize the posterior probability $\pr$ defined as,
 \begin{equation}
 \begin{aligned}
 \boldsymbol{\Theta}^* &\eqdef  \argmax_{\Theta \in \Re^{N_d}} \pr(\boldsymbol{\Theta}| \{X_i,Y_i\}_{i=1}^{N_n}) \\
@@ -407,7 +409,7 @@ Let $X \in \Re^{N_n \times N_d}$ correspond to the covariate measurements of $N_
 \end{equation}
 where the parameter vector $\boldsymbol{\Theta} = [ \Theta_1, \dots ,\Theta_{N_d}]$ has a zero-mean Gaussian prior with a covariance matrix $\Sigma$.
 
-In problems such as this, the maximum likelihood estimate is rarely available in closed-form and is hard to compute. Instead, we try to compute the Bayesian estimate: 
+In problems such as this, the maximum a posteriori (MAP) estimate is rarely available in closed-form and is hard to compute. Instead, we try to compute the Bayesian estimate: 
 \begin{equation}
 \boldsymbol{\Theta}_{{bayes}} \eqdef \int_{\Theta \in \Re^{N_d}} \boldsymbol{\Theta} \, \pr(\boldsymbol{\Theta}| \{X_i,Y_i\}_{i=1}^{N_n}) \ud \Theta.
 \label{e:mcmc_log_reg_bayes}
@@ -415,7 +417,7 @@ In problems such as this, the maximum likelihood estimate is rarely available in
 Obtaining the Bayesian estimator \eqref{e:mcmc_log_reg_bayes} requires sampling $\boldsymbol{\Theta}$ values from the posterior distribution and then computing the empirical mean $\hat{\boldsymbol{\Theta}}$. Samples from this posterior density may be obtained using any reversible MCMC technique, in particular we focus on the RWM algorithm. In the following, it is assumed that $N$ samples generated by the RWM algorithm are available.
 
 The goal as before is to compute the optimal control variates that minimize the asymptotic variance of each of the estimates $\hat{\boldsymbol{\Theta}}$.
-Finding the optimal control variates boils down to finding approximate  solutions to the Poisson's equations corresponding to each of the four regression coefficients. The equations to be solved are,
+Optimal control variates can be obtained from approximate solutions to the following Poisson's equations corresponding to each of the four regression coefficients:
 \begin{equation}
 \generate h_k = -\tilde{\Theta}_k = - (\Theta_k - \hat{\Theta}_k), \qquad   1 \leq k \leq N_d.
 \label{e:poisson_logit}
@@ -456,14 +458,15 @@ and the new estimator of the regression coefficients will be,
 \[
 \bar{\Theta}^i_k \eqdef \Theta^i_k + \generate h^\theta_k(\boldsymbol{\Theta}^i).
 \]
-The ZV-MCMC algorithm, proposed in \cite{papmirgir14} minimizes the ordinary variance instead of the asymptotic variance. In general, it is an easier optimization problem to solve, but in this specific example, it is interesting to note that $\theta_k^*$  using \eqref{e:mcmc_log_reg_theta_lin_poly} is simpler to compute and the solution is numerically more stable (as inverting an ill-conditioned matrix is not required) than the ZV method.
+The ZV-MCMC algorithm, proposed in \cite{papmirgir14} minimizes the ordinary variance instead of the asymptotic variance. In general, it is an easier optimization problem to solve, but in this specific example, it is interesting to note that $\theta_k^*$  using \eqref{e:mcmc_log_reg_theta_lin_poly} is simpler to compute and the solution is numerically more stable (as inverting an ill-conditioned matrix is not required) than the ZV method. This is denoted as $\gradTD$-L in the plots in \Fig{fig:mcmc_box_plots_Theta}. 
+
 \noindent \subsubsection*{Quadratic basis}
 A quadratic polynomial basis of the form,
 \begin{equation}
 \psi^\transpose \eqdef [\Theta_1, \, \Theta_2, \, \Theta_3, \, \Theta_4, \, \Theta_1^2, \, \Theta_1 \Theta_2, \, \Theta_1\Theta_3, \, \Theta_1 \Theta_4, \, \Theta_2^2, \, \Theta_2\Theta_3, \, \Theta_2\Theta_4, \, \Theta_3^2, \, \Theta_3 \Theta_4, \, \Theta_4^2] 
 \label{e:mcmc_log_reg_quadratic}
 \end{equation}
-is also considered similar to \cite{papmirgir14}.  In this case, $\nabla \psi \in \Re^{14 \times 4}$ and $\theta_k \in \Re^{14}$. The optimal parameter values are given by \eqref{e:theta_k}.
+is also considered similar to \cite{papmirgir14}.  In this case, $\nabla \psi \in \Re^{14 \times 4}$ and $\theta_k \in \Re^{14}$. The optimal parameter values are given by \eqref{e:theta_k}. This is denoted as $\gradTD$-Q in the plots in \Fig{fig:mcmc_box_plots_Theta}.
 
 \noindent \subsubsection*{$\gradTD$-RKHS algorithm}
 We also investigate the performance of the RKHS based $\gradTD$ learning algorithm for this example.  The parameter values of $\lambda = 10^{-7}$ and $\epsy = 2$ were found to produce the best results.  As it becomes prohibitively expensive to place a Gaussian kernel at each of the RWM samples, they were placed at $200$ randomly chosen samples.
@@ -498,9 +501,9 @@ The same set of experiments were tried out with similar results for the logistic
 		\subfigure [] {\includegraphics[width = 3.5in]{images/Chap5_box_var_Theta3}} 
 		\subfigure [] {\includegraphics[width = 3.5in]{images/Chap5_box_var_Theta4}} 
 	} 
-\caption{Boxplots of the in-trial variances of estimates of $\boldsymbol{\Theta}$ obtained over 1000 trials using the $\gradTD$-RKHS and ZV with quadratic polynomials}
+\caption{Boxplots of the in-trial variances of estimates of $\boldsymbol{\Theta}$ obtained over 1000 trials using the $\gradTD$-RKHS and ZV-Q with quadratic polynomials}
 \label{fig:mcmc_box_var_Theta}
 \end{figure}
 
 \section{Conclusions}
-In this Chapter, we provided a brief discussion on MCMC algorithms, particularly the ULA, which has an associated continuous time Langevin diffusion process. MCMC algorithms have been widely used in Bayesian inference, as a means of approximating expectations using numerical integration. Asymptotic variance was defined as a measure of convergence of these algorithms. We proved that the simpler task of minimizing the sample variance is not always equivalent to minimizing the asymptotic variance, in fact in certain examples minimizing one quantity produces undesirable results on the other. For the Langevin based algorithms, using \Prop{prop:lang_generator_grad}, we are able to express the asymptotic variance minimization problem in a form that fits into the $\gradTD$ learning objective function. This immediately opens up the application of the various versions of $\gradTD$ learning algorithms discussed in the previous chapters to be applied to this problem. The effectiveness of these techniques is however not limited to ULA, they are also seen to produce significant variance reduction in MALA and RWM algorithms. Through recent research, theoretical justification has been sought towards this explaining this effectiveness.  
+In this chapter, we provided a brief discussion on MCMC algorithms, particularly the ULA, which has an associated continuous time Langevin diffusion process. MCMC algorithms have been widely used in Bayesian inference, as a means of approximating expectations using numerical integration. Asymptotic variance was defined as a measure of convergence of these algorithms. We illustrated using an example that the simpler task of minimizing the sample variance is not always equivalent to minimizing the asymptotic variance, in fact in certain examples minimizing one quantity produces undesirable results on the other. For the Langevin based algorithms, using \Prop{prop:lang_generator_grad}, we are able to express the asymptotic variance minimization problem in a form that fits into the $\gradTD$ learning objective function. This immediately opens up the application of the various versions of $\gradTD$ learning algorithms discussed in the previous chapters to be applied to this problem. The effectiveness of these techniques is however not limited to ULA, they are also seen to produce significant variance reduction in MALA and RWM algorithms. Through recent research, we have sought theoretical justification for the positive numerical results.  

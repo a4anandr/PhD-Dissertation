@@ -1,4 +1,4 @@
-\chapter{Proof of Representer Theorem \Theorem{theorem:rep_theorem}}%
+\chapter{Proof of Representer Theorem \ref{theorem:rep_theorem}}%
 \label{a:rep_theorem}
 
 \begin{proof}
@@ -22,7 +22,7 @@
 	\Omega(\|f\|_\clH) = \Omega( \|f_\shortparallel + f_\perp\|_\clH) =\Omega( \sqrt{\|f_\shortparallel\|^2_\clH + \|f_\perp\|^2_\clH})  \geq \Omega(\|f_\shortparallel\|_\clH)
 	\]
 	The inequality is obtained from the fact that $\|f_\perp\|_\clH \geq 0$ and the function $\Omega(\cdot)$ is a strict monotone.
-	This implies that the regularization term in \eqref{e:erm_rkhs} is minimized if $f$ lies in the subspace $\clH_\shortparallel$.
+	This implies that the regularization term in \eqref{e:rkhs_erm_rkhs} is minimized if $f$ lies in the subspace $\clH_\shortparallel$.
 	Additionally, using reproducing property of the kernel $\Kern$,
 	\[
 	\begin{aligned}
