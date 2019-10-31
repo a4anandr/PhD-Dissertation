@@ -1,5 +1,5 @@
 \chapter{Reproducing Kernel Hilbert spaces (RKHS) for Differential TD Learning}
-\label{ch:rkhs} \anandspm{Can you read this section till the beginning of 3.1? }
+\label{ch:rkhs} %\anandspm{Can you read this section till the beginning of 3.1? }
 In \Chapter{ch:diff_td}, the standard LSTD algorithm was reviewed and two versions of the differential TD learning algorithm were presented. An important step in all these algorithms is the selection of a suitable approximating function class, characterized by  a linear or nonlinear parameterization. It is noted in \cite{ctcn} that any insight about the true value function can aid in this step. For example, if the value function is known to obey certain properties, say convexity, then the basis functions chosen can also be convex.  In certain examples, the value function at a state can provide useful information about the values at ``neighboring'' states. In the case of stochastic optimal control, the fluid value functions provide a natural starting point to approximate the solution to the average-cost value function. However, such choices are heavily problem-dependent and no standard methods exist. In most traditional examples of TD learning, a predetermined set of basis functions is used to define the function class. This limits the learning capability in two ways:
 \begin{romannum}
 	\item The chosen function class may not be rich enough to give a good approximation of the value function.
@@ -7,12 +7,12 @@ In \Chapter{ch:diff_td}, the standard LSTD algorithm was reviewed and two versio
 \end{romannum}
 Hence, it is a better idea to choose a function class that adapts dynamically to suit the problem and the sample distribution. Kernel methods provide an alternative approach to basis selection. 
 
-This chapter aims to adapt the $\gradTD$-L algorithm proposed in \Chapter{ch:diff_td} in a reproducing kernel Hilbert space (RKHS) setting.  The remainder of this chapter is organized as follows - In \Section{s:rkhs_basics}, a very concise introduction to kernel functions and the RKHS theory is provided. A more detailed discussion of its properties including Mercer's theorem can be found in \Appendix{a:mercers_theorem}. Gaussian kernels have found wide acceptance in machine learning and function approximation and some of the useful properties of the RKHS induced by the Gaussian kernel is discussed in \Appendix{a:gaussian_rkhs}. Function approximation problems arising in machine learning are usually cast in the form of a regularized empirical risk minimization (ERM) problem - a brief introduction is provided in \Section{s:erm}. Obtaining solutions to such problems are made possible via the classical representer theorem. The theorem is stated in \ref{s:erm_rkhs} and the proof is provided in \Appendix{a:rep_theorem}. In \Section{s:erm}, the minimum-norm problem in $L^2(\pr)$ \eqref{e:diff_td_gradTD_norm_error} of approximating the gradient of the solution to Poisson's equation is reformulated as an equivalent ERM problem to apply the RKHS machinery. As the ERM formulated consists of gradient terms, a generalized  version of the representer theorem is required to obtain the optimal solution.  A simplified sub-optimal solution that lies on a subspace of the original RKHS is also presented. We provide a short review of an error analysis approach for a generic least squares regression problem in an RKHS in \Appendix{a:bousquet}. Error analysis for ERMs with loss functions having gradient terms is a topic for future research. \anandspm{is this statement about error analysis okay?}
+This chapter aims to adapt the $\gradTD$-L algorithm proposed in \Chapter{ch:diff_td} in a reproducing kernel Hilbert space (RKHS) setting.  The remainder of this chapter is organized as follows - In \Section{s:rkhs_basics}, a very concise introduction to kernel functions and the RKHS theory is provided. A more detailed discussion of its properties including Mercer's theorem can be found in \Appendix{a:mercers_theorem}. Gaussian kernels have found wide acceptance in machine learning and function approximation and some of the useful properties of the RKHS induced by the Gaussian kernel is discussed in \Appendix{a:gaussian_rkhs}. Function approximation problems arising in machine learning are usually cast in the form of a regularized empirical risk minimization (ERM) problem - a brief introduction is provided in \Section{s:erm}. Obtaining solutions to such problems are made possible via the classical representer theorem. The theorem is stated in \ref{s:erm_rkhs} and the proof is provided in \Appendix{a:rep_theorem}. In \Section{s:erm}, the minimum-norm problem in $L^2(\pr)$ \eqref{e:diff_td_gradTD_norm_error} of approximating the gradient of the solution to Poisson's equation is reformulated as an equivalent ERM problem to apply the RKHS machinery. As the ERM formulated consists of gradient terms, a generalized  version of the representer theorem is required to obtain the optimal solution.  A simplified sub-optimal solution that lies on a subspace of the original RKHS is also presented. We provide a short review of an error analysis approach for a generic least squares regression problem in an RKHS in \Appendix{a:bousquet}. Error analysis for ERMs with loss functions having gradient terms is a topic for future research. %\anandspm{is this statement about error analysis okay?}
 
 \section{RKHS Basics}
 \label{s:rkhs_basics}
-Kernel methods have been quite well-studied for over five decades now. They provide a flexible and mathematically-elegant framework for a range of estimation problems by relating them to a function reconstruction problem in a higher dimensional feature space. By controlling the features of this space, the properties of the candidate functions can also be implicitly controlled. \anand{From Bhujwalla's thesis, need to rephrase}The mathematical properties of kernel functions were first investigated by Moore \cite{moo1916} and Mercer \cite{merrus09} in the early twentieth century. Although initial applications were in time series analysis, detection, filtering and prediction problems, more recently they have been found to be incredibly useful in machine learning \cite{wah90}, especially after the advent of support vector machines (SVM) for classification and regression problems \cite{corvap95, drucburkaufsmovap97}. In this dissertation, the goal is to employ kernel methods as an alternative to finite dimensional basis selection for the $\gradTD$-L learning algorithm. 
-
+Kernel methods have been quite well-studied for over five decades now. They provide a flexible and mathematically-elegant framework for a range of estimation problems by relating them to a function reconstruction problem in a higher dimensional feature space. By controlling the features of this space, the properties of the candidate functions can also be implicitly controlled. The mathematical properties of kernel functions were first investigated by Moore \cite{moo1916} and Mercer \cite{merrus09} in the early twentieth century. Although initial applications were in time series analysis, detection, filtering and prediction problems, more recently they have been found to be incredibly useful in machine learning \cite{wah90}, especially after the advent of support vector machines (SVM) for classification and regression problems \cite{corvap95, drucburkaufsmovap97}. In this dissertation, the goal is to employ kernel methods as an alternative to finite dimensional basis selection for the $\gradTD$-L learning algorithm. 
+%\anand{From Bhujwalla's thesis, need to rephrase}
 \subsection{Reproducing Kernels} 
 Before defining an RKHS, a positive definite kernel needs to be defined. A function $\Kern : \state \times \state \to \Re$ which for all $N \in \mathbb{N}$ and all $x^1,x^2,\cdots,x^N \in \state$ gives rise to a positive definite Gram matrix is a called a positive definite kernel. That is, 
 \begin{equation}
@@ -211,7 +211,7 @@ f_{\bm{z},\reg} := \argmin_f \frac{1}{N}\sum_{i=1}^N (y^i - f(x^i))^2 + \reg \|A
 \end{equation}
 where $A$ is an operator and $\mathcal{L}^2_{\pr}(\state)$ is the Hilbert space of square integrable functions on $\state$ with measure $\pr_\state$ on $\state$ and $\reg>0$ is the regularization parameter. 
 The key objective in an ERM problem is not just to obtain a good fit on the observed data, but to generalize well on ``unseen'' data as well. If the standard $L^2$ norm is used for regularization, \eqref{e:rkhs_erm_regularized} is called the ridge regression. To obtain sparse solutions, $L^1$-regularization is used, which forms the LASSO technique. Regularization is used to prevent overfitting and achieve better generalization.   In this dissertation, we consider a Tikhonov regularization scheme \cite{tikars79} associated with Mercer kernels.
-\anand{ridge and LASSO needs citations}
+%\anand{ridge and LASSO needs citations}
 
 \subsection{ERM in an RKHS Setting}
 \label{s:erm_rkhs}
@@ -221,7 +221,7 @@ f_\reg^* \eqdef \argmin_{f\in\clH} \underbrace{\frac{1}{N} \sum_{i=1}^N L(y^i,  
 \label{e:rkhs_erm_rkhs}
 \end{equation}
 The objective function in \eqref{e:rkhs_erm_rkhs} consists of an empirical risk term, that minimizes the error on observed data, and a regularization term that controls the properties of the model. It is important to note that the regularization term is independent of the observed data sequence $\bf{z}$. The function $\Omega : [0, \infty] \to \Re$ is strictly monotonically increasing. Often, $\Omega$ is chosen to be proportional to a quadratic function of the norm $\|\cdot\|_\clH$, such as $\reg \|f\|^2_\clH$.  The value of the regularization parameter $\reg$ controls the trade-off between the empirical error term and the smoothness of the estimated function. In other words, a larger value for $\reg$ reduces the variance of the estimates by reducing its dependency on $\bf{z}$, but at the cost of introducing bias to the model. Regularization is necessary to ensure the well-posedness of the problem and increasing $\reg$ improves the numerical stability of the algorithm. 
-\anand{A few words about ways to choose the best $\lambda$.}
+%\anand{A few words about ways to choose the best $\lambda$.}
 
 The remarkable theme in the RKHS literature is that while the optimization problem in \eqref{e:rkhs_erm_rkhs} is infinite dimensional,  the optimizer lies in an identifiable finite-dimensional subspace.
 The result is due to the classical version of the representer theorem of Kimeldorf and Wahba \cite{kimwah71}. The original form of the theorem considered the mean-squared loss $L(y^i, f(x^i)) = (y^i - f(x^i))^2$. An extension to non-quadratic loss functions was provided in \cite{coxsull90}. The classical version of the representer theorem is stated next and its proof presented in \cite{schhersmo01} is provided in \Appendix{a:rep_theorem}. 
@@ -286,7 +286,7 @@ admits a representation of the form
 \end{equation*}
 with $\gamma_j \in \Re$ for all $j \leq M$. 
 \end{theorem}
-\anand{Read spline smoothing problem in Bhujwalla's thesis and see if this can be applied for gradient regularization.} 
+%\anand{Read spline smoothing problem in Bhujwalla's thesis and see if this can be applied for gradient regularization.} 
 \section{Kernel Methods for Differential TD-Learning}
 \label{s:kernel_choices}
 
@@ -304,7 +304,7 @@ If the values $\{x^i\} \subset \state $  are sampled randomly and independently 
 \frac{1}{N} \sum_{i=1}^N L(x^i, g(x^i), \nabla g\, (x^i))  \approx
 \int  L(x, g(x), \nabla g\, (x))  \pr(x)\, \ud x.
 \end{equation}
-\rd{The independence assumption is not essential; the samples $\{x^i\}$ may be generated by an ergodic Markov chain with $\pr$ as its invariant density.}
+The independence assumption is not essential; the samples $\{x^i\}$ may be generated by an ergodic Markov chain with $\pr$ as its invariant density.
 
 In view of \eqref{e:diff_td_gradTD_norm_error_infinite}, the ideal loss function is thus
 \begin{equation}
@@ -368,7 +368,7 @@ Similar to the standard representer theorem, that guarantees a finite dimensiona
 \begin{theorem}[Extended Representer Theorem]
 	\label{theorem:ext_rep_theorem}
 	Suppose that $L(x, g(x),\nabla g)$ is a convex function on $\Re^{d+1}$ for each $x\in\state$.
-	Then the  optimizer $g^*$ of \eqref{e:rkhs_erm_rkhs_gradient} over $g\in\clH$ exists, is unique, and has the following representation: \anand{change $x^i_k$ to $x^k$}
+	Then the  optimizer $g^*$ of \eqref{e:rkhs_erm_rkhs_gradient} over $g\in\clH$ exists, is unique, and has the following representation: %\anand{change $x^i_k$ to $x^k$}
 	\begin{equation}
 	g^*(x) = \sum_{i=1}^N  \Bigl[
 	\rkhsparam_i^{0*}  K(x^i,x)   +  \sum_{k =1}^d  \rkhsparam_i^{k*} \frac{\partial K}{\partial x_k} (x^i, x) \Bigr],
@@ -538,7 +538,7 @@ Ideally, we prefer an algorithm that scales well with dimensions. This leads to 
 	\item A reduced complexity solution \eqref{e:rkhs_g_circ}.
 	\item A differential regularizer \eqref{e:rkhs_1dloss_diff}.
 \end{itemize}
-\subsection{Reduced Complexity Solution ($\gradTD$-RKHS-Simple)}
+\subsection{Reduced Complexity Solution ($\gradTD$-RKHS-N)}
 \label{s:simple_rkhs}
 \Theorem{theorem:ext_rep_theorem} states that the optimizer of the ERM with gradient terms in the loss function lies in a subspace of the RKHS $\clH$ spanned by the kernel functions ($\Kern_{x^i}$) and its partial derivatives ($\{\partial_k K_{x^i}\}_{k=1}^d$) centered at the sample points. The main source of complexity is the presence of the $d \times N$ kernel partial derivative terms of the solution. To obtain a reduced complexity solution, $g$ is restricted to a subspace of the following form:
 \begin{equation}
@@ -559,7 +559,7 @@ If the loss function did not have gradient terms, the standard representer theor
 
 \subsection{Differential Regularizer Formulation}
 \label{s:diffReg} 
-\anand{need to check if it is possible}
+%\anand{need to check if it is possible}
 
 An alternate approach is to add a regularizing term that penalizes the $\clH$-norm of the gradient $\nabla g$ rather than $g$ itself. The modified objective for the one-dimensional model becomes,
 \begin{equation}

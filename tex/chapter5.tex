@@ -1,8 +1,9 @@
 \chapter{Application to Markov chain Monte Carlo algorithms}
 \label{ch:mcmc}
-One of the interesting applications of $\gradTD$ learning is in the context of Markov chain Monte Carlo(MCMC) simulations. In this chapter, a basic introduction to MCMC algorithms with a particular emphasis on Langevin diffusion and its discrete variants is provided first in \Section{s:mcmc_langevin}. We then define asymptotic variance as a measure of convergence and motivate how $\gradTD$ learning is perfectly suited to obtain MCMC estimates with minimal asymptotic variance. In \Section{s:mcmc_metropolis}, we introduce the very popular Metropolis-Hastings (MH) algorithm and present an extension of the asymptotic variance reduction methods to the class of reversible Markov chains in \Section{s:mcmc_reversible_mc_cv}. A majority of the existing research that aims to improve the convergence of MCMC estimates focus on minimizing the sample variance, as it is easier to implement. \anandspm{sample variance or ordinary variance, what is the right term?} In \Section{s:mcmc_var_vs_asym_var}, through a motivating example, we prove why this is not the correct objective for MCMC. 
-In recent research, it has been found that under certain assumptions, the convergence rates of ULA and RWM are related and the same asymptotic variance reduction techniques can be applied to RWM \cite{brodurmeymourad18}. \anand{Need to rephrase after reading \cite{brodurmeymourad18}} Applications to numerical examples involving logistic regression (logit) and probit models are discussed in \Section{s:mcmc_numerics}. 
-
+One of the interesting applications of $\gradTD$ learning is in the context of Markov chain Monte Carlo (MCMC) simulations. In this chapter, a basic introduction to MCMC algorithms with a particular emphasis on Langevin diffusion and its discrete variants is provided first in \Section{s:mcmc_langevin}. We then define asymptotic variance as a measure of convergence and motivate how $\gradTD$ learning is perfectly suited to obtain MCMC estimates with minimal asymptotic variance. In \Section{s:mcmc_metropolis}, we introduce the very popular Metropolis-Hastings (MH) algorithm and present an extension of the asymptotic variance reduction methods to the class of reversible Markov chains in \Section{s:mcmc_reversible_mc_cv}. A majority of the existing research that aims to improve the convergence of MCMC estimates focus on minimizing the sample variance, as it is easier to implement. In \Section{s:mcmc_var_vs_asym_var}, through a motivating example, we prove why this is not the correct objective for MCMC. 
+In recent research, it has been found that under certain assumptions, the asymptotic variances of certain well known MCMC algorithms like the Unadjusted Langevin Algorithm (ULA) and Random Walk Metropolis (RWM) are close to the asymptotic variance of the Langevin diffusion \cite{brodurmeymourad18}. Hence, the application of the same control variate techniques is justified.  Applications to numerical examples involving logistic regression (logit) and probit models are discussed in \Section{s:mcmc_numerics}. 
+ % \anandspm{sample variance or ordinary variance, what is the right term?} 
+ %\anand{Need to rephrase after reading \cite{brodurmeymourad18}}
 \section{Langevin Diffusion for MCMC}
 \label{s:mcmc_langevin}
 In many scenarios, it is of interest to compute the expectation of a function $c$ with respect to a target distribution $\pr$:
@@ -39,7 +40,7 @@ where $\tileta_T =\eta_T-\eta$, and the convergence is in distribution.   Under 
 \asymvar^2 = \lim_{T \to \infty} \Expect \left[\left(\frac{1}{\sqrt{T}}\int_{0}^{T}(c(\markovstate_t)-\eta)dt\right)^2\right]
 \label{e:aVar}
 \end{equation}
-For example, these conclusions hold for a Markov chain that is $V$-uniformly ergodic,  provided $c^2\in\LV$  \cite{glymey96a,MT}. \anand{$c^2$ or $c$?}
+For example, these conclusions hold for a Markov chain that is $V$-uniformly ergodic,  provided $c^2\in\LV$  \cite{glymey96a,MT}. %\anand{$c^2$ or $c$?}
 It has been shown in \cite{glymey96a,MT} that the asymptotic variance $\asymvar^2$ has the following general representation in terms of the solution to Poisson's equation $h$ \eqref{e:diff_td_poissons},
 \begin{equation}
 \asymvar^2  =2\langle h, \tilc\rangle_{L^2}.
@@ -56,7 +57,7 @@ where $\{\mcmcstep_n\}_{n\geq 1}$ is a sequence of step sizes and $\{W_n\}_{n\ge
 
 The primary goal in the design of MCMC algorithms is the faster convergence of the Markov chain to its invariant distribution (i.e. the target distribution). The asymptotic variance is a measure of this convergence and hence, it is ideal to minimize $\asymvar^2$. Several approaches have been proposed to improve the convergence rate including constructing an irreversible Markov chain with the same invariant density \cite{hwanorwu15, dunlelpav16}, using an optimal scaling parameter \cite{robros01} etc. Most of these approaches alter the transition kernel of the Markov chain and hence, do not work well on samples already obtained. In the remainder of this paper, we restrict our discussion to post-hoc schemes for reversible Markov chains, i.e. samples from an ergodic Markov chain are available and variance reduction is achieved by post-processing. These schemes require no changes to the sampling methodology. 
 
-Control variates introduced in \cite{HenThesis,henmeytad03a,kimhen07,ctcn} are zero-mean terms, which when added to the estimator can produce a significant reduction in the asymptotic variance without adding bias. One of the advantages of this scheme is that they work post-hoc, and are independent of the MCMC algorithm used. \anand{a few more words on original application}
+Control variates introduced in \cite{HenThesis,henmeytad03a,kimhen07,ctcn} are zero-mean terms, which when added to the estimator can produce a significant reduction in the asymptotic variance without adding bias. One of the advantages of this scheme is that they work post-hoc, and are independent of the MCMC algorithm used. %\anand{a few more words on original application}
 
 Dellaportas et al. in \cite{delkon12} have employed control variates for particular examples of reversible Markov chains like the Gibbs sampler.
 More recently, Brosse et al. in \cite{brodurmeymou18} show that the asymptotic variances of ULA, MALA and RWM are close to the asymptotic variance of the Langevin diffusion and construct control variates that work for all the three methods. In this dissertation, we borrow heavily from both the above and demonstrate that using RKHS based $\gradTD$ learning algorithms, the variance reduction is improved many-fold. 
@@ -73,7 +74,7 @@ h^\param  \eqdef  \sum_{i=1}^\ell \param_i \psi_i = \param^\transpose \psi\,
 \label{e:mcmc_h_and_c}
 \end{equation}
 and $\generate$ denotes the differential generator of the Langevin diffusion \eqref{e:diff_td_langevin_generator}. 
-Under the assumptions imposed it will follow that the steady-state means of $c$ and $c^\param$ coincide for any $\param\in\Re^\ell$,  so that we obtain a family of asymptotically unbiased estimators: \anand{Do we need to show $Ph = h$?}
+Under the assumptions imposed it will follow that the steady-state means of $c$ and $c^\param$ coincide for any $\param\in\Re^\ell$,  so that we obtain a family of asymptotically unbiased estimators: % \anand{Do we need to show $Ph = h$?}
 \begin{equation}
 \eta^\param_T =\frac{1}{T}\int_0^T c^\param(\markovstate_t)  \, dt
 \label{e:mcmc_eta_theta}
@@ -82,7 +83,7 @@ It is then of interest to find the parameter with minimal asymptotic variance:
 \begin{equation}
 \param^* = \argmin_\param (\asymvar^\param)^2
 \label{e:mcmc_theta_star}
-\end{equation} \anandspm{Is there a better notation ${\asymvar^\param}^2$?}
+\end{equation} %\anandspm{Is there a better notation ${\asymvar^\param}^2$?}
 Here, $(\asymvar^\param)^2$ corresponds to the asymptotic variance of the new estimate \eqref{e:mcmc_eta_theta}, i.e.
 \[
 \sqrt{T} (\eta^\param_T - \eta ) \xrightarrow[]{d} N (0,(\asymvar^\param)^2).
@@ -139,11 +140,11 @@ P_{mh}(x,dy) \eqdef g(x,y) \alpha(x,y) dy + \left [ 1 - \int_{\state} g(x,y) \al
 \end{equation}
 and with the acceptance ratio $\alpha$ as defined, the reversible Markov chain with kernel $P_{mh}$ has its invariant density as $\rho$.
 
-A special case of this algorithm is obtained if $g$ is chosen to be a Gaussian centered at $x$ with $\mcmcstep$ as the variance parameter. This also simplifies the expression for $\alpha$ as $g(x,x') = g(x',x)$. This variant is known as the random walk Metropolis (RWM) algorithm. For a small value of $\mcmcstep$, it has been shown by Brosse et al. in \cite{brodurmeymourad18} that the following relation between $P_{mh}$ and the differential generator $\generate$ of the Langevin diffusion holds, \anand{variance parameter is equivalent to the time step in ULA?}
+A special case of this algorithm is obtained if $g$ is chosen to be a Gaussian centered at $x$ with $\mcmcstep$ as the variance parameter. This also simplifies the expression for $\alpha$ as $g(x,x') = g(x',x)$. This variant is known as the random walk Metropolis (RWM) algorithm. For a small value of $\mcmcstep$, it has been shown by Brosse et al. in \cite{brodurmeymourad18} that the following relation between $P_{mh}$ and the differential generator $\generate$ of the Langevin diffusion holds, %\anand{variance parameter is equivalent to the time step in ULA?}
 \[
 \lim_{\mcmcstep \to 0} \mcmcstep^{-1} (P_{mh} - I) = \generate
 \]
-Thus for small values of $\mcmcstep$, the control variates can be obtained as $\mcmcstep \generate h^\theta$. \rd{But this approximation is not valid for larger step-sizes and hence this method is practically limited in use.} \anand{Do we need this statement? Or is there a hack for larger $\mcmcstep$? }
+Thus for small values of $\mcmcstep$, the control variates can be obtained as $\mcmcstep \generate h^\theta$. %\rd{But this approximation is not valid for larger step-sizes and hence this method is practically limited in use.} %\anand{Do we need this statement? Or is there a hack for larger $\mcmcstep$? }
 
 \section{Control Variates for a Reversible Markov Chain} 
 \label{s:mcmc_reversible_mc_cv}
@@ -316,7 +317,7 @@ Consider $\state \equiv \Re$, $c(x) \equiv x $, $\pr$ is a univariate 2-componen
 	\caption{Comparison of $(\asymvar^{\theta^*})^2$ and $(\asymvar^{\vartheta^*})^2$ for $\theta^*, \vartheta^* \in \Re^{\ell}$, $0 \leq \ell \leq 12$ and $c(x) = x, x^2$, for i) a polynomial basis (in A and C) and ii) a weighted polynomial basis (in B and D)}
 	\label{fig:mcmc_var_vs_asym_var}
 \end{figure}
-\anand{Wrong text in C}
+
 The resulting asymptotic variances for the parameters, $\theta^*$ \eqref{e:mcmc_theta_star} and $\vartheta^*$ \eqref{e:mcmc_var_theta_star} are compared against the basis dimension $\ell$.  The optimality gap for $c(x) = x$, shown in parts A and B of \Fig{fig:mcmc_var_vs_asym_var} is considerable.
 The discrepancy is clear from a close look at the two functions $c^{\theta^*}$ and $c^{\vartheta^*}$ that are plotted in \Fig{fig:mcmc_cv_theta_var}. The key difference is that the ``local mean'' of $c^{\theta^*}$ is nearly $\eta$ in each well of the density $\pr$ (shaded region of \Fig{fig:mcmc_cv_theta_var}):
 \[
@@ -376,7 +377,7 @@ In this section, we first look at how the control variates help in reducing the 
 	\subfigure [] {\includegraphics[width = 3in]{images/Chap5_hist_mh_all_ds_basis_10000runs_100000samples}} 
 	\subfigure[]	{\includegraphics[width=3in]{images/Chap5_hist_mh_asym_var_all_methods}}
  } 
-	\caption{Histogram of $\sqrt{N}(\eta_N^{i} - \eta$) for the various control variate schemes -  A) and B) ULA with $\mcmcstep =0.05$ and $c(x) = x$ with finite basis $\ell = 10,20$ in A) and other approximation schemes in B), and C) and D) for RWM with $\mcmcstep = 0.05$ with finite basis $\ell = 10,20$ in C) and other approximation schemes in D).}
+	\caption{Histogram of $\sqrt{N}(\eta_N^{i} - \eta$) for the various control variate schemes -  A) and B) ULA with $\mcmcstep =0.05$ and $c(x) = x$ with finite basis $\ell = 10,20$ in A) and other approximation schemes in B), and C) and D) for RWM with $\mcmcstep = 0.05$ with finite basis $\ell = 10,20$ in C) and other approximation schemes in D).$\ell =0$ corresponds to the standard MCMC estimator.}
 	\label{fig:mcmc_ula_rwm_hist}
 \end{figure}
 

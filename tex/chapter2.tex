@@ -41,12 +41,12 @@ The Langevin diffusion is associated with a differential generator $\generate$ (
 \label{e:diff_td_langevin_generator}
 \end{aligned}
 \end{equation}
-where $\nabla$ denotes the gradient and $\Delta$ is the Laplacian. \rd{The differential generator can be thought of as the derivative operator in an expected sense.} Under conditions on $U$, the SDE \eqref{e:diff_td_langevin_cts} defines a strong Markov semigroup $\{P_t\}_{t \geq 0}$. The generator $\generate$ can be written in terms of the semigroup as,
+where $\nabla$ denotes the gradient and $\Delta$ is the Laplacian. The differential generator can be thought of as the derivative operator in an expected sense. Under conditions on $U$, the SDE \eqref{e:diff_td_langevin_cts} defines a strong Markov semigroup $\{P_t\}_{t \geq 0}$. The generator $\generate$ can be written in terms of the semigroup as,
 \begin{equation}
 \generate = \lim_{t \to 0} \frac{P_t - I}{t}.
 \label{e:diff_td_langevin_semigroup}
 \end{equation}
-
+%\anandspm{Statement about differential generator}
 \subsection{Poisson's Equation}
 Let $c \colon \state \to \Re$ be a function of interest, and 
 \begin{equation}
@@ -108,7 +108,7 @@ where $\bfmB$ is standard Brownian motion and $a : \Re \to \Re$ is a Lipschitz-c
 \end{equation}
 It may be noted that the Langevin diffusion \eqref{e:diff_td_langevin_cts} is a special case of the diffusion \eqref{e:diff_td_cts_diffusion} with $a(x) = -\grad U(x)$ and $\sigma(x) \equiv \sqrt{2}$, and the associated differential generator is defined in \eqref{e:diff_td_langevin_generator}. 
 
-Consider a parameterized family of approximations $\{h^\param : \param \in \Re^\ell\}$. In the case of a linear parameterization, where we have $\ell$ functions on $\state$ as the basis, denoted $\{\basis_i : 0 \leq i \leq \ell\}$, the parameterized family $\{h^\param\}$ becomes, \anandspm{Using $\state$ and $\Re$ interchangably, which one is better?}
+Consider a parameterized family of approximations $\{h^\param : \param \in \Re^\ell\}$. In the case of a linear parameterization, where we have $\ell$ functions on $\state$ as the basis, denoted $\{\basis_i : 0 \leq i \leq \ell\}$, the parameterized family $\{h^\param\}$ becomes, %\anandspm{Using $\state$ and $\Re$ interchangably, which one is better?}
 \begin{equation}
 h^\param(x) := \sum_{i=1}^\ell \param_i \basis_i(x) = \param^\transpose \basis(x), \qquad x \in \state
 \label{e:diff_td_linear_param}
@@ -135,7 +135,7 @@ The necessary conditions for optimality can be obtained by taking the gradient o
 \label{e:diff_td_first_order_condition}
 \end{equation} 
 
-	\anandspm{Under what conditions can we exchange the derivative and expectation for a nonlinear parameterization?}
+	%\anandspm{Under what conditions can we exchange the derivative and expectation for a nonlinear parameterization?}
 In general, a solution to \eqref{e:diff_td_first_order_condition} can be obtained using recursive updates of the parameter $\param$ by stochastic approximation techniques. However, for the linear parameterization \eqref{e:diff_td_linear_param}, the optimal $\param^*$ admits a closed form expression:
 \begin{equation}
 \param^* := M^{-1} b,
@@ -285,7 +285,8 @@ A recursive formulation of the algorithm can be provided in terms of the three O
 
 \Cref{e:diff_td_lstd_ode_eligib,e:diff_td_lstd_ode_b,e:diff_td_lstd_ode_M,e:diff_td_lstd_theta_T} summarize the LSTD algorithm. The system of ODEs is initialized with $\eligibvector_\basis(0), b(0) \in \Re^\ell,$ and a positive definite $\ell \times \ell$ matrix $M(0)$. The computational complexity arising due to matrix inversion operation in \eqref{e:diff_td_lstd_theta_T} can be reduced by applying the matrix inversion lemma, as pointed out in \cite{ctcn}.  %$O(\ell^3)$ 
 
-The ODE in \eqref{e:diff_td_lstd_ode_eligib} that governs the evolution of the eligibility vector $\eligibvector_\basis(t)$ is equivalent to the one that appears in TD($\lambda$) algorithm \cite{sut88}, with the exponential ``forgetting factor'' $\lambda = 1$. \anand{needs reading} Convergence of the parameter estimates $\param(t)$ to $\param^*$ in the limit as $t$ goes to $\infty$ has been shown by the application of law of large numbers. % exponential weighting with recency.
+The ODE in \eqref{e:diff_td_lstd_ode_eligib} that governs the evolution of the eligibility vector $\eligibvector_\basis(t)$ is equivalent to the one that appears in TD($\lambda$) algorithm \cite{sut88}, with the exponential ``forgetting factor'' $\lambda = 1$. Convergence of the parameter estimates $\param(t)$ to $\param^*$ in the limit as $t$ goes to $\infty$ has been shown by the application of law of large numbers. % exponential weighting with recency.
+%\anand{needs reading}
 
 A linear parameterization for $h^\param$ is not essential for the LSTD algorithm. For a nonlinear parameterization,  LSTD can be implemented as a stochastic approximation recursion. A discussion of nonlinear parameterization is skipped here and reserved for \Section{s:diff_td_learning} while discussing the differential TD learning algorithm. 
 
@@ -315,7 +316,7 @@ In this Section, we first focus on the special case of differential TD learning 
 	\qed
 \end{proposition} 
 \begin{proof}[Proof]
-	We can assume that $f$ and $g$ have compact support. The extension to arbitrary functions satisfying the assumptions of the proposition is obtained by approximation in $L^2(\pr)$. In the following, $\partial_k f$ is used as shorthand for $\frac{\partial f}{\partial x_k}$. \anandspm{ I found this comment in one of the notes you wrote	. What does this comment mean?} 
+	We can assume that $f$ and $g$ have compact support. The extension to arbitrary functions satisfying the assumptions of the proposition is obtained by approximation in $L^2(\pr)$. In the following, $\partial_k f$ is used as shorthand for $\frac{\partial f}{\partial x_k}$. %\anandspm{ I found this comment in one of the notes you wrote	. What does this comment mean?} 
 	
 	Consider first the scalar case, where $d=1$: 
 	
@@ -365,7 +366,7 @@ If we assume a linear parameterization of the form in \eqref{e:diff_td_linear_pa
 	\label{e:diff_td_gradTD_M_b}
 	\end{equation}
 	and $k = \| \nabla h \|^2_{L^2}$.  Consequently, the optimizer \eqref{e:diff_td_gradTD_norm_error}
-	is any solution to \anandspm{any solution or the solution?}
+	is any solution to %\anandspm{any solution or the solution?}
 	\begin{equation}
 	M \param^* = b.
 	\label{e:diff_td_gradTD_theta}
@@ -403,7 +404,7 @@ In this Section, we present the differential TD learning algorithm for a general
 The ideas involved in the derivation are similar to those in the LSTD algorithm.  A derivation of the $\gradTD$ algorithm for a discrete-time MDP with examples from optimal control is provided in \cite{devmey16arXiv}. This algorithm is discussed in the context of gain function approximation for the FPF in \Chapter{ch:filtering} and in \cite{raddevmey16}. 
 %\Section{s:fpf_gain}.  
 
-The presentation of the algorithm here is restricted to the scalar case, where $\state = \Re$. However, under general conditions, it is expected that the algorithm can be extended to higher dimensions. \anandspm{Should I say anything more?}
+The presentation of the algorithm here is restricted to the scalar case, where $\state = \Re$. However, under general conditions, it is expected that the algorithm can be extended to higher dimensions. %\anandspm{Should I say anything more?}
 Consider a general continuous-time diffusion process defined in \eqref{e:diff_td_cts_diffusion} with the definition for its associated differential generator $\generate$ in \eqref{e:diff_td_diffusion_generator}. Denote by $h$ the solution to Poisson's equation \eqref{e:diff_td_poissons} with forcing function $c \in C^1$.  Differentiating each side of \eqref{e:diff_td_poissons} with respect to $x$, we obtain
 \begin{equation}
 \begin{aligned}
@@ -496,7 +497,8 @@ Now, the derivation of the algorithm follows the same steps involved in the deri
 	is complete via a second application of Fubini's theorem.
 \end{proof}
 
-It is worthwhile to note that the derivation of the LSTD algorithm is a special case of this lemma with $G \equiv \discount$. \anandspm{Can I say $U'' = \discount$?} This leads to an interesting interpretation of the exponential term $\exp(-\clU_r^t)$ as implicitly introducing a ``discounting factor'' to the average-cost problem. As a result of this discounting, the existence of a regenerating state to the diffusion is guaranteed, which makes it applicable to problems in higher dimensions.  \anandspm{Can you check this statement?} 
+It is worthwhile to note that the derivation of the LSTD algorithm is a special case of this lemma with $G \equiv \discount$. %\anandspm{Can I say $U'' = \discount$?} 
+This leads to an interesting interpretation of the exponential term $\exp(-\clU_r^t)$ as implicitly introducing a ``discounting factor'' to the average-cost problem. As a result of this discounting, the existence of a regenerating state to the diffusion is guaranteed, which makes it applicable to problems in higher dimensions.  %\anandspm{Can you check this statement?} 
 
 The $\gradTD$ learning algorithm provides an unbiased and asymptotically consistent estimate of $\param^*$.  The algorithm is defined by the set of ODEs:
 %\begin{subequations}
@@ -528,7 +530,7 @@ The $\gradTD$ learning algorithm provides an unbiased and asymptotically consist
 	\end{eqnarray}
 \end{subequations}
 The vector $\eligibvector(t)$ is analogous to the eligibility vector in TD learning \cite{bertsi96a,ctcn}. Existence of a steady state solution to \eqref{e:diff_td_gradTD_eligib} of the form in \eqref{e:diff_td_gradTD_eligib_integral} is guaranteed under a Lyapunov drift condition in \cite{devkonmey17b}.
-The estimates of $\param^*$ are generated via $\param(t) = M(t)^{-1} b(t)$.   The ODE is initialized with $\eligibvector(0), b(0)\in \Re^\ell$,  and $M(0)>0$ a $\ell \times  \ell$ matrix. \rd{It is interesting to note that the eligibility vector term $\eligibvector_t$ is absent in the $\gradTD$-L algorithm.} \anand{need to place this somewhere else}
+The estimates of $\param^*$ are generated via $\param(t) = M(t)^{-1} b(t)$.   The ODE is initialized with $\eligibvector(0), b(0)\in \Re^\ell$,  and $M(0)>0$ a $\ell \times  \ell$ matrix. %\rd{It is interesting to note that the eligibility vector term $\eligibvector_t$ is absent in the $\gradTD$-L algorithm.} \anand{need to place this somewhere else}
 
 \subsection{Nonlinear Parameterization}
 \label{s:diff_td_nl_param}
@@ -562,7 +564,7 @@ d_t & = \eligibvector_{\basis_{\param_t}}(t)  c'(\markovstate_t) - h'_{\param_{t
 \param_t &=\param_{t-1} - \sagain_t M_{t}^{-1} d_t. 
 \label{e:diff_td_gradTD_theta_sa} 
 \end{aligned}
-\end{equation} \anandspm{Better notation for $\eligibvector_{\basis_{\param_t}}$?}
+\end{equation} %\anandspm{Better notation for $\eligibvector_{\basis_{\param_t}}$?}
 Here, $\{\sagain_t\}$ is a positive gain sequence, subject to the conditions, 
 \begin{equation}
 \sum_t \sagain_t = \infty, \qquad \sum_t \sagain_t^2 < \infty.
@@ -573,12 +575,13 @@ A common choice is $\sagain_t = 1/(t+1)$. By using a matrix gain $M_t$, inspired
 M^* &:= -\nabla^2_{\param}\mathcal{E}|_{\param = \param^*}\\
 & \approx - \langle \basis'_{\param^*}, \basis_{\param^*}^{'\transpose} \rangle_{L^2}, 
 \end{aligned}
-\end{equation} \anandspm{is the sign and notation for $M$ correct? Can you also check the comments made?} 
+\end{equation} %\anandspm{is the sign and notation for $M$ correct? Can you also check the comments made?} 
 and approximated as,
 \begin{equation}
 M_T  \eqdef  -\frac{1}{T} \int_0^T \basis'_{\param_t}(\markovstate_t) \basis^{'\transpose}_{\param_t}(\markovstate_t) dt
 \end{equation}
-More recently, it has been shown that a better estimate of $M^*$ can be obtained via a two-time-scale stochastic approximation algorithm. To keep the discussion simple, such algorithms are skipped here. \rd{Interested readers are referred to the work by Devraj et al. \cite{devmey17a}}.
+More recently, it has been shown that a better estimate of $M^*$ can be obtained via a two-time-scale stochastic approximation algorithm. To keep the discussion simple, such algorithms are skipped here. Interested readers are referred to the work by Devraj et al. \cite{devmey17a}.
+%\rd
  
  \section{Summary and Conclusions}
  \label{s:ch2_conclusions}
