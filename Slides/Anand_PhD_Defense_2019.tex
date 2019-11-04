@@ -54,6 +54,8 @@
 \def\alertbf#1{{\color{BrickRed}{\bf #1}}}
 \def\alertc#1{\alert{\color{MyDarkBlue}  #1}}
 
+\def\anand#1{\notes{\textcolor{blue}{Anand:#1}}}
+\def\anandspm#1{\notes{\textcolor{red}{Question:#1}}}
 
 \def\urls#1{{\small \url{#1}}}
 
@@ -533,25 +535,49 @@
 \def\rmd{\,\textmd{d}}
 
 
+\def\normal{\mathcal{N}}
+
+% FPF related
 \def\kFPF{\text{\sf K}}
 \def\xfpf{x_{\text{fpf}}}
-\def\Kkal{K_{\text{kal}}}
+\def\Kkal{\sf K_{\text{kal}}}
 \def\fish{\phi}
 \def\f{Figure }
 \def\e{Equation }
 \def\emp{\Lambda}
 \def\obs{c}
 \def\poiss{h}
+\def\hakFPF{\widehat{\kFPF}}
+\def\vectilc{\tilde{\varsigma}}
+\def\tilg{\tilde g}
+\def\hac{\hat c }
 
-\def\basis{{\psi}}
-\def\gradbasis{{\psi^{\prime}\hspace{-.5ex}}}
-\def\gradbasispar{{\psi^{\prime\theta}}}
+% MCMC related
+\def\asymvar{\sigma^2_\infty}
+\def\markovstate{\Phi}
+\def\mcmcstep{\delta}
 
+
+% RKHS 
+\def\Kern{K}
+\def\gram{M}
+\def\eigval{\lambda}
+\def\reg{\lambda}
+\def\featuremap{\Phi}
+\def\measure{\mu}
+\def\rkhsparam{\beta}
+
+% TD learning related
+\def\gradTD{\nabla\text{-LSTD}}
+\def\basis{\psi}
+\def\gradbasis{\grad \basis}
 \def\param{\theta}
-\def\nrgain{M}
 \def\oscState{\vartheta}
-
-\def\process{\Phi}
+\def\test{\varphi}
+\def\discount{\gamma}
+\def\eligibvector{\varphi}
+\def\sagain{\alpha}
+\def\error{\mathcal{E}}
 \def\test{\chi}
 
 \def\generate{{\cal D}}
@@ -597,11 +623,9 @@
 	University of Florida
 	\\[.3cm]\color{Sepia}
 	\scriptsize
-	PhD Advisor
-	\\[.25em]
-	\alertc{Prof. Sean Meyn}
+	Committee chair: \alertc{Prof. Sean Meyn}
 	\\[.25cm]
-	Committee members : \alertc{Prof. Jose Principe, Prof. Kamran Mohseni, Prof. James Hobert}
+	Committee members : \alertc{Prof. Jos\'{e} Principe, Prof. Kamran Mohseni, Prof. James Hobert}
 	\\[.25cm]
 	\scriptsize \color{Sepia} 
 	Thanks to the National Science Foundation and Army Research Office \\
@@ -620,6 +644,31 @@
   \tableofcontents
 \end{frame}
 
+\section{PhD Proposal - Recap}
+\begin{frame}
+\frametitle{PhD Proposal - Recap}
+\framesubtitle{Work till then}
+\begin{itemize}
+	\item Presented the \alertb{feedback particle filter (FPF)} - an approximation of the nonlinear filter that requires computing a gain function by solving a \textit{Poisson's equation}. 
+	\item Proposed a \alertb{differential TD-learning} algorithm to approximate the gradient of the solution to Poisson's equation. \pause
+	\item Presented numerical examples for gain approximation and state estimation for scalar systems.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{PhD Proposal - Recap}
+\framesubtitle{Tasks promised and accomplished}
+\begin{itemize}
+\item Extend the algorithm to a multidimensional setting. \pause - \gn{$\checkmark$} 
+\item Explore appropriate basis selection for these algorithms. \pause - \gn{$\checkmark$} 
+\item Impact of gain approximation error on filtering performance. \pause - \rd{\text{\sffamily X}}  \pause \\[0.5cm]
+\bl{New direction} \\
+\item Simplified version of the algorithm for Langevin diffusion.
+\item Improvements for online gain estimation. 
+\item Explored the application to MCMC algorithms.
+\end{itemize}
+\end{frame}
 
 %............................................................... New Section
 \section{Poisson's Equation}
@@ -643,15 +692,15 @@
 	\item General form in stochastic systems
 	{\LARGE
 	\[
-	\generate h  \eqdef  f
+	\generate h  \eqdef  -f
 	\]
     }
 	
 	
 	\begin{tabular}{rl}
 $\generate$ & - differential operator\\
-$f$ & - forcing function\\
-$h$ & - solution to \alertb{Poisson's equation}.
+$f$ & - forcing function, usually centered\\
+$h$ & - solution to \alertb{Poisson's equation}
 	\end{tabular}
 \end{itemize}
 \end{frame}
@@ -661,7 +710,7 @@ $h$ & - solution to \alertb{Poisson's equation}.
 \begin{frame}
 \frametitle{Poisson's Equation}
 \framesubtitle{Stochastic optimal control}
- In average cost optimal control problems,
+ \alertb{Example:} In average cost optimal control problems,
 \[
 \min_u \{c(x,u) + P_u h^*(x) \} = h^*(x) + \eta^*
 \]
@@ -669,26 +718,31 @@ $h$ & - solution to \alertb{Poisson's equation}.
 $c(x,u)$ & - Cost function associated with state $x$ and action $u$.\\
 $P_u$ & - Transition kernel of the controlled Markov chain. \\	
 $\eta^*$ & - Optimal average cost.\\
-$h^*(x)$ & - Infinite horizon expected average cost or \alertb{relative value function}.
+$h^*(x)$ & - \alertb{Relative value function}. \\\pause
 \end{tabular}
+Poisson's equation is the dynamic programming equation.
 \end{frame}
 
 \begin{frame}
 \frametitle{Poisson's Equation}
 \framesubtitle{Langevin Diffusion}
 \alertb{Langevin diffusion} is given by the SDE,
-\[
-\ud \process_t = - \nabla \pot(\process_t) \, \ud t
-+  \sqrt{2} \, \ud W_t, \qquad \process \in \Re^d
+\only<1> {\[
+\ud \markovstate_t =\underbrace{- \nabla \pot(\markovstate_t) \, \ud t}_{\text{Drift term}}
++ \underbrace{\sqrt{2} \, \ud W_t}_{\text{Diffusion term}}, \qquad \markovstate \in \Re^d
 \label{e:langevin_intro}
-\]\\
+\]}
+\only<2-> {\[
+	\ud \markovstate_t =- \nabla \pot(\markovstate_t) \, \ud t
+	+ \sqrt{2} \, \ud W_t, \qquad \markovstate \in \Re^d
+	\]}
 \begin{tabular}{rl}
-$\pot$ &  $\in C^1$ is called the \textit{potential function}. \\
-$\bfmW$ &$ =\{W_t : t\ge 0\}$ is a standard Brownian motion on $\Re^d$. \pause \\[1em]
+$\pot \in C^1$ & is called the \textit{Potential function}.\\
+$\bfmW =\{W_t : t\ge 0\}$ & is a standard Brownian motion on $\Re^d$. \pause \\[1em]
 \end{tabular}
 \begin{itemize}
 \item May be regarded as a $d$-dimensional gradient flow with ``noise''. \pause
-\item Diffusion is reversible, with unique \textit{invariant density} $\pr=e^{-\pot+\Lambda}$, \\ where $\Lambda$ is a normalizing constant.
+\item Diffusion is reversible, with unique \textit{invariant density} $\pr=e^{-\pot+\Lambda}$, where $\Lambda$ is a normalizing constant.
 \end{itemize}
 \end{frame}
 
@@ -713,7 +767,7 @@ Function $h\in C^2$ solves \alertb{Poisson's equation} with forcing function $c$
 \[
 \begin{aligned}
 \generate h &\eqdef - \tilc, \qquad  \tilc = c - \eta. \\
-h & \eqdef \int_0^\infty \Expect [\tilc(\Phi_s)] ds
+h & \eqdef \int_0^\infty \Expect [\tilc(\markovstate_t)] \ud t
 \label{e:poissons}
 \end{aligned}
 \]
@@ -723,30 +777,180 @@ h & \eqdef \int_0^\infty \Expect [\tilc(\Phi_s)] ds
 \frametitle{Poisson's Equation}
 \framesubtitle{Existence of a solution}
 \begin{itemize}
-\item A solution exists under weak assumptions on $\pot$ and $c$ \bl{[Glynn 96,Kontoyiannis 12]}.
-\item Representations for the gradient of $h$ and bounds are obtained in \bl{[Laugesen 15,Devraj 16]}.
-\item A smooth solution $h\in C^2$ exists under stronger conditions in \bl{[Pardoux 01]}, subject to growth conditions on $c$ similar to \bl{[Glynn 96]}.
+\item A solution exists under weak assumptions on $\pot$ and $c$ \bl{\small{[Glynn 96,Kontoyiannis 12]}}.
+\item Representations for the gradient of $h$ and bounds are obtained in \bl{\small{[Laugesen 15,Devraj 18]}}.
+\item A smooth solution $h\in C^2$ exists under stronger conditions in \bl{\small{[Pardoux 01]}}, subject to growth conditions on $c$ similar to \bl{\small{[Glynn 96]}}.
 \end{itemize}
 \end{frame}
 
 \begin{frame}
-\frametitle{Approximating solution to Poisson's equation}
+\frametitle{Poisson's Equation}
+\framesubtitle{Approximate solution to Poisson's equation}
 Obtaining an analytical solution for $h$ is difficult outside special cases. Hence approximation.\\[0.5cm] \pause
-Goal : For a given function class $\clH$, find the minimizer of
+Goal: For a given function class $\clH$, find the minimizer of
 \[
 g^* \eqdef \argmin_{g \in \clH} \|h - g\|^2_{L^2}
-\label{eq_td_learning_ls}
+\label{e:lstd1}
 \]
-Such minimum norm optimization problems can be solved using \textit{TD learning} \bl{[T99, CTCN]}.\\[0.5cm] \pause
+Such minimum norm optimization problems can be solved using \textit{TD learning} \bl{\small{[Tsitsikilis 99, CTCN]}}.\\[0.5cm] \pause
 \alertb{Challenge - No algorithm exists for state spaces of dimension $> 1$}.
 \end{frame}
 
-
-\section{Differential TD learning}
 \begin{frame}
-\frametitle{Differential TD learning}
+\frametitle{LSTD learning}
+\framesubtitle{Discounted cost case}
+\begin{minipage}[t][6.5cm][t]{\textwidth}
+	
+	\only<1-2>{\alertb{Discounted-cost value function:}
+		\[
+		h^\discount(x) := \int_0^\infty \exp(-\discount t )\Expect_x[c(\markovstate_t)] \ud t,  \qquad \discount >0 \text{ - discount factor} 
+		\]\\[-0.75em]
+		\alertb{Discounted-cost optimality equation:}
+		\[
+		\discount h^\discount = c + \generate{h^\discount}
+		\]
+	}
+	\uncover<2->{
+		\[
+		\text{\alertb{LSTD goal} - }  g^* \eqdef \argmin_{g \in \clH} \|h^\discount - g\|^2_{L^2} 
+		\]\\[-0.75em]
+	}
+	\only<3>{
+	 For a linear parameterization\\[-0.5em]
+		\[
+		\begin{aligned}
+		g = h^\theta   & \eqdef \sum_{i=1}^\ell \theta_i \basis_i \\
+		\alertb{\theta^*} & \alertb{= M^{-1} b}
+		\end{aligned}
+		\]
+		\[
+		M_{ij} = \langle \basis_i, \basis_j \rangle_{L^2}, \quad
+		b_i   = \langle  \basis_i,  h^\discount \rangle_{L^2}
+		\]
+	}
+	\only<4>{
+		 For a linear parameterization \\[-0.5em]
+		\[
+		\begin{aligned}
+		g = h^\theta &  \eqdef \sum_{i=1}^\ell \theta_i \basis_i \\
+		\alertb{\theta^*} & \alertb{= M^{-1} b}
+		\end{aligned}
+		\]
+		\[
+		\begin{aligned}
+		M_{ij} = \langle \basis_i, \basis_j \rangle_{L^2}, \quad
+		b_i  & = \langle \basis_i, \alertb{h^\discount} \rangle_{L^2}\\
+		\end{aligned}
+		\]
+	}
+	\only<5>{
+		For a linear parameterization \\[-0.5em]
+		\[
+		\begin{aligned}
+		g = h^\theta   &\eqdef \sum_{i=1}^\ell \theta_i \basis_i\\
+		\alertb{\theta^*} & \alertb{= M^{-1} b}
+		\end{aligned}
+		\]
+		\[
+		\begin{aligned}
+		M_{ij} = \langle \basis_i, \basis_j \rangle_{L^2}, \quad
+		b_i  & = \langle \basis_i, \alertb{h^\discount} \rangle_{L^2}\\
+		& = \langle \basis_{i} , \, R_{\discount} c \rangle_{L^2}\\
+		\end{aligned}
+		\]
+		\[
+        \begin{aligned}
+		 \text{Resolvent kernel - } \small R_\discount c\, (x) & \eqdef\int_0^\infty \Expect_x\Bigl[ \exp \, (-\discount t) c(\markovstate_t)\Bigr] \ud t \\
+		R_\discount c &= ( I_\discount - \generate)^{-1} c
+		\end{aligned}
+		\]
+	}
+	\only<6>{
+		 For a linear parameterization \\[-0.5em]
+		\[
+		\begin{aligned}
+		g = h^\theta   & \eqdef \sum_{i=1}^\ell \theta_i \basis_i\\
+		\alertb{\theta^*} & \alertb{= M^{-1} b}
+		\end{aligned}
+		\]
+		\[
+		\begin{aligned}
+		M_{ij} = \langle \basis_i, \basis_j \rangle_{L^2}, \quad 
+		b_i   &= \langle \basis_i,  R_{\discount} c  \rangle_{L^2}\\ \pause
+		& = \langle  R^\dagger_\discount \basis_{i} ,\, c \rangle_{L^2}\\
+		\end{aligned}
+		\]
+		Using an adjoint operation and applying the stationarity of $\Phi$.
+	}
+\only<7>{ 
+	For a linear parameterization \\[-0.5em]
+	\[
+	\begin{aligned}
+	g = h^\theta   & \eqdef \sum_{i=1}^\ell \theta_i \basis_i\\
+	\alertb{\theta^*} & \alertb{= M^{-1} b}
+	\end{aligned}
+	\]
+	\[
+	\begin{aligned}
+	M_{ij} = \langle \basis_i, \basis_j \rangle_{L^2}, \quad 
+	b_i & = \langle  R^\dagger_\discount \basis_{i} ,\, c \rangle_{L^2}
+	\end{aligned}
+	\]
+ \[
+\begin{aligned}
+ \text{Eligibility vector - } \eligibvector_\basis(r) &\eqdef \int_0^\infty \exp(-\discount (t -r)) \basis(\markovstate_{r-t}) \ud t\\
+ R_\discount^\dagger \basis_i(x) &= \Expect [\eligibvector_{\basis_i}(t)|\markovstate_t=x]
+ \end{aligned}
+ \]
+}
+\only<8>{
+	For a linear parameterization \\[-0.5em]
+	\[
+	\begin{aligned}
+	g = h^\theta   & \eqdef \sum_{i=1}^\ell \theta_i \basis_i\\
+	\alertb{\theta^*} & \alertb{= M^{-1} b}
+	\end{aligned}
+	\]
+	\[
+	\begin{aligned}
+	M_{ij} = \langle \basis_i, \basis_j \rangle_{L^2}, \quad
+	b_i  & = \langle R^\dagger_\discount \basis_i,  c  \rangle_{L^2}\\ \pause
+	& = \Expect[\eligibvector_{\basis_i}(0) c(\markovstate_0)] 
+	\end{aligned}
+	\]
+} 
+%\anandspm{needs verification}
+\end{minipage}
+\end{frame}
 
-Idea : Approximate the gradient of $h$ directly \bl{[RDM16, DM 16]}:
+\begin{frame}
+\frametitle{LSTD learning}
+\framesubtitle{Discounted cost case}
+\begin{minipage}[t][6.5cm][t]{\textwidth}
+ODE formulation of the LSTD algorithm:
+\begin{subequations}
+	\begin{align*}
+	\ddt M(t) &= \basis(\markovstate_t) \basis^\transpose(\markovstate_t)  \\
+	\ddt \eligibvector_\basis (t) &= - \discount\, \eligibvector_\basis(t) + \basis (\markovstate_t)  \\
+	\ddt b(t) &=  \eligibvector_\basis(t) c(\markovstate_t)\\
+	\param(t) &\eqdef  M(t)^{-1} b(t) 
+	\end{align*}
+\end{subequations} \pause
+By law of large numbers,
+\[
+ \lim_{t \to \infty} \param(t) = \param^* 
+\]
+Drawback: Requires the existence of  a regenerating state.
+\end{minipage}
+\end{frame}
+
+
+\section{Differential LSTD learning}
+\begin{frame}
+\frametitle{Differential LSTD learning ($\gradTD$)}
+\frametitle{Poisson's equation}
+
+Idea: Approximate the gradient of $h$ directly \bl{[RDM 16, DM 16]}:
 % \Fontvib
 \[
 g^* \eqdef \argmin_{g\in \clH}    \|\nabla h -\nabla g\|_{L^2}^2
@@ -765,86 +969,85 @@ Need to choose a function class $\clH$ for $g$ (or $\nabla g$)
 \end{frame}
 
 \begin{frame}
-\frametitle{Differential TD learning}
-%\framesubtitle{Differential TD-Learning}
-
-
+\frametitle{Differential LSTD learning ($\gradTD$)}
+\framesubtitle{Poisson's equation}
 \begin{minipage}[t][6.5cm][t]{\textwidth}
 	\[
-	g^* \eqdef \argmin_{g\in \clH}    \|\nabla h -\nabla g\|_{L^2}^2
+	\text{\alertb{$\gradTD$ goal} - }g^* \eqdef \argmin_{g\in \clH}    \|\nabla h -\nabla g\|_{L^2}^2
 	\]
-	
-	
 	\alertb{Challenge: }   the function $h$ is not known,
 	
 	\rightline{ and hence the objective function is not observable}
 	\only<2>{
-    \alertb{Old approach:} For a linear parameterization\\[-0.5em]
+    \alertb{$\gradTD$:} For a linear parameterization\\[-0.5em]
   	\[
   \begin{aligned}
-  g = h^\theta   \eqdef \sum_{i=1}^\ell \theta_i \psi_i
-  & \implies \nabla g =  \sum_{i=1}^\ell \theta_i \nabla \psi_i \\
+  g = h^\theta   \eqdef \sum_{i=1}^\ell \theta_i \basis_i
+  & \implies \nabla g =  \sum_{i=1}^\ell \theta_i \nabla \basis_i \\
   \alertb{\theta^*} & \alertb{= M^{-1} b}
   \end{aligned}
   \]
   \[
-  M_{ij} = \langle \nabla \psi_i, \nabla \psi_j \rangle_{L^2}, \quad
-  b_i   = \langle \nabla \psi_i, \nabla h \rangle_{L^2}
+  M_{ij} = \langle \nabla \basis_i, \nabla \basis_j \rangle_{L^2}, \quad
+  b_i   = \langle \nabla \basis_i, \nabla h \rangle_{L^2}
   \]
 	}
  \only<3>{
-	\alertb{Old approach:}  For a linear parameterization \\[-0.5em]
+	\alertb{$\gradTD$:}  For a linear parameterization \\[-0.5em]
 	\[
 	\begin{aligned}
-	g = h^\theta   \eqdef \sum_{i=1}^\ell \theta_i \psi_i
-	& \implies \nabla g =  \sum_{i=1}^\ell \theta_i \nabla \psi_i \\
+	g = h^\theta   \eqdef \sum_{i=1}^\ell \theta_i \basis_i
+	& \implies \nabla g =  \sum_{i=1}^\ell \theta_i \nabla \basis_i \\
 	\alertb{\theta^*} & \alertb{= M^{-1} b}
 	\end{aligned}
 	\]
 	\[
 	\begin{aligned}
-	M_{ij} = \langle \nabla \psi_i, \nabla \psi_j \rangle_{L^2}, \quad
-	b_i  & = \langle \nabla \psi_i, \alertb{\nabla h} \rangle_{L^2}\\
+	M_{ij} = \langle \nabla \basis_i, \nabla \basis_j \rangle_{L^2}, \quad
+	b_i  & = \langle \nabla \basis_i, \alertb{\nabla h} \rangle_{L^2}\\
     \end{aligned}
     \]
     }
 	\only<4>{
-	\alertb{Old approach:}  For a linear parameterization \\[-0.5em]
+	\alertb{$\gradTD$:}  For a linear parameterization \\[-0.5em]
 	\[
 	\begin{aligned}
-	g = h^\theta   \eqdef \sum_{i=1}^\ell \theta_i \psi_i
-	& \implies \nabla g =  \sum_{i=1}^\ell \theta_i \nabla \psi_i \\
+	g = h^\theta   \eqdef \sum_{i=1}^\ell \theta_i \basis_i
+	& \implies \nabla g =  \sum_{i=1}^\ell \theta_i \nabla \basis_i \\
 	\alertb{\theta^*} & \alertb{= M^{-1} b}
 	\end{aligned}
 	\]
 	\[
 	\begin{aligned}
-	M_{ij} = \langle \nabla \psi_i, \nabla \psi_j \rangle_{L^2}, \quad
-	b_i  & = \langle \nabla \psi_i, \alertb{\nabla h} \rangle_{L^2}\\
-         & = \langle \nabla \psi_{i} , \, R_{U^{''}} \nabla c \rangle_{L^2}\\
-   \end{aligned}
+	M_{ij} = \langle \nabla \basis_i, \nabla \basis_j \rangle_{L^2}, \quad
+	b_i  & = \langle \nabla \basis_i, \alertb{\nabla h} \rangle_{L^2}\\
+         & = \langle \nabla \basis_{i} , \, R_{U^{''}} \nabla c \rangle_{L^2}\\
+         \end{aligned}
+         \]\\[-2em]
+\[    \text{Resolvent kernel - } {\small R_{U''} \nabla c\, (x)  \eqdef \int_0^\infty \Expect_x\Bigl[ \exp \, \Bigl(-\int_0^t U''(\markovstate_s)\, \rmd s \Bigr) \nabla c(\markovstate_t)\Bigr] \ud t}
+      % \end{aligned}
    \]
 }
 \only<5>{
-	\alertb{Old approach:}  For a linear parameterization \\[-0.5em]
+	\alertb{$\gradTD$:}  For a linear parameterization \\[-0.5em]
 	\[
 	\begin{aligned}
-	g = h^\theta   \eqdef \sum_{i=1}^\ell \theta_i \psi_i
-	& \implies \nabla g =  \sum_{i=1}^\ell \theta_i \nabla \psi_i \\
+	g = h^\theta   \eqdef \sum_{i=1}^\ell \theta_i \basis_i
+	& \implies \nabla g =  \sum_{i=1}^\ell \theta_i \nabla \basis_i \\
 	\alertb{\theta^*} & \alertb{= M^{-1} b}
 	\end{aligned}
 	\]
 \[
 \begin{aligned}
-M_{ij} = \langle \nabla \psi_i, \nabla \psi_j \rangle_{L^2}, \quad
-b_i  & = \langle \nabla \psi_i, \alertb{\nabla h} \rangle_{L^2}\\ \pause
-& = \langle  R^\dagger_{U^{''}} \nabla \psi_{i} ,\,\nabla c \rangle_{L^2}\\
+M_{ij} = \langle \nabla \basis_i, \nabla \basis_j \rangle_{L^2}, \quad
+b_i  & =\langle \nabla \basis_{i} , \, R_{U^{''}} \nabla c \rangle_{L^2}\\
+& = \langle  R^\dagger_{U^{''}} \nabla \basis_{i} ,\,\nabla c \rangle_{L^2}\\
 \end{aligned}
 \]
 Using an adjoint operation and applying the stationarity of $\Phi$.
 
 }
-	\only<6-8> { \alertb{New resolution: }   if  $f, g\in L^2(\pr)$
+	\only<6-8> { \alertb{$\gradTD$-L: }   For Langevin diffusion, if  $f, g\in L^2(\pr)$
 	\[
 	\langle \nabla f, \nabla g \rangle_{L^2}    = - \langle  f, \generate g\rangle_{L^2} = - \langle \generate f , g \rangle_{L^2}.
 	\]
@@ -867,11 +1070,11 @@ Using an adjoint operation and applying the stationarity of $\Phi$.
 \end{aligned}
 \]   }
 
-\only<9-> { \alertb{New resolution: }   For a linear parameterization \\[-0.5em]
+\only<9-> { \alertb{$\gradTD$-L: }   For a linear parameterization \\[-0.5em]
 	\[
 	\begin{aligned}
-	g = h^\theta   \eqdef \sum_{i=1}^\ell \theta_i \psi_i
-	& \implies \nabla g =  \sum_{i=1}^\ell \theta_i \nabla \psi_i \\
+	g = h^\theta   \eqdef \sum_{i=1}^\ell \theta_i \basis_i
+	& \implies \nabla g =  \sum_{i=1}^\ell \theta_i \nabla \basis_i \\
 	\alertb{\theta^*} & \alertb{= M^{-1} b}
 	\end{aligned}
 	\]\vspace{-1em}
@@ -881,23 +1084,23 @@ Using an adjoint operation and applying the stationarity of $\Phi$.
 \column{.45\hsize}
 \[
 \begin{aligned}
-\uncover<9->{M_{ij} &= \langle \nabla \psi_i, \nabla \psi_j \rangle_{L^2}}
+\uncover<9->{M_{ij} &= \langle \nabla \basis_i, \nabla \basis_j \rangle_{L^2}}
 \\
 &
 \uncover<10->{\approx
 	\frac{1}{t}
-	\int_0^t \nabla \psi(\process_s)\, \nabla \psi^{\transpose}(\process_s) ds}
+	\int_0^t \nabla \basis(\markovstate_s)\, \nabla \basis^{\transpose}(\markovstate_s) ds}
 \end{aligned}
 \]
-\column{.4\hsize}
+\column{.5\hsize}
 \[
 \begin{aligned}
-\uncover<9->{b_i  &= \langle \nabla \psi_i, \alertb{\nabla h} \rangle_{L^2} =  \langle \psi_i,  \tilc \rangle_{L^2}}
+\uncover<9->{b_i  &= \langle \nabla \basis_i, \alertb{\nabla h} \rangle_{L^2} =  \langle \basis_i,  \tilc \rangle_{L^2}}
 \\
 &
 \uncover<10->{\approx
 	\frac{1}{t}
-	\int_0^t \psi(\process_s)\, \tilde{c}(\process_s)\, ds
+	\int_0^t \basis_i(\markovstate_s)\, \tilde{c}(\markovstate_s)\, ds
 }
 \end{aligned}
 \]
@@ -907,11 +1110,12 @@ Using an adjoint operation and applying the stationarity of $\Phi$.
 \end{frame}
 
 \begin{frame}
-\frametitle{Differential TD learning using RKHS}
+\frametitle{Differential LSTD learning on RKHS ($\gradTD$-RKHS)}
 \framesubtitle{Basics of RKHS}
-A suitable choice of basis functions is a challenging problem \bl{[RDM 16, TM 16]}.
+A suitable choice of basis functions is a challenging problem \bl{[RDM 16, TM 16]}.\\ \pause
+Difficult to handpick basis functions for $d>1$. \\\pause
 
-A kernel function $K(\cdot\,,\,\cdot)$ defines an RKHS if
+A kernel function $K(\cdot\,,\,\cdot)$ defines an RKHS if  (\small \alertb{Moore-Aronsjazn theorem})
 % \begin{romannum}
 \begin{itemize}
 	\item[$\bullet$]
@@ -929,7 +1133,7 @@ Final condition is required for our loss function.
 \end{frame}
 
 \begin{frame}
-\frametitle{Differential TD learning using RKHS}
+\frametitle{Differential LSTD learning on RKHS}
 \framesubtitle{Basics of RKHS}
 \begin{minipage}[t][6.5cm][t]{\textwidth}
 	\alertb{Vector space $\clH^\circ$:}     all finite linear combinations
@@ -953,33 +1157,29 @@ Final condition is required for our loss function.
 \end{frame}
 
 \begin{frame}
-\frametitle{Differential TD learning using RKHS}
+\frametitle{Differential LSTD learning on RKHS}
 \framesubtitle{Empirical risk minimization (ERM)}
 
 \begin{minipage}[t][6.5cm][t]{\textwidth}
 	
-	Recall goal:
+	Recall $\gradTD$ goal:
 	\[
 	g^* = \argmin_{g\in \clH}   \Bigl\{   \|\nabla g  \|_{L^2}^2   -  2 \langle  \tilc,   g \rangle_{L^2}   \Bigr\}
 	\]
 	
 	Approximation via \alertb{empirical risk minimization (ERM)}:
 	\[
-	\argmin_{g \in \clH} \frac{1}{N} \sum_{i=1}^N\Bigl[ \| \nabla g(x^i) \|^2 - 2 \tilc_N(x^i)g(x^i)\Bigr] + \lambda \|g\|_\clH^2
+	\argmin_{g \in \clH} \underbrace{\frac{1}{N} \sum_{i=1}^N\Bigl[ \| \nabla g(x^i) \|^2 - 2 \tilc_N(x^i)g(x^i)\Bigr]}_{\text{Empirical risk}} + \underbrace{\lambda \|g\|_\clH^2}_{\text{Regularization}}
 	\]
-	
-	where $\tilc$ is also approximated:
+ $\tilc$ is also approximated as:\\[-1em]
 	\[
 	\tilc_N(x) = c(x) - \frac{1}{N}  \sum_{i=1}^N  c(x^i)\,,\quad x\in\Re^d\, .
 	\]
-	
-	Regularization parameter $\lambda>0$   introduced to avoid overfitting.
-	
 \end{minipage}
 \end{frame}
 
 \begin{frame}
-\frametitle{Differential TD learning using RKHS}
+\frametitle{Differential LSTD learning on RKHS}
 \framesubtitle{Empirical risk minimization (ERM)}
 \begin{block}{Extended Representer Theorem \bl{[Zhou 08]}}
 	If loss function
@@ -998,44 +1198,75 @@ Our loss function is convex:   $L(x,g,\nabla g) = \| \nabla g(x)\|^2 - 2 \tilc(x
 \end{frame}
 
 \begin{frame}
-\frametitle{Differential TD learning using RKHS}
-\framesubtitle{Solution in one dimension}
+\frametitle{Differential LSTD learning on RKHS}
+\framesubtitle{Optimal solution in one dimension}
 
 \begin{minipage}[t][6.5cm][t]{\textwidth}
-	
-	
-	
+\alertb{$\gradTD$-RKHS ERM:} \\[-1em]
 	\[
 	\begin{aligned}
-	g^* &= \argmin_{g\in\clH} \frac{1}{N} \sum_{i=1}^N \Bigl\{ (g'(x^i))^2 - 2 \tilc_N(x^i) g(x^i) \Bigr\} + \lambda \|g\|^2_\clH
+g^* &= \argmin_{g\in\clH} \frac{1}{N} \sum_{i=1}^N \Bigl\{ (g'(x^i))^2 - 2 \tilc_N(x^i) g(x^i) \Bigr\} + \lambda \|g\|^2_\clH
 	\\[.3em]
-	g^*(y)
+	\text{Solution: } g^*(y)
 	& = \sum_{i=1}^N \Bigl\{
-	\beta_i^{0*}  K(x^i, y)   +   \beta_i^{1*}  K_x(x^i, y)  \Bigr\}  \,,\quad y\in\Re
+	\beta_i^{0*}  K(x^i, y)   +   \beta_i^{1*}  \partial_x K(x^i, y)  \Bigr\}  \,,\quad y\in\Re
 	\end{aligned}
 	\]
-	
-	\pause
+	\only<2>{ Notation:\\[-1em]
+	{ \small
+	\[
+	\begin{aligned}
+	M_{00}(i,j) &:= K(x^i,x^j),
+	\quad
+	& M_{10}(i,j) &:= \frac{\partial K}{\partial x}(x^i,x^j)
+	\\
+	M_{01}(i,j) &:= \frac{\partial K}{\partial y}(x^i,x^j),
+	\quad
+	& M_{11}(i,j) &:= \frac{\partial^2 K}{\partial x \partial y}(x^i,x^j) \\
+	\vectilc^\transpose := & [\tilc_N(x^1) ,\dots, \tilc_N(x^N)],
+    & \quad
+	\beta^\transpose=  &[\beta_1^0 ,\dots,  \beta_N^0 \,,\, \beta_1^1 ,\dots,  \beta_N^1]
+	\end{aligned}
+	\]	
+		}
+     }
+	\uncover<3->{
 	Computation:	\alert{	$\beta^* = M^{-1} b$}
-	{\small
 		\[
 		\begin{aligned}
-		M  &= \frac{1}{N} \left[\begin{array}{c} M_y\\ \hline M_{xy} \end{array}\right] [M_x \,| M_{xy}] + \lambda  \left[
+		M  &= \frac{1}{N} \left[\begin{array}{c} M_{01}\\ \hline M_{11} \end{array}\right] [M_{10} \,| M_{11}] + \lambda  \left[
 		\begin{array}{c|c}
-		M_0& M_y \\
+		M_{00} & M_{01} \\
 		\hline
-		M_x & M_{xy}
+		M_{10} & M_{11}
 		\end{array}
 		\right]
 		\\
-		b &=  \frac{1}{N} \left[ \begin{array}{c} M_0 \\ \hline M_x \end{array}\right] \mathbf{\varsigma}\,, \qquad  \mathbf{\varsigma}^\transpose = [\tilc_N(x^1) ,\dots, \tilc_N(x^N)]
-		\\[.3cm]
-		\beta^\transpose   &=  [\beta_1^0 ,\dots,  \beta_N^0 \,,\, \beta_1^1 ,\dots,  \beta_N^1]
+		b &=  \frac{1}{N} \left[ \begin{array}{c} M_{00} \\ \hline M_{10} \end{array}\right]
 		\end{aligned}
 		\]
-	}
+}
 \end{minipage}
 \end{frame}
+
+\begin{frame}
+\frametitle{Differential LSTD learning on RKHS}
+\framesubtitle{Simplified solution}
+Drawback : Complexity grows linearly with $d$, since $\beta^* \in \Re^{(d+1) \times N}$
+\vfill
+\alertb{ Simplified solution :} By considering the finite-dimensional function class - $\clH_N  \eqdef \text{span}\{  \Kern_{x^j}  :  1\le j\le N  \}$
+\[
+g^*(y) = \sum_{j=1}^N \beta_j^* \Kern(x^j,y) 
+\]
+\[
+\alertb{\beta ^* = M^{-1} b}
+\]
+\[
+\text{where,} \quad M := N^{-1}  M_{01} M_{10} + \lambda  M_{00} , \qquad b:=  N^{-1} M_{00} \vectilc
+\]
+\alertb{ Surprising empirical observation :} Simplified solution does as good as the optimal solution for $d\leq5$.
+\end{frame}
+
 
 \section{Applications to Nonlinear filtering}
 \begin{frame}
@@ -1074,7 +1305,7 @@ Feedback particle filter (FPF) \bl{[Yang 13]} is motivated by techniques from me
 
 $N$ \textit{particles} are propagated in the form of a controlled system.
 \begin{equation*}
-\textmd{d}X_{t}^{(i)}=\underbrace{a(X_{t}^{i})dt+\textmd{d}B_{t}^{i}}_{\text{Propagation}}+\underbrace{\textmd{d}U^{i}_{t}}_{\text{Update}}, \quad i=1\text{ to } N
+\textmd{d}X_{t}^{i}=\underbrace{a(X_{t}^{i})dt+\textmd{d}B_{t}^{i}}_{\text{Propagation}}+\underbrace{\textmd{d}U^{i}_{t}}_{\text{Update}}, \quad i=1\text{ to } N
 \label{eq_controlled_sys}
 \end{equation*}\\[-0.3cm]
 \begin{itemize}
@@ -1101,7 +1332,7 @@ Asymptotically exact filter obtained by minimizing the KL divergence between $\r
 \half[c(X^i_t) + \hat{c}_t]\ud t}^{\ud I^i_t})\, ,
 \end{aligned}
 \end{equation*}
-$I^i_t$ : Innovations process \\
+$I^i_t$ : Innovations process. \\
 $\kFPF_t$ : FPF gain, similar in nature to the Kalman gain.
 \uncover<2->{
 \begin{figure}[h]
@@ -1118,24 +1349,23 @@ $\kFPF_t$ : FPF gain, similar in nature to the Kalman gain.
 \framesubtitle{Feedback Particle Filter}
 \begin{subequations}
 	\begin{flalign*}
-	&\text{KF:} &\ud \hat{X}_t &= a(\hat{X}_t)\ud t + \underbrace{\kFPF_t (\ud Z_t - c(\hat{X}_t)\ud t)}_{\text{update}}&
+	&\text{KF:} &\ud \mu_t &= a(\mu_t)\ud t + \underbrace{\text{K}_{\text{kal}} (\ud Z_t - c(\mu_t)\ud t)}_{\text{update}}&
 	\\
 	\uncover<2->{
 	&\text{FPF:}  &\ud X^i_t  &= a(X^i_t) \ud t + \ud B^i_t + \underbrace{ \alertb{\kFPF_t(X^i_t)} \circ (\ud Z_t -
 		\half[c(X^i_t) + \hat{c}_t]\ud t)}_{\text{update}}&}
 	\end{flalign*}
 \end{subequations} \\[-0.2cm]
-
 \begin{columns}
-\begin{column}{0.5\textwidth}
+\begin{column}{0.45\textwidth}
 	\begin{figure}[h]
-		\Ebox{1}{Kalman.png}
+		\Ebox{1}{Kalman.pdf}
 		% \caption{Finite-$N$ implementation}
 \end{figure}
 \end{column}
-\uncover<2->{\begin{column}{0.5\textwidth}
+\uncover<2->{\begin{column}{0.55\textwidth}
 		\begin{figure}[h]
-				\Ebox{1}{FPF.png}
+				\Ebox{1}{FPF.pdf}
 				% \caption{Finite-$N$ implementation}
 \end{figure}
 \end{column} }
@@ -1146,60 +1376,257 @@ $\kFPF_t$ : FPF gain, similar in nature to the Kalman gain.
 \begin{frame}
 \frametitle{Applications to Nonlinear filtering}
 \framesubtitle{FPF Gain function}
-\centerline{\alertb{Representation:
+\centerline
+{\alertb{Representation:
 		{\LARGE
 		$
 		\kFPF_t = \nabla h
 		$}}
 }
-\vfill
-$h$ solves \alertb{Poisson's equation:}  $ \generate h = -\nabla \pot \cdot \nabla h + \Delta h = - \tilc$.
+$h$ solves \alertb{Poisson's equation:}  $ \generate h = -\nabla \pot \cdot \nabla h + \Delta h = - \tilc$. \pause
 Approximations to $\kFPF$ can be obtained by
 \[
 \min_{g \in \clH} \| \kFPF - \hat{\kFPF}\|^2_{L^2} = \min_{g \in \clH} \| \nabla h - \nabla g \|^2_{L^2}
 \]
-Can be solved using differential TD learning
+\only<3>{
+\alertb{Can be solved using $\gradTD$ learning}
+}
+\only<4->{ FPF implementation requires online gain estimation for each $t$.
 \begin{itemize}
-\item Finite dimensional function space
-\item RKHS
+\item $\gradTD$-RKHS with optimal mean 
+\item $\gradTD$-RKHS with memory
 \end{itemize}
+}
 \end{frame}
 
 \begin{frame}
-\frametitle{Application to Nonlinear filtering}
+\frametitle{Applications to Nonlinear filtering}
+\framesubtitle{$\gradTD$-RKHS-OM}
+\alertb{Constant gain approximation}  for $\kFPF$ is the minimizer obtained over all deterministic vectors:
+\[
+\hakFPF^* \eqdef \argmin_{\hakFPF \in \Re^d} \| \kFPF - \hakFPF \|^2_{L^{2}}
+\]
+\pause
+Solution is evidently the mean,  $\hakFPF^* = \Expect[\kFPF]$.
+\begin{overlayarea}{\textwidth}{0.75\textheight}
+	%\only<2>{\[
+	%	\hakFPF^*_i = \langle \kFPF, e_i \rangle_{L^2(\pr)}
+	%	\]
+	%}
+	%
+	%\only<3>{\[
+	%	\hakFPF^*_i = \langle \nabla h, e_i \rangle_{L^2(\pr)}
+	%	\]
+	%}
+	%
+	%\only<4->{\[
+	%\hakFPF^*_i = - \langle \generate h, x^i \rangle_{L^2(\pr)} = \langle \tilc, x^i \rangle_{L^2(\pr)}
+	%\]
+	%}
+	\[
+	\begin{aligned}
+	\hakFPF^*_k &= \langle \kFPF, \,e_k \rangle_{L^2} \\ \pause
+	&= \langle \nabla h,\, e_k \rangle_{L^2} \\ \pause
+	&= - \langle \generate h,\, x_k \rangle_{L^2} = \langle \tilc, \, x_k \rangle_{L^2}
+	\end{aligned}
+	\]
+	\vfill
+	\onslide<5->{
+		Empirical approximation:\\[-0.5em]
+		\[
+		\hakFPF^*_k \approx \frac{1}{N} \sum_{i=1}^N [ c(x^i) - \hac ]x^i_k
+		\]
+	}
+\end{overlayarea}
+\end{frame}
 
+\begin{frame}
+\frametitle{Applications to Nonlinear filtering}
+\framesubtitle{$\gradTD$-RKHS-OM}
+Redefine the approximation to $\kFPF$ as, 
+\[
+\nabla g = \hakFPF^* + \nabla \tilg
+\]
+Modified ERM with constaints is:
+\[
+\begin{aligned}
+\tilg^*  \eqdef \argmin_{\tilg\in\clH} \ \  &   \| \nabla h - \hakFPF^* - \nabla \tilg \|^2_{L_2} \\
+\text{s.t. }  \ \   & \langle \partial_{x_k} \tilg , 1 \rangle_{L_2} = 0, \quad     1\le  k \le d
+\end{aligned}
+\]
+Solution obtained by finding a saddle point for the Lagrangian
+\[
+L(\tilg, \mu ) \eqdef   \| \nabla h - \hakFPF^* - \nabla \tilg \|^2_{L_2} +  \langle \mu ,  \nabla \tilg \rangle_{L_2}
+\]
+where $\mu  \in\Re^d$ are the Lagrange multipliers.
+\end{frame}
+
+\begin{frame}
+\frametitle{Applications to Nonlinear filtering}
+\framesubtitle{$\gradTD$-RKHS-OM}
+Using the finite-dimensional function class, $\clH_N  \eqdef \text{span}\{  \Kern_{x^j}  :  1\le j\le N  \}$ 
+\pause
+\\[0.5em]
+$\beta $ and $\mu $ can be obtained by solving $N+d$ linear equations:
+\[
+\begin{aligned}
+0  &=  2 \Bigl(  \frac{1}{N}  \sum_{k=1}^d M_{x_k}^\transpose M_{x_k}   +  \lambda M_{00} \Bigr) \beta ^* + \frac{ \kappa \mu ^*}{N}+  \frac{2}{N} \Bigl( \kappa \hakFPF^*  -   M_{00} \vectilc \Bigr)  \\
+0  & = \kappa^{\transpose} \beta^*
+\end{aligned}
+\]
+Gain is then computed as
+$
+\kFPF = \hakFPF^* + \nabla \tilg^*$.
+\end{frame}
+
+\begin{frame}
+\frametitle{Applications to Nonlinear filtering}
+\framesubtitle{$\gradTD$-RKHS-memory}
+\onslide<1->{Gain updates are done at $t= n \delta$, where $\delta$ is the inter-sampling time. 
+
+Continuity : $\kFPF_{n} = \kFPF_{t_n}  \approx \kFPF_{t_{n-1}}$ if $\delta\approx 0$.
+}
+\begin{overlayarea}{\textwidth}{0.5\textheight}
+\only<2>{
+Adding a regularizer term to the loss function:
+\[
+\begin{aligned}
+g^*_n & := \argmin_{g \in \clH} \frac{1}{N} \sum_{j=1}^N  L_n(x_n^j,g,\nabla g) + \lambda \|g\|^2_\clH
+\\[.5em]
+L_n(x,g,\nabla g) &  \eqdef  \| \nabla g(x) \|^2 - 2 \tilc_N(x)g(x)  + \underbrace{\lambda_{mem} \|\nabla g(x) -  \nabla g_{n-1}(x)\|^2}_{\text{continuity penalty}}
+\end{aligned}
+\]
+}
+\only<3->{
+\[
+\alertb{\beta ^*_n  = M^{-1} b}
+\]
+\[
+\begin{aligned}
+\text{where,} \qquad M &=  (1+ \lambda_{mem})\sum_{k=1}^d M_{x_k}^\transpose M_{x_k} + \lambda N M_{00}
+\\
+b &=  M_{00} \vectilc  + \lambda_{mem} \sum_{k =1}^d  M_{x_k}^\transpose \kFPF_{n-1,k}
+\end{aligned}
+\]
+}
+\only<4->{
+Both refinements 1 and 2 can be applied independently or simultaneously.
+}
+\end{overlayarea}
+\end{frame}
+
+\begin{frame}
+\frametitle{Applications to Nonlinear filtering}
+\framesubtitle{$\gradTD$-RKHS-OM}
+Using the finite-dimensional function class, $\clH_N  \eqdef \text{span}\{  \Kern_{x^j}  :  1\le j\le N  \}$ 
+\pause
+\\[0.5em]
+$\beta $ and $\mu $ can be obtained by solving $N+d$ linear equations:
+\[
+\begin{aligned}
+0  &=  2 \Bigl(  \frac{1}{N}  \sum_{k=1}^d M_{x_k}^\transpose M_{x_k}   +  \lambda M_{00} \Bigr) \beta ^* + \frac{ \kappa \mu ^*}{N}+  \frac{2}{N} \Bigl( \kappa \hakFPF^*  -   M_{00} \vectilc \Bigr)  \\
+0  & = \kappa^{\transpose} \beta^*
+\end{aligned}
+\]
+Gain is then computed as
+$
+\kFPF = \hakFPF^* + \nabla \tilg^*$.
+\end{frame}
+
+\begin{frame}
+\frametitle{Applications to Nonlinear filtering}
+\framesubtitle{Markov kernel approximation \bl{[Taghvaei 16]}}
+Approximates the transition kernel of the Langevin diffusion: 
+\[
+h = P_\epsilon h + \int_0^\epsilon P_s (c - \hac) \ud s,
+\] \tiny{Give the expression for kernel approx.}
+Empirical approximation on particle locations $x^i$: 
+\[
+h_i = \sum_{j=1}^N \text{T}_{ij} h_j + \epsilon (c - \hac), \text{for $i=1$ to $N$}
+\]
+Gain $\kFPF$ is then obtained by approximating the gradient $\nabla h_i$.
+\end{frame}
+
+\begin{frame}
+\frametitle{Application to nonlinear filtering}
+\frametitle{Numerical example}
 \begin{minipage}[t][6.5cm][t]{\textwidth}
-	
-	\begin{tabular}{lll}\alertb{Example:}   &  For a fixed $t$, $\pr_t$ a Gaussian mixture
+	\begin{tabular}{lll}\alertb{Example:} & For a fixed $t$, $\pr_t$ a Gaussian mixture
 		\\
 		&   $c(x)\equiv x$
 		\\
-		& $ N = 500$ particles
+		& $T  = 10^4, 10^5, 10^6$ with $\delta = 0.01$
+		% \\
 	\end{tabular}
-	\\[-0.3em]
+	%\\[-0.3em]
 	
 	\pause
 	\only<2>{
 		\centering
-		\includegraphics[width= .65\hsize]{gain_exact.eps}}
-	
+		% \includegraphics[width= .65\hsize]{gain_exact.eps}}
+		\includegraphics[width= \hsize]{Chap4_diff_td_linear_polynomials.pdf}\\
+	    $\gradTD$ with $\basis_i = x^i$ with $1 \leq i \leq 10$.}
 	\only<3>{
 		\centering
-		\includegraphics[width= .65\hsize]{gain_exact_const.eps}}
-	
+		\includegraphics[width= \hsize]{Chap4_diff_td_linear_fourier.pdf}\\
+	  $\gradTD$ with $\basis_i = \sin ix, \, \basis_{i+1} = \cos ix$ with $1 \leq i \leq 5$.
+	}
 	\only<4>{
 		\centering
-		\includegraphics[width= .65\hsize]{gain_exact_const_fin.eps}}
-	
-	\only<5>{
-		\centering
-		\includegraphics[width= .65\hsize]{gain_exact_const_coif.eps}}
-	
-	\only<6->{
-		\centering
-		\includegraphics[width= .65\hsize]{gain_exact_const_coif_rkhs.eps}}
+		\includegraphics[width= \hsize]{Chap4_diff_td_linear_wt_polynomials.pdf}\\
+	  $\gradTD$ with $\basis_i = x^i \pr_1(x), \, \basis_{i+1} = x^i \pr_2(x)$ with $1 \leq i \leq 5$.
+	}
+%	\only<5>{
+%		\centering
+%		\includegraphics[width= .65\hsize]{gain_exact_const_coif.eps}}
+%	
+%	\only<6->{
+%		\centering
+%		\includegraphics[width= .65\hsize]{gain_exact_const_coif_rkhs.eps}}
 \end{minipage}
 \end{frame}
+
+\begin{frame}
+\frametitle{Application to nonlinear filtering}
+\frametitle{Numerical example}
+\begin{minipage}[t][6.5cm][t]{\textwidth}
+	\begin{tabular}{lll}\alertb{Example:} &For a fixed $t$, $\pr_t$ a Gaussian mixture
+		\\
+		&   $c(x)\equiv x$
+		\\
+		& $N  = 100, 500, 1000$
+		% \\
+	\end{tabular}
+	%\\[-0.3em]
+	\only<1>{
+		\centering
+		% \includegraphics[width= .65\hsize]{gain_exact.eps}}
+		\includegraphics[width= \hsize]{Chap4_lang_td_wt_polynomials.pdf}\\
+		$\gradTD$-L with $\basis_i = x^i \pr_1(x), \, \basis_{i+1} = x^i \pr_2(x)$ with $1 \leq i \leq 5$.
+	}
+	\only<2>{
+	\centering
+	\includegraphics[width= \hsize]{Chap4_N.pdf}\\
+	$\gradTD$-RKHS-N with Gaussian kernel, $\epsy=0.1$ and $\lambda = 10^{-2}$
+    }
+	\only<3>{
+		\centering
+		\includegraphics[width= \hsize]{Chap4_N_dN.pdf}\\
+		$\gradTD$-RKHS-2N with Gaussian kernel, $\epsy=0.1$ and $\lambda = 10^{-2}$
+	}
+	\only<4>{
+		\centering
+		\includegraphics[width= \hsize]{Chap4_rkhs_om.pdf}\\
+		$\gradTD$-RKHS-OM with Gaussian kernel, $\epsy=0.1$ and $\lambda = 10^{-2}$
+	}
+	\only<5>{
+		\centering
+		\includegraphics[width= \hsize]{Chap4_coif.pdf}\\
+	 Markov kernel approximation with $\epsilon = 0.1$
+	}
+\end{minipage}
+\end{frame}
+
 
 \begin{frame}
 \frametitle{Applications to Nonlinear filtering}
@@ -1275,7 +1702,7 @@ In many applications, we need to compute
 \end{itemize}
  Markov-Chain Monte Carlo (MCMC) methods provide numerical algorithms to obtain estimates:
 	\[
-	\eta_t =\frac{1}{t}\int_0^t c(\process(s)) \, ds
+	\eta_t =\frac{1}{t}\int_0^t c(\markovstate(s)) \, ds
 	\label{e:sample_mean}
 	\]
 \begin{center}
@@ -1293,7 +1720,7 @@ Estimates $\eta_t$ obey a Central Limit Theorem,
 
 Rate of convergence captured by \alertb{asymptotic variance}
 \[
-\gamma^2 = \lim_{t \to \infty} \Expect \left[\left(\frac{1}{\sqrt{t}}\int_{0}^{t}(c(\process(s))-\eta)\,ds\right)^2\right]
+\gamma^2 = \lim_{t \to \infty} \Expect \left[\left(\frac{1}{\sqrt{t}}\int_{0}^{t}(c(\markovstate(s))-\eta)\,ds\right)^2\right]
 \]
 Alternate representation in terms of covariance
 \[
@@ -1465,7 +1892,7 @@ $\Theta \in \Re^4$ - Regression coefficients for classification.
 \begin{frame}
 \frametitle{Conclusions}
 \begin{itemize}
-	\item Differential TD learning based approaches to approximate solution to Poisson's equation for the Langevin diffusion.\\[-0.1cm]
+	\item Differential LSTD learning based approaches to approximate solution to Poisson's equation for the Langevin diffusion.\\[-0.1cm]
 	 \begin{itemize}
 	 	\item Finite dimensional basis.
 	 	\item RKHS.
@@ -1512,7 +1939,7 @@ $\Theta \in \Re^4$ - Regression coefficients for classification.
 	T. Yang, P. G. Mehta and S. P. Meyn, ``Feedback Particle Filter,'' in IEEE Transactions on Automatic Control, vol. 58, no. 10, pp. 2465-2480, Oct. 2013.
 	
 	\bibitem{devraj}
-	A. M. Devraj and S. P. Meyn, ``Differential TD learning for value function approximation,'' \textit{2016 IEEE 55th Conference on Decision and Control (CDC)}, Las Vegas, NV, 2016.
+	A. M. Devraj and S. P. Meyn, ``Differential LSTD learning for value function approximation,'' \textit{2016 IEEE 55th Conference on Decision and Control (CDC)}, Las Vegas, NV, 2016.
 	
 	\bibitem{zhou}
 	D.X. Zhou,
@@ -1529,7 +1956,7 @@ $\Theta \in \Re^4$ - Regression coefficients for classification.
 % \centerline{\includegraphics[width=.9\hsize]{DSC04173.jpg}}
 \centerline{\bf \huge \color{OrangeRed} Thank You!}
 \vfill
-\centerline{\huge \textbf{Questions?}}
+\centerline{\huge \alertb{Questions?}}
 \vfill
 \end{frame}
 
