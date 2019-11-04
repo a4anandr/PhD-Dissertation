@@ -231,7 +231,7 @@ Another Galerkin formulation is obtained in terms of the Bellman error. Recall t
 A commonly used estimate for $\kFPF$ that is easily computable is the constant gain approximation, denoted as $\kFPF^*$. This is obtained by choosing $\{\basis_j(x) = x_j\}_{j=1}^d$ as the basis and test functions in the Galerkin relaxation. This results in  $M = I_{d}$ and,
 \begin{align}
 \hakFPF^*_j \eqdef b & = \langle \tilc , x_j \rangle \\ 
-& \approx \frac{1}{N} \sum_{i=1}^N [ c(x^i_j) - \hac ]x^i_j, \qquad 1 \leq j \leq d,
+& \approx \frac{1}{N} \sum_{i=1}^N [ c(x^i) - \hac ]x^i_j, \qquad 1 \leq j \leq d,
 \label{e:fpf_gain_const_approx}
 \end{align}
 where $\hakFPF^*_j$ is the $j^{th}$ component of the gain.
@@ -257,7 +257,7 @@ In this section, a very concise overview of the Markov semigroup approximation f
 
 The algorithm is based on a semigroup formulation of Poisson's equation for Langevin diffusion \eqref{e:diff_td_poissons}. The function $h$ can be expressed as the solution to the following fixed-point equation:
 \begin{equation}
-h = P_\epsilon h + \int_0^\epsilon P_s (h - \hah) \ud s,
+h = P_\epsilon h + \int_0^\epsilon P_s (c - \hac) \ud s,
 \end{equation}
 where $P_\epsilon$ refers to the transition semigroup of the Langevin diffusion, defined in \eqref{e:diff_td_langevin_semigroup}. The main step is the use of an approximate semigroup $\text{T}$ in place of $P_\epsilon$.
 An empirical solution to the fixed-point equation at the particle locations is obtained through successive approximation. The gain is subsequently obtained by taking the gradient.  A summary of the algorithm to approximate the gain for a fixed time $t$ is tabulated in \Algorithm{alg:coifman}:

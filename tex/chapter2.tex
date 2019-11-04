@@ -71,7 +71,7 @@ Analogous to $h$, a discounted-cost value function $h^\discount$ is defined as,
 h^\discount(x) := \int_0^\infty \exp(-\discount t )\Expect_x[c(\markovstate_t)] \ud t, 
 \label{e:diff_td_discount_value_fn}
 \end{equation}
-with a discount rate $\discount  >0$ and $c(x)$ is the one-step cost function at the state $x$. The discounted-cost value function is often more popular in applications where the future costs incurred are assigned lower weights than the immediate costs. It may be noted that as the value of $\discount \to 0$, it closely approximates an average-cost problem. 
+with a discount rate $\discount  >0$ and $c(x)$ is the one-step cost function at the state $x$. The discounted-cost value function is often more popular in economics and operations research applications where the future costs incurred are assigned lower weights than the immediate costs. It may be noted that as the value of $\discount \to 0$, it closely approximates an average-cost problem. 
 
 \subsection{Relevance to our Applications} 
 The solution $h$ of Poisson's equation associated to the Langevin diffusion \eqref{e:diff_td_poissons} is crucial in each of the applications we consider in this dissertation. In the feedback particle filter (FPF), the innovations gain function $\kFPF$ at each $t$ is obtained as  the gradient of $h$ \cite{yanmehmey13}:
