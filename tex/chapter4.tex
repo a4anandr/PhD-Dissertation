@@ -445,7 +445,7 @@ In this Section, we provide a summary of the various $\gradTD$ based learning al
 \label{s:computational_complexity}
 %\anandspm{Should I keep this? I can remove the section and just have it as a paragraph instead}
 The Markov semigroup approximation attempts to solve an approximate problem exactly, whereas the $\gradTD$-RKHS method tries to find the best approximate solutions without altering the problem. Due to their different approaches, there is no direct way of comparing the performances using analysis. % \rd{However, it is firmly believed that the $\gradTD$-RKHS method produces asymptotically unbiased approximations.}
-
+Other approaches to gain approximation include principal orthogonal decomposition (POD) by \cite{bergro16}. \anand{needs suitable placement}
 \section{Numerical Experiments}
 \label{s:fpf_numerics}
 We begin by presenting algorithms to obtain a smooth approximation of the empirical posterior estimate in \Section{s:fpf_em}. In \Section{s:fpf_numerical}, a short discussion on the potential numerical issues the true FPF gain and its approximations may exhibit is provided, followed by tricks to resolve these problems in a practical implementation. These issues mainly impact the $\gradTD$ algorithms that require an SDE simulation. Subsequently, we present a number of numerical experiments to compare the performance of the various gain approximation algorithms discussed in this dissertation. The experiments can be broadly classified as:

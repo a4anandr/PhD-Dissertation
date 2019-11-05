@@ -213,7 +213,7 @@ wherein $\bfvarphi_g$ is the stationary process:
 %\eligibvector_g(t)
 %=
 %\int_{-\infty}^t  \exp(-\discount (t-r)) g(\markovstate_r)   \,  \ud r
-\eligibvector_g(r) \eqdef \int_0^\infty \exp(-\discount (t -r)) g(\markovstate_{r-t}) \ud t,
+\eligibvector_g(r) \eqdef \int_0^\infty \exp(-\discount r) g(\markovstate_{t-r}) \ud r,
 \label{e:diff_td_lstd_eligib_integral}
 \end{equation}
 Consequently, 
