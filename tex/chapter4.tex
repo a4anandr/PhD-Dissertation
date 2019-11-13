@@ -269,7 +269,7 @@ An empirical solution to the fixed-point equation at the particle locations is o
 	\State Calculate $\Kern_{ij} = \exp(-\|x^i - x^j\|^2/ 4\epsilon)$ for $i,j = 1$ to $N$  \Comment{Gaussian kernel}
 	\State Calculate $\kappa_{ij} = \frac{\Kern_{ij}}{\sqrt{\sum_k \Kern_{ik}}\sqrt{\sum_k \Kern_{jk}}}$ for $i,j =1$ to $N$
 	\State Calculate $d_i = \sum_j \kappa_{ij}$ for $i=1$ to $N$
-	\State Calculate $\text{T}_{ij} = \frac{\kappa_{ij}}{d_i}$ for $i,j = 1$ to $N$ \Comment{Approximation of the Markov kernel for Langevin diffusion}
+	\State Calculate $\text{T}_{ij} = \frac{\kappa_{ij}}{d_i}$ for $i,j = 1$ to $N$ \Comment{Approximation of the Markov semigroup\ for Langevin diffusion}
 	\State Calculate $\pi_i = \frac{d_i}{\sum_j d_j}$ for $i=1$ to $N$
 	\State Calculate $ \hac = \sum_{i = 1}^N \pi_i c(x^i)$
 	\State Initialize $h =h_{prev}$
@@ -559,7 +559,7 @@ The following basis-free approximation approaches were compared:
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width = 4in]{images/Chap4_log_mse_contour_2m}
-	\caption{Contour plots of average over $100$ trials of $\log(\|\kFPF - \widehat{\kFPF}\|^2_{L^2})$ with $\lambda$ and $\epsy$ with $N=500$.}
+	\caption{Contour plots of average over $100$ independent trials of $\log(\|\kFPF - \widehat{\kFPF}\|^2_{L^2})$ with $\lambda$ and $\epsy$ with $N=500$.}
 	\label{fig:log_mse_contour}
 \end{figure}
  For each of the RKHS methods, the standard Gaussian kernel \eqref{e:rkhs_gaussian_kernel} was used, centered at the particle locations $\{x^i\}_1^N$. \Fig{fig:log_mse_contour} illustrates the sensitivity in gain approximation to the hyperparameters $\lambda$ and $\epsy$ for $N=500$. The contour plots shown correspond to the log of the average mean square error in the gain approximation $\|\kFPF - \widehat{\kFPF} \|^2_{L^2}$; estimated by observations over $100$ independent trials. It is evident that a larger value for $\lambda$ prevents overfitting and a smaller value for $\epsy$ provides more flexibility. With increase in $N$, the best choices of $\lambda$ and $\epsy$ show a declining trend. Based on these results from sensitivity analysis, $\lambda = 10^{-2}$ and $\epsy = 0.1$ was chosen for the RKHS methods.
@@ -576,27 +576,26 @@ The following basis-free approximation approaches were compared:
 	\mbox{
 		\subfigure [] {\includegraphics[width = 6in]{images/Chap4_diff_td_linear_wt_polynomials}} 
 	}
-	\caption[$\gradTD$ performance comparison with finite basis]{Gain function approximations using $\gradTD$ learning algorithm (\Section{s:diff_td_learning}) using a linear parameterization \cite{raddevmey16} A) Polynomial basis, B) Fourier basis consisting of sines and cosine functions, C) Polynomials weighted by $\pr_i$.}
+	\caption[Performance comparison of $\gradTD$ algorithm with finite basis]{Gain function approximations using $\gradTD$ learning algorithm (\Section{s:diff_td_learning}) using a linear parameterization \cite{raddevmey16} A) Polynomial basis, B) Fourier basis consisting of sines and cosine functions, C) Polynomials weighted by $\pr_i$.}
 	\label{fig:diff_td_linear}
 \end{figure}
 
 \begin{figure}
 	\includegraphics[width=6in]{images/Chap4_diff_td_nl}
-	\caption[$\gradTD$ performance with nonlinear parameterization]{Gain function approximations using a $9$-dimensional nonlinear parameterization of the form using $\gradTD$-L algorithm (\Section{s:diff_td_learning})}
+	\caption[Performance comparison of $\gradTD$ with nonlinear parameterization]{Gain function approximations using a $9$-dimensional nonlinear parameterization of the form using $\gradTD$-L algorithm (\Section{s:diff_td_learning})}
 	\label{fig:diff_td_nl}
 \end{figure}
 
 \begin{figure}
 	\includegraphics[width=6in]{images/Chap4_lang_td_wt_polynomials}
-	\caption[$\gradTD$-L performance with polynomial basis]{Gain function approximations using a $10$-dimensional polynomial$\times \pr_i$ basis using $\gradTD$-L algorithm (\Section{s:diff_td_langevin})}
+	\caption[Performance comparison of $\gradTD$-L with polynomial basis]{Gain function approximations using a $10$-dimensional polynomial$\times \pr_i$ basis using $\gradTD$-L algorithm (\Section{s:diff_td_langevin})}
 	\label{fig:diff_td_lang_linear}
 \end{figure}
 
 \begin{figure}[htbp]
 	\centering
 	\mbox{
-		\subfigure [] {\includegraphics[width=6in]{images/Chap4_N_dN}} 
-		\label{fig:A}
+		\subfigure [] {\includegraphics[width=6in]{images/Chap4_rkhs_N_dN}} 
 	}
 	\mbox{
 		\subfigure [] {\includegraphics[width=6in]{images/Chap4_rkhs_om}} 
@@ -604,21 +603,21 @@ The following basis-free approximation approaches were compared:
 	\mbox{
 		\subfigure [] {\includegraphics[width = 6in]{images/Chap4_coif}} 
 	} 
-	\caption[$\gradTD$-RKHS algorithms performance comparison]{Gain function approximations using basis-free approaches - A) $\gradTD$-RKHS-Opt and $\gradTD$-N with $2N$ and $N$ parameters respectively \cite{radmey18a}, B) $\gradTD$-RKHS-OM algorithm \cite{radmey19}, C) Markov semigroup approximation \cite{tagmeh16}.}
+	\caption[Performance comparison of $\gradTD$-RKHS algorithms with a Gaussian kernel]{Gain function approximations using basis-free approaches - A) $\gradTD$-RKHS-Opt and $\gradTD$-N with $2N$ and $N$ parameters respectively \cite{radmey18a}, B) $\gradTD$-RKHS-OM algorithm \cite{radmey19}, C) Markov semigroup approximation \cite{tagmeh16}.}
 	\label{fig:diff_td_rkhs_coif}
 \end{figure}
  %\anand{Change $\pr_1$ in the legend to $\pr$}
 \begin{figure}
 	\centering
 	\includegraphics[width=5in]{images/Chap4_beta_comparison}
-	\caption[Parameter magnitudes comparison]{Magnitudes of $\{\beta_i\}$ obtained from A) $\gradTD$-RKHS-Optimal, B) $\gradTD$-RKHS-N and C) $\gradTD$-RKHS-OM algorithms}
+	\caption[Comparison of parameter magnitudes using the various algorithms]{Magnitudes of $\{\beta_i\}$ obtained from A) $\gradTD$-RKHS-Optimal, B) $\gradTD$-RKHS-N and C) $\gradTD$-RKHS-OM algorithms}
 	\label{fig:beta_comparison}
 \end{figure}
 
 \begin{figure}
 	\centering
 	\includegraphics[width=6in]{images/Chap4_hist_mse_d1_runs100}
-	\caption[Histograms of MSEs obtained over $100$ trials]{Histograms of MSE obtained using various methods for $d=1,N=1000$ over $100$ independent trials.}
+	\caption[Histograms of MSEs obtained over $1000$ trials]{Histograms of MSE obtained using various methods for $d=1,N=1000$ over $1000$ independent trials.}
 	\label{fig:hist_mse}
 \end{figure}
 
@@ -633,21 +632,26 @@ The following basis-free approximation approaches were compared:
 	\mbox{
 		\subfigure [] {\includegraphics[width = 6in]{images/Chap4_gain_coif_d2510}} 
 	}
-	\caption[$\gradTD$-RKHS algorithms for $d=2,5,10$]{Gain function approximations A) $\gradTD$-RKHS-Opt and $\gradTD$-RKHS-N with $2N$ and $N$ parameters respectively \cite{radmey18a}, B) $\gradTD$-RKHS-OM method \cite{radmey19}, C) Markov semigroup approximation \cite{tagmeh16}.}
+	\caption[Performance comparison of $\gradTD$-RKHS algorithms for $d=2,5,10$]{Gain function approximations A) $\gradTD$-RKHS-Opt and $\gradTD$-RKHS-N with $2N$ and $N$ parameters respectively \cite{radmey18a}, B) $\gradTD$-RKHS-OM method \cite{radmey19}, C) Markov semigroup approximation \cite{tagmeh16}.}
 	\label{fig:diff_td_rkhs_coif_d2510}
 \end{figure}
 
 \begin{figure}[htbp]
 	\centering
-	\mbox{
-		\subfigure [] {\includegraphics[width=4.5in]{images/Chap4_logMSEvdforN100}} 
-	}
-	\mbox{
-		\subfigure [] {\includegraphics[width=4.5in]{images/Chap4_logMSEvdforN500}} 
-	}
-	\mbox{
-		\subfigure [] {\includegraphics[width = 4.5in]{images/Chap4_logMSEvdforN1000}} 
-	}
+%	\mbox{
+%		\subfigure [] {\includegraphics[width=4.5in]{images/Chap4_logMSEvdforN100}} 
+%	}
+%	\mbox{
+%		\subfigure [] {\includegraphics[width=4.5in]{images/Chap4_logMSEvdforN500}} 
+%	}
+%	\mbox{
+%		\subfigure [] {\includegraphics[width = 4.5in]{images/Chap4_logMSEvdforN1000}} 
+%	}
+\mbox{
+			%\subfigure [] {\includegraphics[width=0.35\hsize]{images/Chap4_logMSEvdforN100}} \qquad
+		    \subfigure [] {\includegraphics[width=0.45\hsize]{images/Chap4_logMSEvdforN500}} \qquad
+		    \subfigure [] {\includegraphics[width=0.45\hsize]{images/Chap4_logMSEvdforN1000}} \qquad
+		}
 	\caption[$\gradTD$-RKHS-OM performance with $N$ and $d$]{Gain function approximations A) RKHS optimal and RKHS simplified with $2N$ and $N$ parameters respectively \cite{radmey18a}, B) RKHS-OM method \cite{radmey19}, C) Markov semigroup approximation \cite{tagmeh16}.}
 	\label{fig:diff_td_rkhs_coif_d2510}
 \end{figure}
