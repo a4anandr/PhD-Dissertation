@@ -1,6 +1,6 @@
 \chapter{Application to Markov chain Monte Carlo algorithms}
 \label{ch:mcmc}
-One of the interesting applications of $\gradTD$ learning is in the context of Markov chain Monte Carlo (MCMC) simulations. In this chapter, a basic introduction to MCMC algorithms with a particular emphasis on Langevin diffusion and its discrete variants is provided first in \Section{s:mcmc_langevin}. We then define asymptotic variance as a measure of convergence and motivate how $\gradTD$ learning is perfectly suited to obtain MCMC estimates with minimal asymptotic variance. In \Section{s:mcmc_metropolis}, we describe the very popular Metropolis-Hastings (MH) algorithm and present an extension of the asymptotic variance reduction methods to the class of reversible Markov chains in \Section{s:mcmc_reversible_mc_cv}. A majority of the existing research that aims to improve the convergence of MCMC estimates focuses on minimizing the sample variance. Although, this is easier to implement, in \Section{s:mcmc_var_vs_asym_var}, through a motivating example, we illustrate why this is not the correct objective for MCMC. 
+One of the interesting applications of $\gradTD$ learning is in the context of Markov chain Monte Carlo (MCMC) simulations. In this chapter, a basic introduction to MCMC algorithms with a particular emphasis on Langevin diffusion and its discrete variants is provided first in \Section{s:mcmc_langevin}. We then define asymptotic variance as a measure of convergence and motivate how $\gradTD$ learning is perfectly suited to obtain MCMC estimates with minimal asymptotic variance. In \Section{s:mcmc_metropolis}, we describe the very popular Metropolis-Hastings (MH) algorithm and present an extension of the asymptotic variance reduction methods to the class of reversible Markov chains in \Section{s:mcmc_reversible_mc_cv}. A majority of the existing research that aims to improve the convergence of MCMC estimates focuses on minimizing the variance. Although, this is easier to implement, in \Section{s:mcmc_var_vs_asym_var}, through a motivating example, we illustrate why this is not the correct objective for MCMC. 
 In recent research, it has been found that under certain assumptions, the asymptotic variances of certain well-known MCMC algorithms such as the Unadjusted Langevin Algorithm (ULA) and Random Walk Metropolis (RWM) are close (upto a scaling factor) to the asymptotic variance of the Langevin diffusion \cite{brodurmeymourad18}. Hence, the application of the same control variate techniques is justified.  Applications to numerical examples in one-dimension and a logistic regression (logit) is discussed in \Section{s:mcmc_numerics}. 
  % \anandspm{sample variance or ordinary variance, what is the right term?} 
  %\anand{Need to rephrase after reading \cite{brodurmeymourad18}}
@@ -84,7 +84,7 @@ It is then of interest to find the parameter with minimal asymptotic variance:
 \begin{equation}
 \param^* = \argmin_\param {\asymvar}_{,\param}
 \label{e:mcmc_theta_star}
-\end{equation} %\anandspm{Is there a better notation ${{\asymvar}^2_{,\param}}^2$?}
+\end{equation} 
 Here, ${\asymvar}_{,\param}$ corresponds to the asymptotic variance of the new estimate \eqref{e:mcmc_eta_theta}, i.e.
 \[
 \sqrt{T} (\eta^\param_T - \eta ) \xrightarrow[]{d} \mathcal{N} (0,{\asymvar}_{,\param}).
@@ -277,7 +277,7 @@ then the substitution is reasonable. Here $\pr_\mcmcstep$ denotes the invariant 
 
 \section{Sample Variance v Asymptotic Variance}
 \label{s:mcmc_var_vs_asym_var}
-The basic idea behind using control variates to minimize asymptotic variance of the MCMC estimates was discussed in \Section{s:mcmc_langevin}. It requires approximating the value function $h$, which is non-trivial in most cases. A large body of prior research \cite{mirsolimp13, oatgircho,papmirgir14} attempts to achieve better estimates by solving an easier problem. In \cite{papmirgir14}, a parameterized family of control variates is considered as in this dissertation. However, the optimal parameter is chosen to minimize the sample variance rather than the asymptotic variance. This is well-motivated only  if the samples are i.i.d. 
+The basic idea behind using control variates to minimize asymptotic variance of the MCMC estimates was discussed in \Section{s:mcmc_langevin}. It requires approximating the value function $h$, which is non-trivial in most cases. A large body of prior research \cite{mirsolimp13, oatgircho,papmirgir14} attempts to achieve better estimates by solving an easier problem. In \cite{papmirgir14}, a parameterized family of control variates is considered as in this dissertation. However, the optimal parameter is chosen to minimize the variance rather than the asymptotic variance. This is well-motivated only  if the samples are i.i.d. 
 The unbiased estimator in \cite{papmirgir14} is based on a function $c^{\vartheta}$ of the same form as \eqref{e:mcmc_h_and_c}:
 \[
 \begin{aligned}
@@ -288,15 +288,15 @@ c^\vartheta  \eqdef c + \generate h^\vartheta,
 h^\vartheta  =  \sum_{i=1}^\ell \vartheta_i \psi_i = \vartheta^\transpose \psi.\,
 \end{aligned}
 \]
-%Examples include the paper by Oates et al. \cite{oatgircho}, where the problem considered is the minimization of sample variance by using a new estimator  chosen from within Reproducible kernel Hilbert space (RKHS), and the paper by Mira et al \cite{papmirgir14}, which is similar to the present work.
-The quantity minimized is the sample variance, i.e. ${\asymvar}_{,\vartheta} = \Expect[(\tilc^\vartheta)^2] = \langle \tilc^\vartheta, \tilc^\vartheta \rangle_{L^2}$, where $\tilc^\vartheta = c^\vartheta - \eta$ resulting in
+%Examples include the paper by Oates et al. \cite{oatgircho}, where the problem considered is the minimization of variance by using a new estimator  chosen from within Reproducible kernel Hilbert space (RKHS), and the paper by Mira et al \cite{papmirgir14}, which is similar to the present work.
+The quantity minimized is the variance, i.e. $\sigma^2_{\vartheta} = \Expect[(\tilc^\vartheta)^2] = \langle \tilc^\vartheta, \tilc^\vartheta \rangle_{L^2}$, where $\tilc^\vartheta = c^\vartheta - \eta$ resulting in
 \begin{equation}
-\vartheta^*= \argmin_{\vartheta \in \Re^\ell} {\asymvar}_{,\vartheta}  = M^{-1} b
+\vartheta^*= \argmin_{\vartheta \in \Re^\ell} \sigma^2_\vartheta  = M^{-1} b
 \label{e:mcmc_var_theta_star}
 \end{equation}
 where $M = \langle \generate \psi,  \generate \psi \rangle_{L^2}$ and $b = - \langle \tilc, \generate \psi \rangle_{L^2}$. This is termed the zero-variance (ZV) algorithm in \cite{papmirgir14}. An interesting observation is that the variance minimization algorithm is equivalent to minimizing the Bellman error technique presented in \eqref{e:fpf_nl_be}.
 
-The important question to be addressed is: does minimizing the sample variance minimize (perhaps approximately) minimize the asymptotic variance? Using a simple numerical example, it can be shown that this is not always the case.
+The important question to be addressed is: does minimizing the variance minimize (perhaps approximately) minimize the asymptotic variance? Using a simple numerical example, it can be shown that this is not always the case.
 
 Consider $\state \equiv \Re$, $c(x) \equiv x $, $\pr$ is a univariate 2-component Gaussian mixture density defined in \eqref{e:fpf_gaussian_mixture_example} and shown by the shaded region in \Fig{fig:mcmc_cv_theta_var}. Two sets of basis functions are chosen for $\psi$ (similar to those defined in \Section{s:linear_param}):
 \begin{romannum}
@@ -358,7 +358,7 @@ Examining the autocorrelation functions offers another perspective to verify if 
 \end{aligned}
 \label{e:mcmc_autocorrelation}
 \end{equation}
-The expression for $\asymvar$ in \eqref{e:mcmc_avar_reversible} can be derived from this infinite summation form. On inspecting the two objectives, it is easy to see that while $c^{\theta^*}$ tries to minimize $\asymvar$, $c^{\vartheta^*}$ minimizes just the term $R(0)$ in it. This is evident from the the autocorrelation function $R(n)$ in \eqref{e:mcmc_autocorrelation} plotted in \Fig{fig:mcmc_auto_correlation}. Autocorrelation function corresponding to the three different estimators $c,c^{\theta^*}$  and $c^{\vartheta^*}$ for $c(x) = x$, are plotted for $n$ upto $100$. Although, $c^{\vartheta^{*}}$ has the least correlation value at $n=0$ (sample variance), it shows a slow decay as $n$ increases, $c^{\theta^*}$ shows a much sharper decay in the tails, resulting in a much lower overall asymptotic variance. The plot clearly illustrates that minimizing the sample variance is not always equivalent to minimizing the asymptotic variance.
+The expression for $\asymvar$ in \eqref{e:mcmc_avar_reversible} can be derived from this infinite summation form. On inspecting the two objectives, it is easy to see that while $c^{\theta^*}$ tries to minimize $\asymvar$, $c^{\vartheta^*}$ minimizes just the term $R(0)$ in it. This is evident from the the autocorrelation function $R(n)$ in \eqref{e:mcmc_autocorrelation} plotted in \Fig{fig:mcmc_auto_correlation}. Autocorrelation function corresponding to the three different estimators $c,c^{\theta^*}$  and $c^{\vartheta^*}$ for $c(x) = x$, are plotted for $n$ upto $100$. Although, $c^{\vartheta^{*}}$ has the least correlation value at $n=0$ (variance), it shows a slow decay as $n$ increases, $c^{\theta^*}$ shows a much sharper decay in the tails, resulting in a much lower overall asymptotic variance. The plot clearly illustrates that minimizing the variance is not always equivalent to minimizing the asymptotic variance.
 
 \begin{figure}[htbp]
 	\centering
@@ -496,7 +496,7 @@ Simulations were performed using the Swiss bank note dataset provided in \cite{p
   \label{fig:mcmc_box_plots_Theta}
 \end{figure}
 
-One might also be interested in the ordinary variance of the samples within a single run. The box plots in \Fig{fig:mcmc_box_var_Theta} compare the variance values of the samples obtained within a run using the ZV-Q method and the $\gradTD$-RKHS learning method. It may be observed that in spite of having outliers, the mean sample variance using the RKHS method is about one order of magnitude lower than the ZV-Q method.
+One might also be interested in the ordinary variance of the samples within a single run. The box plots in \Fig{fig:mcmc_box_var_Theta} compare the variance values of the samples obtained within a run using the ZV-Q method and the $\gradTD$-RKHS learning method. It may be observed that in spite of having outliers, the mean variance using the RKHS method is about one order of magnitude lower than the ZV-Q method.
 
 The same set of experiments were tried out with similar results for the logistic regression example using MALA and ULA sampling. Similar results were also obtained for the probit model Vaso constriction example discussed in \cite{papmirgir14}. The plots for these simulations are provided in the appendix. %\anand{Should I include those plots?}
 
@@ -515,4 +515,4 @@ The same set of experiments were tried out with similar results for the logistic
 \end{figure}
 
 \section{Conclusions}
-In this chapter, we provided a brief discussion on MCMC algorithms, particularly the ULA, which has an associated continuous time Langevin diffusion process. MCMC algorithms have been widely used in Bayesian inference, as a means of approximating expectations using numerical integration. Asymptotic variance was defined as a measure of convergence of these algorithms. We illustrated using an example that the simpler task of minimizing the sample variance is not always equivalent to minimizing the asymptotic variance, in fact in certain examples minimizing one quantity produces undesirable results on the other. For the Langevin based algorithms, using \Prop{prop:lang_generator_grad}, we are able to express the asymptotic variance minimization problem in a form that fits into the $\gradTD$ learning objective function. This immediately opens up the application of the various versions of $\gradTD$ learning algorithms discussed in the previous chapters to be applied to this problem. The effectiveness of these techniques is however not limited to ULA, they are also seen to produce significant variance reduction in MALA and RWM algorithms. Through recent research, we have sought theoretical justification for the positive numerical results.  
+In this chapter, we provided a brief discussion on MCMC algorithms, particularly the ULA, which has an associated continuous time Langevin diffusion process. MCMC algorithms have been widely used in Bayesian inference, as a means of approximating expectations using numerical integration. Asymptotic variance was defined as a measure of convergence of these algorithms. We illustrated using an example that the simpler task of minimizing the variance is not always equivalent to minimizing the asymptotic variance, in fact in certain examples minimizing one quantity produces undesirable results on the other. For the Langevin based algorithms, using \Prop{prop:lang_generator_grad}, we are able to express the asymptotic variance minimization problem in a form that fits into the $\gradTD$ learning objective function. This immediately opens up the application of the various versions of $\gradTD$ learning algorithms discussed in the previous chapters to be applied to this problem. The effectiveness of these techniques is however not limited to ULA, they are also seen to produce significant variance reduction in MALA and RWM algorithms. Through recent research, we have sought theoretical justification for the positive numerical results.  
