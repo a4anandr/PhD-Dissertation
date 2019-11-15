@@ -14,7 +14,7 @@ Our aim is to obtain bounds on the random variable $R(f_S) - R_N(f_S)$.
 
 If $S = \{z_1,\dots, z_{i-1},z_i,z_{i+1},\dots z_N\}$, let us define a modified training set $S_i :=\{z_1,\dots, z_{i-1},z'_i,z_{i+1},\dots,z_N\}$ where the $i^{th}$ training sample $z_i$ is replaced by $z'_i$.
 
-\textbf{Uniform stability}: A notion of uniform stability is defined for the algorithm as follows. If the training set $S$ is defined as above and $S_i$ be the training set where $i^{th}$ sample is removed, then the algorithm is $\beta$-stable if the following holds:
+Uniform stability: A notion of uniform stability is defined for the algorithm as follows. If the training set $S$ is defined as above and $S_i$ be the training set where $i^{th}$ sample is removed, then the algorithm is $\beta$-stable if the following holds:
 \[
 \|c(f_S, z ) - c(f_{S_i},z)\|_{\infty} \leq \beta, \qquad \forall S \in Z^N, \forall z'_i, z \in Z
 \]
@@ -60,7 +60,7 @@ and therefore, by Cauchy-Schwarz inequality,
 \label{e:cauchy_schwarz}
 \end{equation}
 
-\noindent \textbf{$\sigma$-admissibility}: A cost function $c(f(x),y)$ defined on $\clH \times Y$ is $\sigma$-admissible with respect to $\clH$ if $c$ is convex with respect to its first argument and the following condition holds
+\noindent $\sigma$-admissibility: A cost function $c(f(x),y)$ defined on $\clH \times Y$ is $\sigma$-admissible with respect to $\clH$ if $c$ is convex with respect to its first argument and the following condition holds
 \[
 |c(y_1, y') - c(y_2, y')| \leq \sigma |y_1 - y_2|, \, \forall y_1,y_2 \in \mathcal{D}, \forall y' \in Y,
 \]

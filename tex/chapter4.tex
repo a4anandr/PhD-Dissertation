@@ -190,7 +190,7 @@ As motivated in Chapters \ref{ch:diff_td} and \ref{ch:rkhs}, approximation algor
 \end{equation}
 Thus, $\gradTD$ learning algorithms can be directly applied for gain approximation. Two refinements of the $\gradTD$-RKHS learning algorithm to enable online gain estimation, are proposed in \Section{s:fpf_rkhs_improvements}.
 
-\subsection{Galerkin-based Methods} \anandspm{Can you quickly glance through this Galerkin section?}
+\subsection{Galerkin-based Methods} 
 \label{s:galerkin}
 Galerkin-based algorithms are constructed using a weak formulation of the EL-BVP \eqref{e:fpf_el_bvp}. A function $h$ is called a weak solution to Poisson's equation \eqref{e:fpf_poissons} if it satisfies,
 \begin{equation}
@@ -235,7 +235,7 @@ A commonly used estimate for $\kFPF$ that is easily computable is the constant g
 \label{e:fpf_gain_const_approx}
 \end{align}
 where $\hakFPF^*_j$ is the $j^{th}$ component of the gain.
-Alternately, the constant gain can also be interpreted as the minimizer of 
+It is a remarkable fact that this constant gain approximation is equal to the minimizer of the minimum norm problem,  
   \begin{equation}
   \hakFPF^* \eqdef \argmin_{\hakFPF \in \Re^d} \| \kFPF - \hakFPF \|^2_{L^{2}}
   \label{e:fpf_const}
@@ -444,9 +444,9 @@ In this Section, we provide a summary of the various $\gradTD$ based learning al
 
 \section{Complexity Comparison of the Algorithms}
 \label{s:computational_complexity}
-\anandspm{Should I keep this? I can remove the section and just have it as a paragraph instead}
+%\anandspm{Should I keep this? I can remove the section and just have it as a paragraph instead}
 The Markov semigroup approximation attempts to solve an approximate problem exactly, whereas the $\gradTD$-RKHS method tries to find the best approximate solutions without altering the problem. Due to their different approaches, there is no direct way of comparing the performances using analysis. % \rd{However, it is firmly believed that the $\gradTD$-RKHS method produces asymptotically unbiased approximations.}
-Other approaches to gain approximation include principal orthogonal decomposition (POD) by \cite{bergro16}. \anand{needs suitable placement}
+Other data-driven approaches to gain approximation have also been tested \cite{bergro16}. % \anand{needs suitable placement}
 \section{Numerical Experiments}
 \label{s:fpf_numerics}
 We begin by presenting algorithms to obtain a smooth approximation of the empirical posterior estimate in \Section{s:fpf_em}. In \Section{s:fpf_numerical}, a short discussion on the potential numerical issues the true FPF gain and its approximations may exhibit is provided, followed by tricks to resolve these problems in a practical implementation. These issues mainly impact the $\gradTD$ algorithms that require an SDE simulation. Subsequently, we present a number of numerical experiments to compare the performance of the various gain approximation algorithms discussed in this dissertation. The experiments can be broadly classified as:
