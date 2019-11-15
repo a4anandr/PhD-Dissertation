@@ -34,13 +34,12 @@ The Kushner-Stratonovich equation provides a stochastic PDE describing the evolu
 \ud \pr^*_t(x) = \generate^\dagger \pr^*_t(x) \ud t + \frac{1}{\sigma^2_W} (c(x) - \hat{c}_t) (\ud Z_t - \hat{c}_t\ud t) \pr^*_t(x),
 \label{e:fpf_kushner_stratonovich}
 \end{equation}
-where $\generate^\dagger \pr \eqdef - (d(\pr a) / dx) + (\sigma^2_B/2) (d^2 \pr /d x^2)$ is the adjoint operator to the differential generator of the SDE describing the state model in \eqref{e:fpf_cts_filtering} and $\hac_t \eqdef \int c(x) \pr^*_t(x) dt$. 
+where $\hac_t \eqdef \int c(x) \pr^*_t(x) dt$ and $\generate^\dagger \pr \eqdef - (d(\pr a) / dx) + (\sigma^2_B/2) (d^2 \pr /d x^2)$ is the adjoint of the differential generator of the SDE in \eqref{e:fpf_cts_filtering}. 
 For a nonlinear observation function $c(x)$, a moment closure problem arises in the K-S equation and hence, it cannot generally be reduced to stochastic PDEs so that they could be numerically integrated. In some cases, it is convenient to use the Zakai's equation, which is a linear stochastic PDE that describes the evolution of the unnormalized posterior density $\tilde{\pr}^*_t$: 
 \begin{equation}
 \ud \tilde{\pr}^*_t(x) = \generate^\dagger \tilde{\pr}^*_t(x) \ud t + \frac{1}{\sigma^2_W}  c(x) \ud Z_t \tilde{\pr}^*_t(x), 
 \label{e:fpf_zakai}
 \end{equation}
-%\anandspm{need the definition of $\generate^\dagger$. Is it the adjoint to the differential generator?}
 
 \subsection{Kalman-Bucy Filter}
 Solution to the \cref{e:fpf_kushner_stratonovich,e:fpf_zakai} are in general, infinite dimensional. In the special case where the functions $a(x)$ and $c(x)$ are linear, i.e. $a(x) = Ax$ and $c(x) = Cx$ and the prior distribution $\pr_0$ is Gaussian, it is guaranteed that the posterior density $\pr^*_t$ also remains Gaussian for all $t$. A closed-form solution can be obtained to the filtering problem in this case. The posterior density $\pr^*_t$ is completely characterized by the conditional mean $\mu_t$ and the state covariance $\Sigma_t$. The optimal filter is given by the classical Kalman-Bucy filter \cite{kal64}, which is described by the set of \cref{e:fpf_kalman_mu,e:fpf_kalman_sigma}, for a scalar system:
@@ -105,7 +104,7 @@ and an empirical approximation of $\pr_t$ is obtained as:
 \pr^{(N)}_t(A) \eqdef \sum_{i=1}^N \ind_A\{X^i_t \in A\},
 \label{e:fpf_emp_posterior}
 \end{equation}
-where $A \in \clB$ (Borel measurable subsets of $\Re$) measurable set in $\Re$. The particles are conditionally independent given the observations, so that for large $N$,  the approximation $\pr_t^{(N)}\sim \pr_t$ holds in a weak sense.    %\anandspm{This was $\pr^*_t$ before, but I guess it should be this.}
+where $A \in \clB$ (Borel measurable subsets of $\Re$) measurable set in $\Re$. The particles are conditionally independent given the observations, so that for large $N$,  the approximation $\pr_t^{(N)}\sim \pr^*_t$ holds in a weak sense.
 %, and $\hac_t := \Expect[c(X_t^i)\mid \clZ_t]$
 
 
@@ -139,7 +138,6 @@ where, the symbol ``$\circ$'' indicates  that the SDE is in Stratonovich form. T
 \subsection{FPF Gain Function}
 \label{s:fpf_gain}
 It is evident from \eqref{e:fpf_stratonovich}, that the FPF exhibits a gain $\times$ innovation error structure that is a hallmark feature of the Kalman-Bucy filter. This feedback control structure was also present in the K-S equation \eqref{e:fpf_kushner_stratonovich} describing the nonlinear filter, but conspicuously absent in the standard formulation of the particle filter. The FPF restores this feedback structure, which contributes to the robustness of the filter via the self-correcting property.  The block diagrams in \Fig{fig:fpf_kalman} illustrate the similarity in structure of the FPF with the Kalman filter. However, unlike the Kalman-Bucy filter where the gain is a constant, the FPF gain function $\kFPF_t$ depends on the state $X_t$. For a linear-Gaussian system, the optimal gain has been shown to coincide with the Kalman gain. 
-%\anandspm{bootstrap PF?}
 \begin{figure}
 	\centering
 		\includegraphics[width = 7in]{images/Chap4_FPF_Kalman}
@@ -192,22 +190,34 @@ As motivated in Chapters \ref{ch:diff_td} and \ref{ch:rkhs}, approximation algor
 \end{equation}
 Thus, $\gradTD$ learning algorithms can be directly applied for gain approximation. Two refinements of the $\gradTD$-RKHS learning algorithm to enable online gain estimation, are proposed in \Section{s:fpf_rkhs_improvements}.
 
-\subsection{Galerkin-based Methods} %\anandspm{Can you quickly glance through this section?}
+\subsection{Galerkin-based Methods} \anandspm{Can you quickly glance through this Galerkin section?}
 \label{s:galerkin}
-Galerkin-based algorithms are a result of a weak formulation of the EL-BVP \eqref{e:fpf_el_bvp}. A function $h$ is called a weak solution to Poisson's equation \eqref{e:fpf_el_bvp} if
+Galerkin-based algorithms are constructed using a weak formulation of the EL-BVP \eqref{e:fpf_el_bvp}. A function $h$ is called a weak solution to Poisson's equation \eqref{e:fpf_poissons} if it satisfies,
 \begin{equation}
-\int \nabla h (x) \cdot \nabla \test(x)  \pr(x) dx = \int \tilc(x) \test(x) \pr(x) dx, \forall \test \in H^0_1,
+\begin{aligned}
+0 & = \langle \phi, \generate h + \tilc \rangle_{L^2}, \qquad \text{ for all } \phi \in C_c^\infty, \\
+& = \langle \generate \phi, h \rangle_{L^2} + \langle \phi, \tilc \rangle_{L^2} \\ 
+& = - \langle \nabla \phi, \nabla h \rangle_{L^2} + \langle \phi, \tilc \rangle_{L^2}
+\end{aligned}
 \label{e:fpf_galerkin}
-\end{equation}%\anand{Need to verify $H^0_1$.}
-where $\test(x)$ are called test functions. This formulation is called a Galerkin relaxation. %\anand{reference?}
-A finite dimensional solution to \eqref{e:fpf_galerkin} is obtained by choosing an $\ell$-dimensional  function class
-$\clH  \eqdef \{h^\param : \param \in \Re^\ell\}$ to approximate $h$ and a collection of $\ell$ test functions $\{\test_j\}_{j=1}^{\ell}$. In prior work \cite{yanmehmey13,yanlaumehmey16}, $\clH$ is considered to be a linearly parameterized family of functions of the form $h^\param \eqdef \sum_{j=1}^{\ell}\param_{j}\basis_{j} $, where $\{\basis_j\}$ are called the basis functions.  It is assumed that each $\basis_j$ is continuously differentiable,  with gradient denoted   $\gradbasis_{j} $.
+\end{equation}
+
+A finite dimensional approximation to \eqref{e:fpf_galerkin} is obtained by choosing an $\ell$-dimensional  function class
+$\clH  \eqdef \{h^\param : \param \in \Re^\ell\}$ to approximate $h$ and a finite collection of $\ell$ test functions $\{\test_j\}_{j=1}^{\ell}$. In prior work \cite{yanmehmey13,yanlaumehmey16}, a linearly parameterization is considered: $h^\param \eqdef \sum_{j=1}^{\ell}\param_{j}\basis_{j} $, where $\{\basis_j\}$ are called the basis functions.  It is assumed that each $\basis_j$ is continuously differentiable,  with gradient denoted   $\gradbasis_{j} $.
  These   functions are used to define the approximation of the filter gain
 \begin{equation}
 K_\param = \nabla h^\param= \sum_{j=1}^{\ell}\param_{j}\gradbasis_{j}.
 \label{e:fpf_basis_galerkin}
 \end{equation}
-Then, the Galerkin relaxation of Poisson's equation \eqref{e:fpf_galerkin} is defined to be the set of $\ell$ equations in the parameter $\param$. A particular case is when the set of test functions and basis functions chosen are the same. The solution $\param$ in this case is given by:
+Then, the Galerkin relaxation of Poisson's equation \eqref{e:fpf_galerkin} is defined to be the set of $\ell$ equations in the parameter $\param$:
+\begin{equation}
+\begin{aligned}
+0 &= \langle \test_{j}, \clD h^\param+\tilc \rangle \\
+&= \int (-\nabla U(x) \cdot \nabla h^\param(x)+ \Delta h^\param(x)+\tilc (x))\test_{j}(x) \ud x,  \qquad  1\leq j \leq \ell.
+\end{aligned}
+\label{e:fpf_galerkin_be}
+\end{equation}
+A particular case is when the set of test functions and basis functions chosen are the same. The solution in this case is given by:
 \begin{equation}
 \begin{aligned}
 \param & = M^{-1} b, \\
@@ -218,16 +228,6 @@ M \eqdef \langle \gradbasis, &\gradbasis \rangle, \quad b \eqdef \langle \tilc, 
 \end{equation}
 Empirical estimates for $M$ and $b$ can be computed using particles. If the particles are distributed according to $\pr$, then the solution \eqref{e:fpf_test_basis} is the same as the optimal solution obtained using $\gradTD$-L algorithm for a linear parameterization \eqref{e:diff_td_gradTD_theta}. This is a matter of coincidence rather than design, and in general, Galerkin formulations do not result in norm minimization. 
 
-Another Galerkin formulation is obtained in terms of the Bellman error. Recall that the FPF gain is the derivative of the solution to Poisson's equation \eqref{e:fpf_poissons}. For the linear parameterization, the following formulation results in $\ell$ linear equations as before:
-\begin{equation}
-\begin{aligned}
-0 &= \langle \underbrace{\clD h^\param+\tilc}_{\text{Bellman Error}}, \test_{j} \rangle \\
-&= \int (-\nabla U(x) \cdot \nabla h^\param(x)+ \Delta h^\param(x)+\tilc (x))\test_{j}(x) \ud x,  \qquad  1\leq j \leq \ell.
-\end{aligned}
-\label{e:fpf_galerkin_be}
-\end{equation}
-
-% \anand{Provide a gain approx in algorithmx format}
 A commonly used estimate for $\kFPF$ that is easily computable is the constant gain approximation, denoted as $\kFPF^*$. This is obtained by choosing $\{\basis_j(x) = x_j\}_{j=1}^d$ as the basis and test functions in the Galerkin relaxation. This results in  $M = I_{d}$ and,
 \begin{align}
 \hakFPF^*_j \eqdef b & = \langle \tilc , x_j \rangle \\ 
@@ -245,7 +245,8 @@ The proof of the representation \eqref{e:fpf_gain_const_approx} can also be obta
 \[
 \hakFPF^*_ j =  \langle \kFPF^* ,e_j \rangle_{L^2}
 =
-\langle \tilc ,\psi_j \rangle_{L^2}\,, \qquad 1\le j\le d\,,
+\langle \nabla h, \nabla x_j \rangle_{L^2} =
+\langle \tilc ,x_j \rangle_{L^2}\,, \qquad 1\le j\le d\,,
 \]
 where $\{e_j\}$ are the standard basis elements in $\Re^d$. This approximation has been successfully tested in \cite{tilghiomeh13}. The constant gain is an important component of the refinements to the $\gradTD$-RKHS algorithm proposed in \Section{s:fpf_rkhs_improvements}.
 
@@ -283,7 +284,7 @@ An empirical solution to the fixed-point equation at the particle locations is o
 \end{algorithmic}
 \end{algorithm}
 
-Similar to the RKHS-based $\gradTD$ learning, the Markov semigroup approximation provides a basis-independent solution to FPF gain function approximation. The only hyperparameter that needs to be tuned is the time-step parameter $\epsilon$ and it has been remarked in \cite{tagmeh16} that the approximation is valid for small values of $\epsilon$. However, the algorithm may lead to two potential difficulties. Solving for Poisson's equation on the particles may result in overfitting,  and numerical issues may be magnified in the subsequent gradient approximation. The RKHS method addresses these difficulties via regularization. Another potential drawback is the use of successive approximation, which might require a large number of iterations to converge. %\anandspm{I had it before we discussed about it, I can remove this.}
+Similar to the RKHS-based $\gradTD$ learning, the Markov semigroup approximation provides a basis-independent solution to FPF gain function approximation. The only hyperparameter that needs to be tuned is the time-step parameter $\epsilon$ and it has been remarked in \cite{tagmeh16} that the approximation is valid for small values of $\epsilon$. However, the algorithm may lead to two potential difficulties. Solving for Poisson's equation on the particles may result in overfitting,  and numerical issues may be magnified in the subsequent gradient approximation. The RKHS method addresses these difficulties via regularization. 
 
 In this dissertation, we use this algorithm acts as a benchmark for comparing the performance of $\gradTD$ learning based techniques, as this is the only known basis-independent technique to approximate $\kFPF$. Numerical examples that compare the performance are discussed in \Section{s:fpf_numerics}.
 
@@ -439,11 +440,11 @@ In this Section, we provide a summary of the various $\gradTD$ based learning al
 		\State Calulate $\text{K}_i  =  \sum_{j=1}^N  \beta^{0*}_j \Kern_{ij} + \sum_{j=1}^N \sum_{k=1}^d \beta^{k*}_j \partial_{x_k} \Kern_{ij}$ for $i =1$ to $N$ \Comment{FPF gain function approximation}
 		% \label{alg:rkhs}
 	\end{algorithmic}
-\end{algorithm} %\anandspm{Could you check the $\gradTD$-RKHS algorithm description?}
+\end{algorithm}
 
 \section{Complexity Comparison of the Algorithms}
 \label{s:computational_complexity}
-%\anandspm{Should I keep this? I can remove the section and just have it as a paragraph instead}
+\anandspm{Should I keep this? I can remove the section and just have it as a paragraph instead}
 The Markov semigroup approximation attempts to solve an approximate problem exactly, whereas the $\gradTD$-RKHS method tries to find the best approximate solutions without altering the problem. Due to their different approaches, there is no direct way of comparing the performances using analysis. % \rd{However, it is firmly believed that the $\gradTD$-RKHS method produces asymptotically unbiased approximations.}
 Other approaches to gain approximation include principal orthogonal decomposition (POD) by \cite{bergro16}. \anand{needs suitable placement}
 \section{Numerical Experiments}

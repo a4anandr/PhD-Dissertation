@@ -14,7 +14,7 @@ A generic block diagram of a state estimator is depicted in \Fig{Fig:state_estim
 
 \begin{figure}
 	% \centering
-	\includegraphics[width=7in]{images/Chap1_state_est_block}
+	\includegraphics[width=6in]{images/Chap1_state_est_block}
 	\caption{Block diagram of a state estimator}
 	\label{Fig:state_estimator}
 \end{figure} 
@@ -63,7 +63,7 @@ In its most general form, Poisson's equation is a second-order differential equa
 \end{equation*}
 where $\generate$ is a second-order differential operator. Usually, $f \in C^2$ is given and is ``centered'' by subtracting its mean. The function $h$ is unknown and is called the solution to Poisson's equation. In physics, the operator $\generate$ is often taken to be the Laplacian. Poisson's equation appears widely in the context of Markov chains and stochastic optimal control. In the context of a continuous-time diffusion process, the operator $\generate$ refers to the infinitesimal generator, also called the differential generator. If $f \equiv 0$, then $h$ is precisely harmonic functions \cite{glymey96a}.
 
-Poisson's equation is central to average-cost optimal control theory. In this case, $f$ is a one-step cost function and $h$ is called a relative value function. \rd{Relative value function gives the infinite-horizon expected cost when starting from a given state under a stationary policy.} Approximate solutions to the equation lead to direct performance bounds of the control algorithm \cite{ctcn}. Explicit bounds on the solution $h$ have been obtained under general conditions of the chain in \cite{devkonmey17b}. %\anandspm{}citation needed} %\anandspm{}The states evolve in the form of a controlled Markov chain based on a given policy.} 
+Poisson's equation is central to average-cost optimal control theory. In this case, $f$ is a one-step cost function and $h$ is called a relative value function. Approximate solutions to the equation lead to direct performance bounds of the control algorithm \cite{ctcn}. Explicit bounds on the solution $h$ have been obtained under general conditions of the chain in \cite{devkonmey17b}. 
 % measure of long-term system performance in \cite{brabar96}.
 
 Our interest lies in a particular version of Poisson's equation associated to the Langevin diffusion process. Langevin diffusion is discussed in greater detail in \cref{s:langevin_diffusion,s:mcmc_langevin}. Gradient of the solution to this equation is the optimal choice of the gain function associated with the FPF \cite{yanmehmey13}. In MCMC algorithms, as noted by Henderson \cite{henthesis97} and later by Dellaportas et al. \cite{delkon12}, the optimal control variates can be constructed from this solution. Thus, Poisson's equation and its solution are central to the goals of this dissertation. 
