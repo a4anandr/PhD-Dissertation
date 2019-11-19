@@ -453,7 +453,7 @@ g^* := \argmin_{g\in\clH} \frac{1}{N} \sum_{i=1}^N \Bigl\{ (g'(x^i))^2 - 2 \tilc
 \end{equation}
 where $g' = d g / d x$. Using the extended representer theorem (\Theorem{theorem:ext_rep_theorem}), the optimizer $g^*$ has the following form:
 \begin{equation}
-g_\rkhsparam(y)= \sum_{i=1}^N \Bigl[\rkhsparam_i^{0} K(x^i,y) + \rkhsparam_i^{1} \frac{\partial K}{\partial x}(x^i,y)\Bigr], \qquad y \in \state
+g(y)= \sum_{i=1}^N \Bigl[\rkhsparam_i^{0} K(x^i,y) + \rkhsparam_i^{1} \frac{\partial K}{\partial x}(x^i,y)\Bigr], \qquad y \in \state
 \label{e:rkhs_g_star}
 \end{equation}
 \Theorem{theorem:ext_rep_theorem}  states that the solution to  the infinite dimensional optimization problem reduces to a quadratic program over $\Re^{2N}$ when there are $N$ samples. A formula for the optimizer  $\rkhsparam^* \in \Re^{2N}$ is obtained as follows.
@@ -493,7 +493,7 @@ Here, $\frac{\partial }{\partial x}$ and $\frac{\partial}{\partial y}$ refer to 
 	\text{where,
 	}
 	\quad
-	M & := \frac{1}{N} \left[\begin{array}{c} M_{01}\\ \hline M_{11} \end{array}\right] [ M_{10} \,| M_{11}] + \lambda  \left[
+	M & := \frac{1}{N} \left[\begin{array}{c} M_{01}\\ \hline M_{11} \end{array}\right] [ M_{01}^\transpose \,| M_{11}] + \lambda  \left[
 	\begin{array}{c|c}
 	M_{00} & M_{01} \\
 	\hline
@@ -510,18 +510,18 @@ The derivation of the optimal parameter $\rkhsparam^*$ is analogous to the deriv
 Similarly, using the following matrix notation, 
 \[
 \begin{aligned}
-& M_{m0}(i,j) := \frac{\partial K}{\partial x_k}(x^i,x^j),
+& M_{k0}(i,j) := \frac{\partial K}{\partial x_k}(x^i,x^j),
 \quad 
-M_{0n}(i,j) := \frac{\partial K}{\partial y_l}(x^i,x^j),
+M_{0l}(i,j) := \frac{\partial K}{\partial y_l}(x^i,x^j),
 \quad
-M_{mn}(i,j) := \frac{\partial^2 K}{\partial x_k \partial y_l}(x^i,x^j), \\
+M_{kl}(i,j) := \frac{\partial^2 K}{\partial x_k \partial y_l}(x^i,x^j), \\
 & 1 \leq k,l \leq d, \, 1 \leq i,j \leq N,
 \end{aligned}
 \]	 
 the optimal $\beta^*$ for an arbitrary dimension $d$ can be obtained as $\beta^* = M^{-1}b$, where,
 \begin{equation}
 \begin{aligned}
-M & := \frac{1}{N} \left[\begin{array}{c} M_{01} \\ \vdots \\ M_{d1} \end{array}\right] [ M_{10} \, \hdots M_{1d}] + \lambda  \left[
+M & := \frac{1}{N} \left[\begin{array}{c} M_{01} \\ \vdots \\ M_{d1} \end{array}\right] [ M_{01}^\transpose \, \hdots M_{d1}^\transpose] + \lambda  \left[
 \begin{array}{c c c}
 M_{00}  & \hdots & M_{0d}\\
 \vdots & \vdots &  \vdots \\
@@ -533,7 +533,7 @@ b & :=  \frac{1}{N} \left[ \begin{array}{c} M_{00} \\ \vdots \\ M_{d0} \end{arra
 \label{e:rkhs_beta_optimal_d}
 \end{equation}
 Each $M_{kl} \in \Re^{N \times N}$ and therefore $M$ is a $(d+1) N \times (d+1) N$ matrix and $b$ is a $(d+1) N$ vector. The optimal parameter vector $\rkhsparam^* \eqdef [ (\rkhsparam^0_i)_{i=1}^N, (\rkhsparam^1_i)_{i=1}^N, \hdots, (\rkhsparam^d_i)_{i=1}^N] \in \Re^{(d+1) N}$ is in the same form as \eqref{e:rkhs_beta_2N}. Although, $\rkhsparam^*$ is easily computable, the solution scales poorly with dimensions. 
-Moreover, there are more parameters $(d+1)N$ than there are sample points $N$, which is usually not preferred in machine learning. This could potentially lead to overfitting and other numerical issues.   
+Moreover, there are more parameters ($(d+1)N$) than there are sample points ($N$), which is usually not preferred in machine learning. This could potentially lead to overfitting and other numerical issues.   
 Ideally, we prefer an algorithm that scales well with dimensions. This leads to the following two extensions:
 \begin{itemize}
 	\item A reduced complexity solution \eqref{e:rkhs_g_circ}.
@@ -553,7 +553,7 @@ g(y)  := \sum_{i=1}^N \rkhsparam_i K(x^i,y).
 	\rkhsparam^\circ  := M^{\circ -1} b^\circ   \,,
 	\label{e:rkhs_beta_N}
 	\end{equation}
-	where $ M^\circ := N^{-1} M_{01} M_{10} + \lambda M_{00}$ and $ b^\circ := N^{-1} M_{00} \, \boldsymbol{\zeta} $.
+	where $ M^\circ := N^{-1} M_{01} M_{01}^\transpose + \lambda M_{00}$ and $ b^\circ := N^{-1} M_{00} \, \boldsymbol{\zeta} $.
 	\qed
 \end{proposition}
 If the loss function did not have gradient terms, the standard representer theorem gives optimal solutions of the form \eqref{e:rkhs_g_circ}. Although, \eqref{e:rkhs_beta_N} is clearly a sub-optimal solution to \eqref{e:rkhs_1dloss}, $\rkhsparam^\circ$  is easier to compute than $\rkhsparam^*$ as there are only $N$ parameters to estimate. A surprising observation is that using Gaussian kernels, the reduced complexity solution performs as good as the optimal solution in numerical examples for $d \leq 5$. More details are contained in \Section{s:fpf_numerical}.
@@ -593,7 +593,7 @@ K_-(x,y) = \int_{-\infty}^y  K(x,r)\,  \ud r
 \]
 so that
 \[
-g_\beta =  \sum_{i=1}^N \beta_i  K_-(x^i,\varble)
+g =  \sum_{i=1}^N \beta_i  K_-(x^i,\varble)
 \]
 It is not clear if the optimal solution has this form for dimension greater than one -- this is another topic of current research.
 
@@ -602,16 +602,16 @@ It is not clear if the optimal solution has this form for dimension greater than
 \label{s:error_analysis}
 After choosing an appropriate loss function \eqref{e:rkhs_erm_diff_td} to suit our objective, the next choice in the algorithm is that of a suitable kernel function $\Kern$. Desirable properties of the approximating function space will help us make an informed choice in the case of $\gradTD$ learning. More discussion on choosing the kernel in the context of FPF gain function approximation is provided in \Section{s:fpf_numerical}. 
 
-An equally important step in the algorithm design is the choice of kernel hyperparameters and the regularization parameter $\reg$. The importance of a good choice of $\reg$ is illustrated with examples in \cite{wah90}. Methods such as ordinary cross-validation and generalized cross-validation are suggested. As mentioned before, a large value of $\reg$ introduces bias and a small value of $\reg$ contributes to the variance of the error. A general criteria chosen to obtain the optimal $\reg^*$ is to minimize the sum of the bias and the variance terms. A good choice of $\reg$ depends on the number of samples $N$. As $N$ increases, the empirical error term tends to approximate the minimum norm objective function better and hence, it is justified to decay $\reg$ with $N$ such as $\propto \frac{1}{N}$ or $\frac{1}{\sqrt{N}}$. 
+An equally important step in the algorithm design is the choice of kernel hyperparameters and the regularization parameter $\reg$. The importance of a good choice of $\reg$ is illustrated with examples in \cite{wah90}. Methods such as ordinary cross-validation and generalized cross-validation are suggested. It is clear that a large value of $\reg$ introduces bias and a small value of $\reg$ contributes to the variance of the error. The optimal $\reg^*$ is often obtained as the minimizer of the sum of the bias and the variance terms. Additionally, a good choice of $\reg$ depends on the number of samples $N$. As $N$ increases, the empirical error term tends to approximate the minimum norm objective function better and hence, it is justified to decay $\reg$ with $N$ such as $\propto \frac{1}{N}$ or $\frac{1}{\sqrt{N}}$. 
 
-It is of interest to analyze the quality of the estimates obtained. A large body of literature is available that tries to obtain the error bounds arising in ERM problems using RKHS. The analysis approaches can be largely classified as those based on i) complexity of the hypothesis space ( like covering numbers \cite{zhou02, zhou03, smazhou03}, Vapnik-Chervonenkis dimension \cite{gir95}, Rademacher-complexity \cite{cormohros10,micponwuzho16} and ii) notions of algorithm stability \cite{boueli01,boueli02} etc. A majority of these works provides PAC (probably almost correct) style bounds on the error for finite $N$.  Our interest is in obtaining asymptotic bounds to the expected approximation error. To the best of our knowledge, no results exist that provide meaningful bounds for ERMs with gradient terms in the loss function. Paper by Bousquet et al. \cite{boueli02} is of particular interest as it derives performance bounds for a wide variety of algorithms including regularized least-squares regression in an RKHS based on notions of stability of the algorithm. A short desciption of this result is provided in \Appendix{a:bousquet}. Extensions of this result to analyze $\gradTD$ learning on RKHS is an area for future research. 
+It is of interest to analyze the quality of the estimates obtained. A large body of literature is available that tries to obtain the error bounds arising in ERM problems using RKHS. The analysis approaches can be largely classified as those based on - i) complexity of the hypothesis space (like covering numbers \cite{zhou02, zhou03, smazhou03}, Vapnik-Chervonenkis dimension \cite{gir95}, Rademacher-complexity \cite{cormohros10,micponwuzho16} and ii) notions of algorithm stability \cite{boueli01,boueli02}. A majority of these works provides PAC (probably almost correct) style bounds on the error for finite $N$.  Our interest is in obtaining asymptotic bounds to the expected approximation error. To the best of our knowledge, no results exist that provide meaningful bounds for ERMs with gradient terms in the loss function. Paper by Bousquet et al. \cite{boueli02} is of particular interest as it derives performance bounds for a wide variety of algorithms including regularized least-squares regression in an RKHS based on notions of stability of the algorithm. A short desciption of this result is provided in \Appendix{a:bousquet}. Extensions of this result to perform error analysis of the $\gradTD$-RKHS algorithm is an area for future research. 
 
 \section{Conclusions}
 \label{s:ch3_conclusions}
-At the end of \Chapter{ch:diff_td}, it was mentioned that one of the major difficulties in $\gradTD$ learning is the choice of a parameterized family. Different versions of the algorithm to accommodate linear and nonlinear parameterizations were presented. However, these methods were not conducive to scaling for higher dimensions. Also, they made inefficient use of the sample information in constructing an approximation function space. This chapter has addressed most of these shortcomings. The major contributions in this chapter can be summarized as follows:
+At the end of \Chapter{ch:diff_td}, it was mentioned that one of the major difficulties in $\gradTD$ learning is the choice of a parameterized family of functions to define the approximating function space. Different versions of the algorithm to accommodate linear and nonlinear parameterizations were presented. However, these methods were not conducive for scaling to higher dimensions. Also, they made inefficient use of the sample information in constructing an approximating function space. This chapter addressed most of these shortcomings. The major contributions in this chapter can be summarized as follows:
 
 \begin{romannum}
-\item By choosing a reproducing kernel Hilbert space as the approximating function space, we have eliminated the need to carefully choose a finite set of basis functions. In addition to being easily scalable to problems in higher dimensions, they also effectively use the sample distribution. Another advantage of using an RKHS is that the optimizer is searched from within a potentially richer infinite dimensional function space.  
+\item By choosing an RKHS as the approximating function space, we have eliminated the need to carefully choose a finite set of basis functions. In addition to being easily scalable to problems in higher dimensions, they also effectively use the sample distribution. Another advantage of using an RKHS is that the optimizer is searched from within a potentially richer infinite dimensional function space.  
 \item By combining the TD learning theory with RKHS theory, we are able to express the minimum norm objective function in $\gradTD$ learning as an empirical risk minimization problem (ERM). The optimal solution to this ERM is obtained via recent extensions of RKHS theory. 
 \item As the optimal solution does not scale well with dimensions, a reduced complexity solution is proposed. We also propose a differential regularizer approach for which theory is currently absent, opening avenues for future research.
 \item We also discuss the problem of choosing the optimal regularization parameter $\reg$. A short review of existing error analysis approaches is provided. Extensions to bound errors for loss functions with gradient terms is part of future research.
