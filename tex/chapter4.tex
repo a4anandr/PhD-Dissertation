@@ -169,9 +169,9 @@ Assuming $\nabla U$ is globally Lipschitz continuous, and under some regularity 
 \begin{equation}
 \pr_t(x) = \pr^*_t(x). 
 \end{equation}
-An estimate of $\pr_t$ given by the empirical distribution of the particles $\pr^{(N)}_t$ approximates $\pr^*_t$ as $N \to \infty$. 
+An estimate of $\pr_t$ given by the empirical distribution of the particles, $\pr^{(N)}_t$ approximates $\pr^*_t$ as $N \to \infty$. 
 \section{FPF Gain Approximation}
-The major challenge in the implementation of the FPF is the computation of the gain function. The exact computation of $\kFPF$ is intractable outside of these particular cases. 
+The major challenge in the implementation of the FPF is the computation of the gain function. The exact computation of $\kFPF$ is intractable outside of these particular cases:
 \begin{romannum}
 \item When $\pot$ is quadratic and $c$ is linear,  then $\kFPF$ is a constant independent of $x$, and can be interpreted as a Kalman gain \cite{yanlaumehmey13}. 
 
@@ -182,7 +182,7 @@ The major challenge in the implementation of the FPF is the computation of the g
 \end{equation}
 \end{romannum}
 
-This motivates the use of approximation techniques to obtain an estimate of $\kFPF$ that is optimal in some meaningful metric. In the first part of this section, we discuss Galerkin-based gain approximation algorithms. An algorithm based on approximation of the transition kernel of the Langevin diffusion was developed in parallel research by Taghvaei et al. \cite{tagmeh16} and error analysis of this method was studied in \cite{tagmehmey17}. This algorithm has been used in this dissertation as an important benchmark for comparing the performance in numerical simulations. A short review is provided in \Section{s:coifman}. 
+This motivates the use of approximation techniques to obtain an estimate of $\kFPF$ that is optimal in some meaningful metric. In the first part of this section, we discuss Galerkin-based gain approximation algorithms. An algorithm based on approximation of the transition kernel of the Langevin diffusion was developed in parallel research by Taghvaei et al. \cite{tagmeh16} and error analysis of this method was published in \cite{tagmehmey17}. This algorithm has been used in this dissertation as an important benchmark for comparing the performance in numerical simulations. A short review is provided in \Section{s:coifman}. 
 
 As motivated in Chapters \ref{ch:diff_td} and \ref{ch:rkhs}, approximation algorithms based on $\gradTD$ learning form the core topic of this dissertation. It is evident from \eqref{e:fpf_k_gradient}, that the objective function used in \eqref{e:diff_td_gradTD_norm_error} suits the objective of approximating the gain $\kFPF$ very well:
 \begin{equation}
