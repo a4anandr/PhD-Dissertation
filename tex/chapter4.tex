@@ -192,7 +192,8 @@ Thus, $\gradTD$ learning algorithms can be directly applied for gain approximati
 
 \subsection{Galerkin-based Methods} 
 \label{s:galerkin}
-Galerkin-based algorithms are constructed using a weak formulation of the EL-BVP \eqref{e:fpf_el_bvp}. A function $h$ is called a weak solution to Poisson's equation \eqref{e:fpf_poissons} if it satisfies,
+Galerkin-based algorithms are constructed using a weak formulation of the EL-BVP \eqref{e:fpf_el_bvp}.  If $h\in C^2\cap L^2(\rho)$ solves Poison's equation,  then the following identities hold for each $\phi \in C^\infty_c$:
+%A function $h$ is called a weak solution to Poisson's equation \eqref{e:fpf_poissons} if it satisfies,
 \begin{equation}
 \begin{aligned}
 0 & = \langle \phi, \generate h + \tilc \rangle_{L^2}, \qquad \text{ for all } \phi \in C_c^\infty, \\
@@ -203,8 +204,7 @@ Galerkin-based algorithms are constructed using a weak formulation of the EL-BVP
 \end{equation}
 
 A finite dimensional approximation to \eqref{e:fpf_galerkin} is obtained by choosing an $\ell$-dimensional  function class
-$\clH  \eqdef \{h^\param : \param \in \Re^\ell\}$ to approximate $h$ and a finite collection of $\ell$ test functions $\{\test_j\}_{j=1}^{\ell}$. In prior work \cite{yanmehmey13,yanlaumehmey16}, a linearly parameterization is considered: $h^\param \eqdef \sum_{j=1}^{\ell}\param_{j}\basis_{j} $, where $\{\basis_j\}$ are called the basis functions.  It is assumed that each $\basis_j$ is continuously differentiable,  with gradient denoted   $\gradbasis_{j} $.
- These   functions are used to define the approximation of the filter gain
+$\clH  \eqdef \{h^\param : \param \in \Re^\ell\}$ to approximate $h$ and a finite collection of $\ell$ test functions $\{\test_j\}_{j=1}^{\ell}$. In prior work \cite{yanmehmey13,yanlaumehmey16}, a linearly parameterization is considered: $h^\param \eqdef \sum_{j=1}^{\ell}\param_{j}\basis_{j} $, where $\{\basis_j\}$ are called the basis functions.  It is assumed that each $\basis_j$ is continuously differentiable,  with gradient denoted   $\gradbasis_{j} $. These   functions are used to define the approximation of the filter gain:
 \begin{equation}
 K_\param = \nabla h^\param= \sum_{j=1}^{\ell}\param_{j}\gradbasis_{j}.
 \label{e:fpf_basis_galerkin}
@@ -212,8 +212,8 @@ K_\param = \nabla h^\param= \sum_{j=1}^{\ell}\param_{j}\gradbasis_{j}.
 Then, the Galerkin relaxation of Poisson's equation \eqref{e:fpf_galerkin} is defined to be the set of $\ell$ equations in the parameter $\param$:
 \begin{equation}
 \begin{aligned}
-0 &= \langle \test_{j}, \clD h^\param+\tilc \rangle \\
-&= \int (-\nabla U(x) \cdot \nabla h^\param(x)+ \Delta h^\param(x)+\tilc (x))\test_{j}(x) \ud x,  \qquad  1\leq j \leq \ell.
+0 &= \langle \test_{j}, \clD h^\param+\tilc \rangle_{L^2} \\
+&= \int (-\nabla U(x) \cdot \nabla h^\param(x)+ \Delta h^\param(x)+\tilc (x))\test_{j}(x) \pr(x) \ud x,  \qquad  1\leq j \leq \ell.
 \end{aligned}
 \label{e:fpf_galerkin_be}
 \end{equation}
@@ -222,7 +222,7 @@ A particular case is when the set of test functions and basis functions chosen a
 \begin{aligned}
 \param & = M^{-1} b, \\
 \text{where}&,\\ 
-M \eqdef \langle \gradbasis, &\gradbasis \rangle, \quad b \eqdef \langle \tilc, \basis \rangle.
+M \eqdef \langle \gradbasis, &\gradbasis \rangle_{L^2}, \quad b \eqdef \langle \tilc, \basis \rangle_{L^2}.
 \label{e:fpf_test_basis}
 \end{aligned}
 \end{equation}
@@ -230,7 +230,7 @@ Empirical estimates for $M$ and $b$ can be computed using particles. If the part
 
 A commonly used estimate for $\kFPF$ that is easily computable is the constant gain approximation, denoted as $\kFPF^*$. This is obtained by choosing $\{\basis_j(x) = x_j\}_{j=1}^d$ as the basis and test functions in the Galerkin relaxation. This results in  $M = I_{d}$ and,
 \begin{align}
-\hakFPF^*_j \eqdef b & = \langle \tilc , x_j \rangle \\ 
+\hakFPF^*_j \eqdef b & = \langle \tilc , x_j \rangle_{L^2} \\ 
 & \approx \frac{1}{N} \sum_{i=1}^N [ c(x^i) - \hac ]x^i_j, \qquad 1 \leq j \leq d,
 \label{e:fpf_gain_const_approx}
 \end{align}
@@ -248,7 +248,7 @@ The proof of the representation \eqref{e:fpf_gain_const_approx} can also be obta
 \langle \nabla h, \nabla x_j \rangle_{L^2} =
 \langle \tilc ,x_j \rangle_{L^2}\,, \qquad 1\le j\le d\,,
 \]
-where $\{e_j\}$ are the standard basis elements in $\Re^d$. This approximation has been successfully tested in \cite{tilghiomeh13}. The constant gain is an important component of the refinements to the $\gradTD$-RKHS algorithm proposed in \Section{s:fpf_rkhs_improvements}.
+where $\{e_j\}$ are the standard basis elements in $\Re^d$. This approximation has been successfully tested in \cite{tilghiomeh13}. The constant gain is an important component of the refinements to the $\gradTD$-RKHS algorithm that we propose in \Section{s:fpf_rkhs_improvements}.
 
 The Galerkin methods provide a good algorithmic framework for approximating the gain. However, in general it is not easy to obtain performance guarantees. In this dissertation, we obtain approximations by solving  the minimum norm problem \eqref{e:diff_td_gradTD_norm_error} using $\gradTD$ learning.  Under general conditions we can be assured that the approximation is the minimum-norm optimal solution.   
 
