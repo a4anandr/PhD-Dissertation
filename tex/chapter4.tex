@@ -275,7 +275,7 @@ An empirical solution to the fixed-point equation at the particle locations is o
 	\State Calculate $ \hac = \sum_{i = 1}^N \pi_i c(x^i)$
 	\State Initialize $h =h_{prev}$
 		 \For{$t =1$ to $L$}
-		 \State $h_i = \sum_{j=1}^N \text{T}_{ij} h_j + \epsilon (c - \hac)$ for $i=1$ to $N$ \Comment{Successive approximation}
+		 \State $h_i = \sum_{j=1}^N \text{T}_{ij} h_j + \epsilon (c_i - \hac)$ for $i=1$ to $N$ \Comment{Successive approximation}
 		\EndFor
 	\State Calculate $r_i = h_i + \epsilon c_i$ for $i=1$ to $N$
 	\State Calculate $s_{ij} = \frac{1}{2\epsilon} \text{T}_{ij} (r_j - \sum_{k=1}^N \text{T}_{ik} r_k)$ for $i,j=1$ to $N$ 
@@ -284,19 +284,19 @@ An empirical solution to the fixed-point equation at the particle locations is o
 \end{algorithmic}
 \end{algorithm}
 
-Similar to the RKHS-based $\gradTD$ learning, the Markov semigroup approximation provides a basis-independent solution to FPF gain function approximation. The only hyperparameter that needs to be tuned is the time-step parameter $\epsilon$ and it has been remarked in \cite{tagmeh16} that the approximation is valid for small values of $\epsilon$. However, the algorithm may lead to two potential difficulties. Solving for Poisson's equation on the particles may result in overfitting,  and numerical issues may be magnified in the subsequent gradient approximation. The RKHS method addresses these difficulties via regularization. 
+Similar to the $\gradTD$-RKHS learning algorithm, the Markov semigroup approximation provides a basis-independent solution to FPF gain function approximation. The only hyperparameter that needs to be tuned is the time-step parameter $\epsilon$ and it has been remarked in \cite{tagmeh16} that the approximation is valid for small values of $\epsilon$. However, the algorithm may lead to two potential difficulties. Solving for Poisson's equation on the particles may result in overfitting,  and numerical issues may be magnified in the subsequent gradient approximation. The RKHS method addresses these difficulties via regularization. 
 
-In this dissertation, we use this algorithm acts as a benchmark for comparing the performance of $\gradTD$ learning based techniques, as this is the only known basis-independent technique to approximate $\kFPF$. Numerical examples that compare the performance are discussed in \Section{s:fpf_numerics}.
+In this dissertation, we use this algorithm as a benchmark for comparing the performance of $\gradTD$ learning based techniques, as this is the only known basis-independent technique to approximate $\kFPF$. Numerical examples that compare the performance are discussed in \Section{s:fpf_numerics}.
 
 
 \section{Enhanced $\gradTD$ Algorithms for FPF Gain Approximation} 
 \label{s:fpf_rkhs_improvements}
 In this section, two new enhancements to the $\gradTD$-RKHS learning algorithm described in \Chapter{ch:rkhs} are presented. 
 \begin{romannum}
-\item Dynamic regularization - The online filtering problem is considered here. To obtain the estimates of the posterior using the FPF, we need to compute the gain function $\kFPF_t$ for all $t$. This necessitates computationally simple algorithms that can update the gain function in an iterative fashion. The basic idea is to modify the ERM to include a term with the gain function at the previous instant.
-\item Utilizing the constant gain - To obtain good approximations using the $\gradTD$-RKHS algorithm, a suitable choice of the hyperparameters $\reg$ and $\epsy$ are required. As described in \Chapter{ch:rkhs}, there are no standard rules to choose the optimal values and the selection is usually done by cross-validation in a supervised learning setting. However, this may not always be possible in gain function approximation and any additional information that can aid in this selection or make the algorithm robust to the values of hyperparameters is useful. We propose to use the easily computable constant gain approximation \eqref{e:fpf_const} as an additional constraint in the ERM problem. 
+\item Dynamic regularization - The online filtering problem is considered here. To obtain the estimates of the posterior using the FPF, we need to compute the gain function $\kFPF_t$ for all $t$. Computationally simple algorithms that can update the gain function in an iterative fashion are preferred. The basic idea is to modify the ERM to include a term with the gain function used at the previous instant.
+\item Utilizing the constant gain - To obtain good approximations using the $\gradTD$-RKHS algorithm, a suitable choice of the hyperparameters $\reg$ and $\epsy$ are required. As described in \Chapter{ch:rkhs}, there are no standard rules to choose the optimal values and the selection is usually done by cross-validation in a supervised learning setting. Cross-validation using grid-search on the hyperparameter space is computationally intensive and may not always be possible. Any additional information that can aid in this selection or makes the algorithm robust to hyperparameter values is useful. We propose to use the easily computable constant gain approximation \eqref{e:fpf_const} as an additional constraint in the ERM problem. 
 \end{romannum}
-It is possible to apply both the enhancements independently or simultaneously to improve performance. 
+Both the enhancements can be applied independently or simultaneously to improve performance. 
 
 \subsection{Dynamic Regularization - $\gradTD$-RKHS with Memory}
 \label{s:fpf_rkhs_memory}
@@ -319,7 +319,7 @@ g^*_n(.)  \eqdef \sum_{j=1}^N \beta_{j,n} \Kern(x^j_n, . ) \, .
 Substituting \eqref{e:fpf_grad_g_star} into \eqref{e:fpf_erm_regularized}, and using the vector/matrix notation as defined in \eqref{e:rkhs_beta_2N} gives,
 \begin{equation}
 \beta ^*_n =
-\argmin_{\beta  \in \Re^N}  \frac{1}{N} \Bigl[ (1 + \lambda_{mem}) \beta ^\transpose \Bigl( \sum_{k=1}^d M_{0k}^\transpose M_{0k} \Bigr) \beta  -  \beta ^\transpose  ( 2 \lambda_{mem} \sum_{k=1}^d M_{0k}^\transpose \kFPF_{n-1,k} +2 M_{00} \boldsymbol{\zeta}  \Bigr) ] + \lambda \beta ^\transpose M_{00} \beta,
+\argmin_{\beta  \in \Re^N}  \frac{1}{N} \Bigl[ (1 + \lambda_{mem}) \beta ^\transpose \Bigl( \sum_{k=1}^d M_{0k}^\transpose M_{0k} \Bigr) \beta  -  \beta ^\transpose  ( 2 \lambda_{mem} \sum_{k=1}^d M_{0k}^\transpose \kFPF_{n-1,k} +2 M_{00} \boldsymbol{\zeta}  \Bigr) \Bigr] + \lambda \beta ^\transpose M_{00} \beta,
 \end{equation}
 where $\kFPF_{n-1,k}$ refers to the $k^{\text{th}}$ component of the gain at time $n$.
 This is a quadratic optimization problem with solution
@@ -363,7 +363,7 @@ L(\tilg, \mu ) \eqdef   \| \nabla h - \hakFPF^* - \nabla \tilg \|^2_{L_2} +  \la
 %\tilg^* = \argmin_{g\in\clH} \| \nabla h - \hakFPF^* - \nabla g \|^2_{L_2} +  \langle \mu ,  \nabla g \rangle_{L_2} \\
 \label{e:fpf_lag_dual}
 \end{equation}
-Expanding the quadratic, and applying \Prop{prop:lang_generator_grad} as in previous ERM formulations gives
+Expanding the quadratic, and applying \Prop{prop:lang_generator_grad}, as in previous ERM formulations gives
 \begin{equation}
 L(\tilg, \mu ) = \| \nabla h - \hakFPF^*\|_{L_2}^2 + \|\nabla \tilg\|_{L_2}^2 - 2 \langle \tilc, \tilg \rangle_{L_2} + 2 \langle \hakFPF^*, \nabla \tilg \rangle_{L_2} +  \langle \mu ,  \nabla \tilg \rangle_{L_2}
 \end{equation}
@@ -403,7 +403,7 @@ $
 \subsection{Summary of all $\gradTD$ algorithms}
 In this Section, we provide a summary of the various $\gradTD$ based learning algorithms discussed so far in the context of FPF gain function approximation. 
 
-\begin{algorithm}{$\gradTD$ algorithm with Langevin SDE simulation}
+\begin{algorithm}{$\gradTD$ algorithm with density estimation and Langevin SDE simulation using a finite dimensional basis}
 	\begin{algorithmic}[1]
 		\Require $\{x^i\}_{i=1}^N, \{c(x^i)\}_{i=1}^N, \{\basis_j\}_{j=1}^{\ell}$, $\mcmcstep$, $T$.
 		\Ensure smooth posterior $\pr(x)$, gain at particle locations $\{\kFPF\}_{i=1}^N$
@@ -416,7 +416,7 @@ In this Section, we provide a summary of the various $\gradTD$ based learning al
 	\end{algorithmic}
 \end{algorithm} 
 
-\begin{algorithm}{$\gradTD$-L algorithm with finite basis}
+\begin{algorithm}{$\gradTD$-L algorithm with finite dimensional basis}
 	\begin{algorithmic}[1]
 		\Require $\{x^i\}_{i=1}^N, \{c(x^i)\}_{i=1}^N, \{\basis_j\}_{j=1}^{\ell}$.
 		\Ensure $\{\kFPF_i\}_{i=1}^N$
@@ -437,7 +437,7 @@ In this Section, we provide a summary of the various $\gradTD$ based learning al
 		\State Calculate $ \partial_{x_k}\Kern_{ij} = -\frac{(x_k^i - x_k^j)}{2\epsy} \Kern_{ij}$ for all $i,j =1$ to $N$ and $k = 1$ to $d$ \Comment{Gaussian kernel derivatives}
 		\State Calculate $M$ and $b$ by solving one of the following: \eqref{e:rkhs_beta_optimal_d} for $\gradTD$-RKHS-Opt, \eqref{e:rkhs_beta_N} for $\gradTD$-RKHS-N, \eqref{e:fpf_beta_n} for $\gradTD$-RKHS with memory or \eqref{e:fpf_beta_mu} for $\gradTD$-RKHS-OM.  
 		\State Calculate $\beta^* = M^{-1}b$
-		\State Calulate $\text{K}_i  =  \sum_{j=1}^N  \beta^{0*}_j \Kern_{ij} + \sum_{j=1}^N \sum_{k=1}^d \beta^{k*}_j \partial_{x_k} \Kern_{ij}$ for $i =1$ to $N$ \Comment{FPF gain function approximation}
+		\State Calculate $\text{K}_i  =  \sum_{j=1}^N  \beta^{0*}_j \nabla \Kern_{ij} + \underbrace{\sum_{j=1}^N \sum_{k=1}^d \beta^{k*}_j \partial_{x_k} \nabla \Kern_{ij}}_{\text{only for $\gradTD$-RKHS-Opt}}$ for $i =1$ to $N$ \Comment{FPF gain function approximation}
 		% \label{alg:rkhs}
 	\end{algorithmic}
 \end{algorithm}
