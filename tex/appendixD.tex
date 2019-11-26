@@ -1,6 +1,9 @@
 \chapter{Generalization Error Bounds for least-squares regression on RKHS }%
 \label{a:bousquet}
-Let $Z = X \times Y$ be the space of inputs and outputs and let $S = \{z_1 = (x_1, y_1), \cdots,z_N = (x_N,y_N)\}$ be a dataset of size $N$ drawn i.i.d. from an unknown distribution $\pr_{XY}$. Let $f:X \to Y$ be a function that maps from the input space $X$ to output space $Y$. A learning algorithm tries to learn the function $f_S$ from the given dataset $S$. 
+Here, we state some results on generalization error bounds for least-squares regression on RKHS obtained in \cite{boueli01} using the notions of stability of the algorithm.
+Extensions to include ERM with gradient terms in the loss function is part of future work. 
+
+Let $Z = X \times Y$ be the space of inputs and outputs and let $S = \{z_1 = (x_1, y_1), \cdots,z_N = (x_N,y_N)\}$ be a dataset of size $N$ drawn i.i.d. from an unknown distribution $\pr_{XY}$. Let $f:X \to Y$ be a function that maps from the input space $X$ to output space $Y$. A learning algorithm tries to learn the function $f$ from the given dataset $S$. 
 
 The generalization error or expected risk is defined as:
 \[
@@ -76,7 +79,7 @@ where $\mathcal{D} = \{y: \exists f \in \clH, \exists x \in X, f(x) = y\}$ is th
 	\beta \leq \frac{\kappa^2 \sigma^2}{2 \lambda N}
 	\]
 	\begin{proof}
-		The proof uses Lemma 20 in the paper that gives bounds on a general regularization term $N(g)$ that appears in the ERM. Here, I just state the result without the proof. 
+		The proof uses Lemma 20 in the paper that gives bounds on a general regularization term $N(g)$ that appears in the ERM. Here, we just state the result without the proof. 
 		\begin{lemma}
 			Consider two ERM formulations:
 			\[
@@ -115,8 +118,6 @@ where $\mathcal{D} = \{y: \exists f \in \clH, \exists x \in X, f(x) = y\}$ is th
 \end{theorem}
 
 One additional condition that is required is to bound the loss function. If we have an apriori bound on the target values $y_i$, then the boundedness condition is satisfied.
-
-
 Let $f_\pr$ denote the \textit{regression function},
 \[
 f_\pr := \argmin \Expect_{\pr_{XY}}[(f(x) - y)^2]
@@ -129,3 +130,4 @@ f_\pr := \argmin_f \Expect_{\pr_{XY}}[c(f(x), y)]
 \[
 f_S := \argmin_{f \in \clH} \frac{1}{N} \sum_{i=1}^N c(f(x_i), y_i) + \lambda \|f\|^2_\clH 
 \]
+\anand{Fix this}

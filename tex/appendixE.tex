@@ -1,18 +1,18 @@
 \chapter{Expectation Maximization (EM) Algorithm for Gaussian Mixtures}
 \label{a:em}
-
+The goal in our density estimation problem is this- given a set of $N$ samples or particles $\{x^i\}_1^N$, we are interested in finding the maximum-likelihood parameters of Gaussian mixture density that the particles may have been drawn from. Exepectation-maximization algorithm provides an iterative method to obtain the maximum-likelihood parameters. For a Gaussian mixture model of the form \eqref{e:fpf_gaussian_mix}, the parameters are $w_j, \mu_j$ and $\sigma_j$, that denote the weight, the mean and the standard deviation of the $j^{\text{th}}$ Gaussian component respectively.  The number of components $m$ in the mixture is fixed a priori. In the following, $k$ denotes the iteration index. The E and M steps described below are repeated until sufficient convergence of the parameters is observed. 
 \begin{itemize}
 \item E Step :
-
 \begin{equation}
-w^{(k)}(j|n)= \displaystyle \dfrac{w_{j}^{(k)}p_{j}(x^i;\mu_{j}^{(k)},\sigma_{j}^{(k)})}{ \displaystyle \sum_{j=0}^{m-1}w_{j}^{(k)} p_{j}(x^i;\mu_{j}^{(k)},\sigma_{j}^{(k)})}
+w^{(k)}(j|i)= \displaystyle \dfrac{w_{j}^{(k)}\pr_{j}(x^i;\mu_{j}^{(k)},\sigma_{j}^{(k)})}{ \displaystyle \sum_{j=1}^{m} w_{j}^{(k)} \pr_{j}(x^i;\mu_{j}^{(k)},\sigma_{j}^{(k)})}
 \end{equation}
 \item M Step :
 \begin{equation}
 \begin{aligned}
-\mu_{j}^{(k+1)} &=  \dfrac{\displaystyle \sum_{n=1}^{N}w^{(k)}(j|n)x^i}{\displaystyle \sum_{n=1}^{N}w^{(k)}(j|n)}\\
-\sigma_{j}^{(k+1)} &=  \sqrt{ \dfrac{\displaystyle \sum_{n=1}^{N}w^{(k)}(j|n)\|x^i-\mu_{j}^{(k+1)}\|^2}{\displaystyle \sum_{n=1}^{N}w^{(k)}(j|n)}}\\
-w_{j}^{(k+1)} &=  \dfrac{1}{N} \displaystyle \sum_{n=1}^{N}w^{(k)}(j|n)
+\mu_{j}^{(k+1)} &=  \Delta^{-1} \sum_{i=1}^{N}w^{(k)}(j|i)x^i\\
+\sigma_{j}^{(k+1)} &=  \sqrt{\Delta^{-1} \displaystyle \sum_{i=1}^{N}w^{(k)}(j|i)\|x^i-\mu_{j}^{(k+1)}\|^2}\\
+w_{j}^{(k+1)} &=  \dfrac{\Delta}{N}
 \end{aligned}
 \end{equation}
+where $\Delta = \displaystyle \sum_{i=1}^{N}w^{(k)}(j|i)$
 \end{itemize}

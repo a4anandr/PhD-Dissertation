@@ -27,7 +27,7 @@ given the observation history $\clZ_t\eqdef\sigma(Z_s:s\leq t)$. For any measura
 
 A huge body of literature has been devoted to the study of such problems. 
 The theory of nonlinear filtering has been described in \cite{kal80, baicri08}. A more accessible derivation of the nonlinear filter, from a change of measure standpoint is provided in \cite{kutsurpfi19}. In this section, without going into a lot of detail, we state some of the important results.
-\subsection{Zakai and Kushner-Stratonovich equations}
+\subsection{Zakai and Kushner-Stratonovich Equations}
 Zakai's equation \cite{zak69} and Kushner-Stratonovich (K-S) \cite{kus67, str60} equations are the key results in this area. 
 The Kushner-Stratonovich equation provides a stochastic PDE describing the evolution of $\pr^*_t$:
 \begin{equation}
@@ -135,7 +135,7 @@ with $\hat{c}_t \eqdef \Expect[c(X^i_t)\mid \clZ_t] = \int c(x) \pr_t(x)\, dx$ a
 \end{equation}
 where, the symbol ``$\circ$'' indicates  that the SDE is in Stratonovich form. The main subject of interest in this dissertation is the gain function $\kFPF_t$, that multiplies the innovations term $I_t$ in \eqref{e:fpf_stratonovich}. A detailed description of the gain function is provided next in \Section{s:fpf_gain}.
 % \anand{Include block diagrams comparing FPF and KF}
-\subsection{FPF Gain Function}
+\subsection*{FPF Gain Function}
 \label{s:fpf_gain}
 It is evident from \eqref{e:fpf_stratonovich}, that the FPF exhibits a gain $\times$ innovation error structure that is a hallmark feature of the Kalman-Bucy filter. This feedback control structure was also present in the K-S equation \eqref{e:fpf_kushner_stratonovich} describing the nonlinear filter, but conspicuously absent in the standard formulation of the particle filter. The FPF restores this feedback structure, which contributes to the robustness of the filter via the self-correcting property.  The block diagrams in \Fig{fig:fpf_kalman} illustrate the similarity in structure of the FPF with the Kalman filter. However, unlike the Kalman-Bucy filter where the gain is a constant, the FPF gain function $\kFPF_t$ depends on the state $X_t$. For a linear-Gaussian system, the optimal gain has been shown to coincide with the Kalman gain. 
 \begin{figure}
@@ -457,7 +457,7 @@ We begin by presenting algorithms to obtain a smooth approximation of the empiri
 \end{arabnum}
 The second set of experiments is more challenging as it requires continuous estimation of the gain at the sampling instants. Extended Kalman filter (EKF) and sequential importance sampling (SIS) particle filter are also used for performance comparison in the filtering examples.  
 %In \Section{s:fpf_em}, 
-\subsection{Smooth approximations of the posterior}
+\subsection{Smooth Approximations of the Posterior}
 \label{s:fpf_em}
 First, we are concerned with the gain approximation for a fixed $t$. The general version of the $\gradTD$ learning algorithm in \Section{s:diff_td_learning} requires the simulation of the Langevin SDE \eqref{e:diff_td_langevin_cts}. To simulate the Langevin SDE, one needs to obtain a smooth potential function $\pot = -\log \pr$. However, in the FPF, estimates to the posterior density $\pr$ are only available in the form of its empirical equivalent $\pr^{(N)}$. This necessitates the smoothing of the empirical estimate $\pr^{(N)}$. The contribution of the work in \cite{raddevmey16} is the approximation of the FPF gain, along with a smooth approximation of the empirical distributions. Therefore, before choosing a parameterized family of continuous gain functions $\clK = \{\kFPF_\param : \param\in\Re^{\ell}\}$, it is required to specify a parameterized family  of smooth and continuous densities, denoted  $\clP = \{ \pr_\alpha : \alpha\in\Re^m\}$, where each $\alpha_i$ for $1 \leq i \leq m$ is a parameter vector that specifies a member density from within the family $\clP$.
 The gain approximation therefore consists of two steps:
@@ -849,7 +849,7 @@ The conditional mean is a crude indicator of success. The goal of this paper is 
 %	\label{histogram_state_estimate}
 %\end{figure}
 
-\subsection{Ship dynamics example} 
+\subsection{Ship Dynamics Example} 
 \label{s:ship_dynamics}
 The performance of the FPF was tested for a nonlinear multidimensional dynamical system. This example, originally described in \cite{budchelee07}, has been tested with the constant gain implementation of the FPF in \cite{tilghiomeh13}.
 

@@ -85,7 +85,7 @@ A version of the algorithm for discrete-time examples with applications to optim
  
 % nonlinear parameterization in Section 11.5.3 
 % average-cost TD learning based on \cite{kontsi03a}
-\subsection{Reproducing Kernel Hilbert space (RKHS)}
+\subsection{Reproducing Kernel Hilbert Space (RKHS)}
 \label{s:rkhs}
 Traditionally, TD learning has been tested on spaces spanned by a carefully chosen finite set of basis functions. However, there are no standard approaches to choosing the basis.  If any insight about the structure of the true value function is available, this can be exploited in choosing an appropriate function class. In optimal control problems, this insight is available in the form of fluid value functions \cite{ctcn,huachemehmeysur11}. But this is not true for Poisson's equation of interest. One of the novelties of this dissertation is the use of reproducing kernel Hilbert space (RKHS) as an approximating function space for TD learning algorithms. This simplifies the choice of problem dependent basis functions and make use of the information about particle locations effectively. 
  
