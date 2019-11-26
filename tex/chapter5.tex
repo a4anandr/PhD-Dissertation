@@ -154,7 +154,7 @@ Consider a discrete time Markov chain with a transition kernel $P$.  Let $h$ den
 \[
 (P - I) h = -\tilc,
 \]
-where $I$ refers to the identity operator.
+where $I$ denotes the identity operator.
 In discrete time, the asymptotic variance has the following representation in terms of $h$,
 \begin{equation}
 \asymvar = 2 \langle h, \tilc \rangle_{L^2} - \langle \tilc, \tilc \rangle_{L^2}.
@@ -266,9 +266,9 @@ b_N & \eqdef  \frac{1}{N} \sum_{n=0}^{N-1} \tilc(\markovstate_n)\, \Bigl( \psi(\
 \end{aligned}
 \]
 
-Similar results for optimal control variates for reversible Markov chains have been obtained in \cite{delkon12}. Although optimal parameter weight estimates $\param_N = M_N^{-1} b_N$ are easy to obtain, the main difficulty is to compute the term $P\psi$ which is part of the control variate defined in \Prop{t:theta_discrete}. In \cite{delkon12}, numerical examples are presented for a class of conjugate random-scan Gibbs samplers for which $P\psi$ is explicitly computable in closed form. 
+Similar results for optimal control variates for reversible Markov chains have been obtained in \cite{delkon12}. Although optimal parameter weight estimates $\param_N = M_N^{-1} b_N$ are easy to obtain, the term $P\psi$ which is part of the control variate, is difficult to compute. In \cite{delkon12}, numerical examples are presented for a class of conjugate random-scan Gibbs samplers for which $P\psi$ is explicitly computable in closed form. 
 
-In this dissertation, we substitute for $(P-I)\basis$ with $\mcmcstep \generate \basis$, which is easy to compute. In \cite{brodurmeymourad18}, it has been shown that in addition to standard conditions for geometric ergodicity of the discretized Markov chain, if the following assumptions are satisfied, as $\mcmcstep \to 0^+$,
+In this dissertation, we substitute for $(P-I)\basis$ with $\mcmcstep \generate \basis$, which is easy to compute. In \cite{brodurmeymourad18}, it has been shown that, in addition to standard conditions for geometric ergodicity of the discretized Markov chain, if the following assumptions are satisfied, as $\mcmcstep \to 0^+$:
 \begin{align}
 \mcmcstep {\asymvar}_{,\mcmcstep} (c^\param) &= \asymvar(c^\param) + o(1), \\ 
 \int c^\param(x) \pr_\mcmcstep(x) dx & = \int c^\param(x) \pr(x) dx + O(\mcmcstep), 
@@ -277,7 +277,7 @@ then the substitution is reasonable. Here $\pr_\mcmcstep$ denotes the invariant 
 
 \section{Sample Variance v Asymptotic Variance}
 \label{s:mcmc_var_vs_asym_var}
-The basic idea behind using control variates to minimize asymptotic variance of the MCMC estimates was discussed in \Section{s:mcmc_langevin}. It requires approximating the value function $h$, which is non-trivial in most cases. A large body of prior research \cite{mirsolimp13, oatgircho,papmirgir14} attempts to achieve better estimates by solving an easier problem. In \cite{papmirgir14}, a parameterized family of control variates is considered as in this dissertation. However, the optimal parameter is chosen to minimize the variance rather than the asymptotic variance. This is well-motivated only  if the samples are i.i.d. 
+The basic idea behind asymptotic variance minimization using control variates was discussed in \Section{s:mcmc_langevin}. It requires approximating the value function $h$, which is non-trivial in most cases. A large body of prior research \cite{mirsolimp13, oatgircho,papmirgir14} attempts to achieve better estimates by solving an easier problem. In \cite{papmirgir14}, a parameterized family of control variates is considered as in this dissertation. However, the optimal parameter is chosen to minimize the variance rather than the asymptotic variance. This is well-motivated only  if the samples are i.i.d. Typically, successive samples in an MCMC algorithm are highly correlated. 
 The unbiased estimator in \cite{papmirgir14} is based on a function $c^{\vartheta}$ of the same form as \eqref{e:mcmc_h_and_c}:
 \[
 \begin{aligned}
@@ -294,7 +294,7 @@ The quantity minimized is the variance, i.e. $\sigma^2_{\vartheta} = \Expect[(\t
 \vartheta^*= \argmin_{\vartheta \in \Re^\ell} \sigma^2_\vartheta  = M^{-1} b
 \label{e:mcmc_var_theta_star}
 \end{equation}
-where $M = \langle \generate \psi,  \generate \psi \rangle_{L^2}$ and $b = - \langle \tilc, \generate \psi \rangle_{L^2}$. This is termed the zero-variance (ZV) algorithm in \cite{papmirgir14}. An interesting observation is that the variance minimization algorithm is equivalent to minimizing the Bellman error technique presented in \eqref{e:fpf_nl_be}.
+where $M = \langle \generate \psi,  \generate \psi \rangle_{L^2}$ and $b = - \langle \tilc, \generate \psi \rangle_{L^2}$. This is termed the zero-variance (ZV) algorithm in \cite{papmirgir14}. An interesting observation is that the variance minimization algorithm is equivalent to minimizing the Bellman error, presented in \eqref{e:fpf_nl_be}.
 
 The important question to be addressed is: does minimizing the variance minimize (perhaps approximately) minimize the asymptotic variance? Using a simple numerical example, it can be shown that this is not always the case.
 
@@ -337,7 +337,7 @@ The discrepancy is clear from a close look at the two functions $c^{\theta^*}$ a
 \]
 This helps reduce the asymptotic variance for this slowly mixing diffusion. The function $c^{\vartheta^*}$  does not share this property and produces biased estimates of $\eta$ in each well.
 The approximations ${h^{\vartheta^*}}'$ and ${h^{\theta^*}}'$ are plotted along with the exact solution $h'$ obtained analytically in
-\Fig{fig:mcmc_cv_theta_var}.  The function ${h^{\vartheta^*}}'$ is a poor approximation to $h'$,  and that results in much higher asymptotic variance. In summary, to minimize the asymptotic variance, it is  important to approximate $h'$ quite well and the $\gradTD$ objective function aims to minimize the approximation error in the mean-square sense. The same experiment was repeated for $c(x) \equiv\sin x$ with similar results. It is conjectured that this phenomenon is more pronounced in multimodal densities. However, for $c(x) = x^2$, both the methods achieve nearly similar reduction in asymptotic variance. 
+\Fig{fig:mcmc_cv_theta_var}.  The function ${h^{\vartheta^*}}'$ is a poor approximation to $h'$,  and that results in much higher asymptotic variance. In summary, to minimize the asymptotic variance, it is  important to approximate $h'$ quite well and the $\gradTD$ objective function aims to minimize the approximation error in $L^2(\pr)$ norm. The same experiment was repeated for $c(x) \equiv\sin x$ with similar results. It is conjectured that this phenomenon is more pronounced in multimodal densities. For $c(x) = x^2$, both the methods achieve nearly similar reduction in asymptotic variance (parts C and D of \Fig{fig:mcmc_var_vs_asym_var}). 
 
 \begin{figure}[htbp]
 	\centering
