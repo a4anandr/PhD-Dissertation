@@ -3,7 +3,7 @@
 Here, we state some results on generalization error bounds for least-squares regression on RKHS obtained in \cite{boueli01} using the notions of stability of the algorithm.
 Extensions to include ERM with gradient terms in the loss function is part of future work. 
 
-Let $Z = X \times Y$ be the space of inputs and outputs and let $S = \{z_1 = (x_1, y_1), \cdots,z_N = (x_N,y_N)\}$ be a dataset of size $N$ drawn i.i.d. from an unknown distribution $\pr_{XY}$. Let $f:X \to Y$ be a function that maps from the input space $X$ to output space $Y$. A learning algorithm tries to learn the function $f$ from the given dataset $S$. 
+Let $Z = X \times Y$ be the space of inputs and outputs and let $S = \{z_1 = (x_1, y_1), \cdots,z_N = (x_N,y_N)\}$ be a dataset of size $N$ drawn i.i.d. from an unknown distribution $\pr_{XY}$. Let $f:X \to Y$ be a function that maps from the input space $X$ to output space $Y$. A learning algorithm tries to learn the function $f_S$ from the given dataset $S$. 
 
 The generalization error or expected risk is defined as:
 \[
@@ -19,8 +19,9 @@ If $S = \{z_1,\dots, z_{i-1},z_i,z_{i+1},\dots z_N\}$, let us define a modified 
 
 Uniform stability: A notion of uniform stability is defined for the algorithm as follows. If the training set $S$ is defined as above and $S_i$ be the training set where $i^{th}$ sample is removed, then the algorithm is $\beta$-stable if the following holds:
 \[
-\|c(f_S, z ) - c(f_{S_i},z)\|_{\infty} \leq \beta, \qquad \forall S \in Z^N, \forall z'_i, z \in Z
+\|c(f_S, z ) - c(f_{S_i},z)\|_{\infty} \leq \beta, \qquad \forall S \in Z^N, \forall z'_i, z \in Z,
 \]
+where $c(\cdot,\cdot)$ denotes the loss function. 
 This condition implies stability of the algorithm in the sense that if a training sample from the original set is replaced by a new sample, the difference in cost is smaller than some constant $\beta$. 
 
 \begin{lemma}
@@ -52,7 +53,7 @@ This condition implies stability of the algorithm in the sense that if a trainin
 \end{lemma}
 Now, the next step is to prove that our algorithm of interest is $\beta$-stable for some value of $\beta$. 
 
-\section{Application to regularization in Hilbert spaces}
+\section{Application to Regularization in Hilbert Spaces}
 Let $\clH$ be an RKHS induced by a kernel function $K$. Let us assume that $K$ is continuous and bounded, so that
 \[
 \kappa := \sup_{x \in X} \sqrt{K(x,x)} < \infty
@@ -78,56 +79,5 @@ where $\mathcal{D} = \{y: \exists f \in \clH, \exists x \in X, f(x) = y\}$ is th
 	\[
 	\beta \leq \frac{\kappa^2 \sigma^2}{2 \lambda N}
 	\]
-	\begin{proof}
-		The proof uses Lemma 20 in the paper that gives bounds on a general regularization term $N(g)$ that appears in the ERM. Here, we just state the result without the proof. 
-		\begin{lemma}
-			Consider two ERM formulations:
-			\[
-			\begin{aligned}
-			\text{Problem 1:} & R_r(g) := \frac{1}{N} \sum_{j=1}^N l(g, z_j) + \lambda N(g), \\
-			\text{Problem 2:} & R_r^{\textbackslash i}(g) := \frac{1}{N} \sum_{j \neq i} l(g, z_j) + \lambda N(g)
-			\end{aligned}
-			\]
-			Let $f$ be the minimizer of $R_r$ in $\clH$ and let $f^{\textbackslash i}$ be the minimizer of $R_r^{\textbackslash i}$ in $\clH$ and denote $\Delta f = f^{\textbackslash i } - f$. Then for any $f \in [0,1]$,
-			\[
-			N(f) - N(f+t \Delta f) + N(f^{\textbackslash i}) - N(f^{\textbackslash i} - t \Delta f) \leq \frac{t \sigma}{\lambda N}|\Delta f(x_i)|
-			\]
-		\end{lemma}
-		
-		For regularization in the RKHS, where $N(g) = \|g\|^2_\clH$,
-		\[
-		2 \| \Delta f\|^2_\clH \leq \frac{\sigma}{\lambda N} | \Delta f(x_i)|
-		\] 
-		Using \eqref{e:cauchy_schwarz}, 
-		\[
-		\Delta f(x_i) \leq \kappa \|\Delta f \|_\clH ,
-		\]
-		so that, 
-		\[
-		\| \Delta f \|_\clH \leq \frac{ \sigma \kappa}{2 \lambda N}
-		\]
-		By the $\sigma$-admissibility of $l$,
-		\[
-		| l(f,z) - l(f^{\textbackslash i},z)| \leq \sigma |f(x) - f^{\textbackslash i}(x)| = \sigma |\Delta f(x) |
-		\]
-		Using \eqref{e:cauchy_schwarz},we have 
-		\[
-		| l(f,z) - l(f^{\textbackslash i},z)| \leq \sigma \kappa \|\Delta f\|_\clH = \frac{\kappa^2 \sigma^2}{2 \lambda N}
-		\]
-	\end{proof}
 \end{theorem}
-
-One additional condition that is required is to bound the loss function. If we have an apriori bound on the target values $y_i$, then the boundedness condition is satisfied.
-Let $f_\pr$ denote the \textit{regression function},
-\[
-f_\pr := \argmin \Expect_{\pr_{XY}}[(f(x) - y)^2]
-\]
-
-For a more general problem
-\[
-f_\pr := \argmin_f \Expect_{\pr_{XY}}[c(f(x), y)]
-\]
-\[
-f_S := \argmin_{f \in \clH} \frac{1}{N} \sum_{i=1}^N c(f(x_i), y_i) + \lambda \|f\|^2_\clH 
-\]
-\anand{Fix this}
+The proof uses Lemma 20 in the paper that gives bounds on a general regularization term $N(g)$ that appears in the ERM. Here, we just state the result without the proof. 

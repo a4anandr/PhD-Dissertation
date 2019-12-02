@@ -213,7 +213,7 @@ where $A$ is an operator and $\mathcal{L}^2_{\pr}(\state)$ is the Hilbert space 
 The key objective in an ERM problem is not just to obtain a good fit on the observed data, but to generalize well on ``unseen'' data as well. If the standard $L^2$ norm is used for regularization, \eqref{e:rkhs_erm_regularized} is called the ridge regression. To obtain sparse solutions, $L^1$-regularization is used, which forms the LASSO technique \cite{tiblasso}. Regularization is used to prevent overfitting and achieve better generalization.   In this dissertation, we consider a Tikhonov regularization scheme \cite{tikars79} associated with Mercer kernels.
 %\anand{ridge and LASSO needs citations}
 
-\subsection{ERM in an RKHS Setting}
+\subsection*{ERM in an RKHS Setting}
 \label{s:erm_rkhs}
 Now that the utility of regularized empirical risk minimization has been motivated, we consider a formulation of an ERM in an RKHS setting. A loss function $L \colon  \state\times \Re \to\Re$ is given. It is not necessary that the loss function takes the mean-squared error form in \eqref{e:rkhs_erm_regularized}. Given an RKHS $\clH$, the goal is to find the function $f_\reg^*\in\clH$ that solves the infinite-dimensional regularized optimization problem:
 \begin{equation}
