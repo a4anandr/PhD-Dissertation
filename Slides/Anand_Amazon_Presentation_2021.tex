@@ -574,7 +574,7 @@
 \def\param{\theta}
 \def\oscState{\vartheta}
 \def\test{\varphi}
-\def\discount{\discount}
+\def\discount{\gamma}
 \def\eligibvector{\varphi}
 \def\sagain{\alpha}
 \def\error{\mathcal{E}}
@@ -695,7 +695,16 @@
 %\item Explored the application to MCMC algorithms {\footnotesize \bl{[Brosse et al. 19]}}
 %\end{itemize}
 %\end{frame}
-
+%............................................................... New Section
+\section{Motivational applications}
+\begin{frame}
+\frametitle{Motivational applications}
+\begin{itemize}
+	\item \alertb{Reinforcement learning} - AlphaGo, Atari games, Self-driving cars etc.\pause
+	\item \alertb{Nonlinear state estimation} - Fitness tracker, smart watch, weather prediction models.\pause
+	\item \alertb{Markov chain Monte Carlo} - Computer vision, Decision theory etc.
+\end{itemize}
+\end{frame}
 %............................................................... New Section
 \section{Poisson's Equation}
 
@@ -736,20 +745,21 @@ $f$ & - forcing function, usually centered, i.e. $\Expect[f] = 0$.\\ \pause
 \begin{frame}
 \frametitle{Poisson's Equation}
 \framesubtitle{Stochastic optimal control}
- \only<1>{\alertb{Example:} In average cost optimal control problems,
+ \only<1-4>{\alertb{Example:} In average cost optimal control problems,
 \[
 c(x,u) + P_u h(x) = h(x) + \eta
 \]
 \begin{tabular}{rl}
-$c(x,u)$ & - Cost function associated with state $x$ and action $u$.\\
-$P_u$ & - Transition kernel of the controlled Markov chain. \\	
-$\eta$ & - Average cost.\\
-{\LARGE \alertb{$h$}} & - {\LARGE \alertb{Relative value function}} \\
+$c(x,u)$ & - Cost function associated with state $x$ and action $u$.\\ \pause
+$P_u$ & - Transition kernel of the controlled Markov chain,\\ \pause
+\alt<3>{& i.e. $P_u h(x) \eqdef \Expect[h(X_{t+1})|X_t = x, U_t  = u]$.\\ \pause}{} 	
+$\eta$ & - Average cost.\\ 
+{\LARGE \alertb{$h$}} & - {\LARGE \alertb{Relative value function}} \\ \pause
 \end{tabular}\\[1em]
 %Poisson's equation is the average-cost dynamic programming equation.
 }
-\only<2>{
-\alertb{Example:} In average cost optima l control problems,
+\only<5>{
+\alertb{Example:} In average cost optimal control problems,
 \[
 \alertb{\min_{u \in \sf U}} \bigl[c(x,u) + P_u \alertb{h^*}(x)\bigr] = \alertb{h^*}(x) + \alertb{\eta^*}
 \]
@@ -761,7 +771,7 @@ $\eta$ & - Average cost.\\
 \end{tabular}\\[1em]
 Poisson's equation is the average-cost dynamic programming equation for a fixed policy $u$.
 }
-\only<3->{
+\only<6->{
 	\alertb{Example:} In discounted cost optimal control problems,
 	\[
 	\alertb{\min_{u \in \sf U}} \bigl[c(x,u) +  P_u \alertb{h_\discount^*}(x)\bigr] = \alertb{(1+\discount)} \alertb{h_\discount^*}(x)
@@ -769,7 +779,7 @@ Poisson's equation is the average-cost dynamic programming equation for a fixed 
 	\begin{tabular}{rl}
 		$c(x,u)$ & - Cost function associated with state $x$ and action $u$.\\
 		$P_u$ & - Transition kernel of the controlled Markov chain. \\	
-		$\discount$ & - Discount rate,  $\discount \geq 0$ (usual notation $\beta = \frac{1}{1+\discount}$).\\
+		$\discount$ & - Discount rate,  $\discount \geq 0$ (usual notation $\beta = \frac{1}{1+\discount},\, \beta \leq 1$).\\
 		{\LARGE \alertb{$h_\discount^*$}} & - {\LARGE \alertb{Optimal discounted-cost value function}} \\
 	\end{tabular}\\[1em]
 	Poisson's equation is the average-cost dynamic programming equation for a fixed policy $u$.
@@ -1952,7 +1962,7 @@ L_n(x,g,\nabla g) &  \eqdef  \| \nabla g(x) \|^2 - 2 \tilc_N(x)g(x)  + \alertb{\
 %\end{center}
 %\end{frame}
 
-\section{Applications to MCMC}
+\section{Applications to Markov Chain Monte Carlo}
 \begin{frame}
 \frametitle{Applications to MCMC}
 \framesubtitle{Introduction to MCMC}
@@ -1980,7 +1990,7 @@ In many applications, we need to compute
 \framesubtitle{Asymptotic Variance}
 Estimates $\eta_t$ obey a Central Limit Theorem,
 \[
-\sqrt{t} (\eta_t - \eta) \xrightarrow[]{d} N(0,\gamma^2)
+\sqrt{t} (\eta_t - \eta) \xrightarrow[]{d} N(0,\discount^2)
 \]
 Representation in terms of $h$ {\footnotesize \bl{[see eg: Glynn \& Meyn 96]}}:
 \[
@@ -2206,21 +2216,21 @@ Minimizing $\sigma^2$ is easier than minimizing $\gamma^2$  {\footnotesize (ZV m
 
 
 
-%\begin{frame}
-%\frametitle{Future Work}
-%\begin{itemize}
-%	\item[$\bullet$]
-%	Create algorithms whose complexity does not grow with dimension.
-%	\item[$\bullet$]
-%	A tractable solution to the ERM with regularized gradient may also lead to more efficient algorithms.
-%	
-%	\item[$\bullet$] Solidarity with the prior work  will require the extension of the RKHS theory to the case of self-adjoint kernels that are not symmetric.
-%	
-%	\item[$\bullet$]
-%	Research and large scale testing is required for nonlinear filtering and MCMC applications.
-%	
-%\end{itemize}
-%\end{frame}
+\begin{frame}
+\frametitle{Future Work}
+\begin{itemize}
+	\item[$\bullet$]
+	Create algorithms whose complexity does not grow with dimension.
+	\item[$\bullet$]
+	A tractable solution to the ERM with regularized gradient may also lead to more efficient algorithms.
+	
+	\item[$\bullet$] Solidarity with the prior work  will require the extension of the RKHS theory to the case of self-adjoint kernels that are not symmetric.
+	
+	\item[$\bullet$]
+	Research and large scale testing is required for nonlinear filtering and MCMC applications.
+	
+\end{itemize}
+\end{frame}
 
 \begin{frame}
 \frametitle{References}
